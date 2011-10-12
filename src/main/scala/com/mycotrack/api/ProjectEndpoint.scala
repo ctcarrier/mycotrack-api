@@ -7,6 +7,10 @@ import net.liftweb.json.Serialization._
 import org.bson.types.ObjectId
 import akka.event.EventHandler
 import cc.spray.http._
+import HttpHeaders._
+import HttpMethods._
+import StatusCodes._
+import MediaTypes._
 import com.mycotrack.api.model._
 import com.mycotrack.api.response._
 
