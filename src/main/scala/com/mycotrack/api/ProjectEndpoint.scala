@@ -1,9 +1,7 @@
 package com.mycotrack.api
 
 import cc.spray.Directives
-import directives.ValidationDirectives
-import net.liftweb.json.JsonParser._
-import net.liftweb.json.Serialization._
+import json.LiftJsonSupport
 import org.bson.types.ObjectId
 import akka.event.EventHandler
 import cc.spray.http._
@@ -11,6 +9,11 @@ import HttpHeaders._
 import HttpMethods._
 import StatusCodes._
 import MediaTypes._
+import net.liftweb.json.JsonParser._
+import net.liftweb.json.DefaultFormats
+import net.liftweb.json.Serialization._
+
+
 import com.mycotrack.api.model._
 import com.mycotrack.api.response._
 
@@ -18,7 +21,7 @@ import com.mycotrack.api.response._
  * @author chris carrier
  */
 
-trait ProjectEndpoint extends Directives with ValidationDirectives {
+trait ProjectEndpoint extends Directives with LiftJsonSupport {
 
   final val NOT_FOUND_MESSAGE = "resource.notFound"
   final val INTERNAL_ERROR_MESSAGE = "error"
@@ -57,13 +60,13 @@ trait ProjectEndpoint extends Directives with ValidationDirectives {
                   }
                 }
             } ~
-              requiringStrings(requiredFields) {
-                put {
-                  ctx =>
+            //extract[Project] { resource =>
+            content(as[Project]) { resource =>
+                put { ctx =>
                     try {
-                      val content = new String(ctx.request.content.get.buffer)
+                      //val content = new String(ctx.request.content.get.buffer)
 
-                      val resource = parse(content).extract[Project]
+                      //val resource = parse(content).extract[Project]
 
                       service.updateProject(new ObjectId(resourceId), resource).onTimeout(f => {
                         ctx.fail(StatusCodes.InternalServerError, write(ErrorResponse(1, ctx.request.path, List(INTERNAL_ERROR_MESSAGE))))
@@ -86,10 +89,11 @@ trait ProjectEndpoint extends Directives with ValidationDirectives {
                     }
                 }
               }
+           // }
         } ~
           path("") {
-            requiringStrings(requiredFields) {
               post {
+               // content(as[Project]) {
                 ctx =>
                   val content = new String(ctx.request.content.get.buffer)
 
@@ -109,7 +113,7 @@ trait ProjectEndpoint extends Directives with ValidationDirectives {
                       EventHandler.info(this, "Excepted: " + e)
                       ctx.fail(StatusCodes.InternalServerError, write(ErrorResponse(1, ctx.request.path, List(e.getMessage))))
                     }
-                  }
+                 // }
               }
             }
           } ~

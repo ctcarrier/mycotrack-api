@@ -5,5 +5,4 @@ package com.mycotrack.api.model
  * @version 9/29/11
  */
 
-
 case class NestedObject(nestedId: Long, value: Int)
