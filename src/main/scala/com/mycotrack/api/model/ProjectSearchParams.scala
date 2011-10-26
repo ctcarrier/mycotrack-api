@@ -13,14 +13,9 @@ object ProjectSearchParams {
 
     val query = MongoDBObject()
 
-    if (p.name != None) {
-      query += "content.name" -> p.name.get
-    }
+    p.name.foreach(xs => query += "content.name" -> xs)
 
-
-    if (p.description != None) {
-      query += "content.description" -> p.description.get
-    }
+    p.description.foreach(xs => query += "content.description" -> xs)
 
     query
   }

@@ -43,7 +43,7 @@ class ProjectSpec extends Specification {
   configDb.insert(dbo, WriteConcern.Safe)
   val testProjectId = dbo.get("_id").toString
 
-  def is = args(traceFilter = includeTrace("com.zub*")) ^
+  def is = args(traceFilter = includeTrace("com.mycotrack*")) ^
     String.format("The direct GET %s/%s API should", BASE_URL, testProjectId) ^
     "return HTTP status 200 with a response body from: " + BASE_URL ! as().getTest() ^
     "and return 404 for a non-existent resource" ! as().getNotFound() ^

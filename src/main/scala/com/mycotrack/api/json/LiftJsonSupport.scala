@@ -1,22 +1,15 @@
 package com.mycotrack.api.json
 
-import java.io.ByteArrayInputStream
-
 import cc.spray._
-import marshalling.{DefaultMarshallers, DefaultUnmarshallers, UnmarshallerBase, MarshallerBase}
+import typeconversion._
 import http._
-import HttpHeaders._
-import HttpMethods._
-import StatusCodes._
 import MediaTypes._
-import utils._
-import MediaRanges._
-import HttpCharsets._
 
-import net.liftweb.json.JsonParser._
-import net.liftweb.json.DefaultFormats
 import net.liftweb.json.Serialization._
-
+import akka.event.EventHandler
+import org.bson.types.ObjectId
+import net.liftweb.json.JsonAST.{JString, JValue}
+import net.liftweb.json._
 
 /**
  * @author chris_carrier
@@ -24,16 +17,21 @@ import net.liftweb.json.Serialization._
  */
 
 
-object LiftJsonSupport extends LiftJsonSupport
-
 trait LiftJsonSupport {
-  implicit val formats = DefaultFormats
+   implicit val formats: Formats
 
-   implicit def liftJsonUnmarshaller[A :Manifest] = new UnmarshallerBase[A] {
+   implicit def liftJsonUnmarshaller[A <: Product :Manifest] = new UnmarshallerBase[A] {
            val canUnmarshalFrom = ContentTypeRange(`application/json`) :: Nil
            def unmarshal(content: HttpContent) = protect {
-                   val jsonSource = DefaultUnmarshallers.StringUnmarshaller.unmarshal(content).right.get
+             try {
+                   val jsonSource = DefaultUnmarshallers.StringUnmarshaller(content).right.get
                    parse(jsonSource).extract[A]
+             } catch {
+               case e => {
+                 EventHandler.error(e, this, "Problem with lift-json")
+                 throw e
+               }
+             }
            }
    }
 
@@ -44,4 +42,20 @@ trait LiftJsonSupport {
                    DefaultMarshallers.StringMarshaller.marshal(jsonSource, contentType)
            }
    }
+}
+
+class ObjectIdSerializer extends Serializer[ObjectId] {
+  private val ObjectIdClass = classOf[ObjectId]
+
+  def deserialize(implicit format: Formats): PartialFunction[(TypeInfo, JValue), ObjectId] = {
+    case (TypeInfo(ObjectIdClass, _), json) => json match {
+      case JString(s) if (ObjectId.isValid(s)) =>
+        new ObjectId(s)
+      case x => throw new MappingException("Can't convert " + x + " to ObjectId")
+    }
+  }
+
+  def serialize(implicit formats: Formats): PartialFunction[Any, JValue] = {
+    case x: ObjectId => JString(x.toString)
+  }
 }
