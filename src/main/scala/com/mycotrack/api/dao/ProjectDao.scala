@@ -11,7 +11,6 @@ import org.bson.types.ObjectId
 
 /**
  * @author chris carrier
- * // TODO need a better way to have this as a singleton "object" and use db as an implicit val.
  */
 
 class ProjectDao(mongoCollection: MongoCollection) extends Dao {
@@ -28,7 +27,7 @@ class ProjectDao(mongoCollection: MongoCollection) extends Dao {
     Future {
       val dbo = grater[ProjectWrapper].asDBObject(modelWrapper)
       mongoCollection += dbo
-      Some(modelWrapper.copy(_id = dbo.getAs[org.bson.types.ObjectId]("_id"))) // TODO grater was not working here. If this were an actor you would just do a "self.channel" as before.
+      Some(modelWrapper.copy(_id = dbo.getAs[org.bson.types.ObjectId]("_id")))
     }
   }
 

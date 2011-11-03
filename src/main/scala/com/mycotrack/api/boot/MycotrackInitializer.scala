@@ -12,16 +12,17 @@ import com.mongodb.casbah.MongoConnection
 import cc.spray.{HttpService, RootService}
 import com.mycotrack.api._
 import _root_.com.mycotrack.api.dao._
+import akka.event.slf4j.Logging
+import model.{NestedObject, Project}
 
 /**
  * @author chris_carrier
  */
 
 
-class MycotrackInitializer extends Initializer {
+class MycotrackInitializer extends Initializer with Logging {
 
-  val logger = LoggerFactory.getLogger("com.mycotrack.Project.boot.MycotrackInitializer");
-  logger.info("Running Initializer")
+  log.info("Running Initializer")
 
   val akkaConfig = akka.config.Config.config
 
@@ -56,3 +57,4 @@ class MycotrackInitializer extends Initializer {
   )
 
 }
+

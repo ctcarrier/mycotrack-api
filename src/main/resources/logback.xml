@@ -15,18 +15,14 @@
         </encoder>
     </appender>
     <appender name="R" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <File>/var/log/mycotrack/sprayTest.log</File>
+        <File>/var/log/mycotrack.log</File>
         <encoder>
             <pattern>[%4p] [%d{ISO8601}] [%t] %c{1}: %m%n</pattern>
         </encoder>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>/var/log/mycotrack/sprayTest.log.%d{yyyy-MM-dd-HH}</fileNamePattern>
+            <fileNamePattern>/var/log/mycotrack.log.%d{yyyy-MM-dd-HH}</fileNamePattern>
         </rollingPolicy>
     </appender>
-    <logger name="akka" level="DEBUG">
-        <appender-ref ref="stdout"/>
-        <appender-ref ref="R"/>
-    </logger>
     <root level="DEBUG">
         <appender-ref ref="stdout"/>
         <appender-ref ref="R"/>
