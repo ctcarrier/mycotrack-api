@@ -5,16 +5,15 @@ import json.{ObjectIdSerializer, LiftJsonSupport}
 import org.bson.types.ObjectId
 import akka.event.EventHandler
 import cc.spray.http._
+import cc.spray.typeconversion._
 import HttpHeaders._
 import HttpMethods._
 import StatusCodes._
 import MediaTypes._
 import net.liftweb.json.JsonParser._
 import net.liftweb.json.Serialization._
-
-
-import com.mycotrack.api.model._
-import com.mycotrack.api.response._
+import model._
+import response._
 import net.liftweb.json.{Formats, DefaultFormats}
 import cc.spray._
 import akka.dispatch.Future
@@ -48,10 +47,10 @@ trait ProjectEndpoint extends Directives with LiftJsonSupport {
                 }
   }
 
-  def withSuccessCallback(ctx: RequestContext)(f: Future[_]): Future[_] = {
+  def withSuccessCallback(ctx: RequestContext, statusCode: StatusCode = OK)(f: Future[_]): Future[_] = {
     f.onComplete(f => {
                         f.result.get match {
-                      case Some(ProjectWrapper(oid, version, dateCreated, lastUpdated, content)) => ctx.complete(HttpResponse(OK, SuccessResponse[Project](version, ctx.request.path, 1, None, content.map(x => x.copy(id = oid)))))
+                      case Some(ProjectWrapper(oid, version, dateCreated, lastUpdated, content)) => ctx.complete(HttpResponse(statusCode, SuccessResponse[Project](version, ctx.request.path, 1, None, content.map(x => x.copy(id = oid))).toHttpContent))
                       case None => ctx.fail(StatusCodes.NotFound, write(ErrorResponse(1l, ctx.request.path, List(NOT_FOUND_MESSAGE))))
                     }
                       })
@@ -111,7 +110,7 @@ trait ProjectEndpoint extends Directives with LiftJsonSupport {
           postProject {
             resource => ctx =>
               withErrorHandling(ctx) {
-                withSuccessCallback(ctx) {
+                withSuccessCallback(ctx, Created) {
                   service.createProject(resource)
                 }
               }

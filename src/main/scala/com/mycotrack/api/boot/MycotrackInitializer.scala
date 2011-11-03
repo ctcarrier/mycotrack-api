@@ -11,11 +11,9 @@ import com.mongodb.ServerAddress
 import com.mongodb.casbah.MongoConnection
 import cc.spray.{HttpService, RootService}
 import com.mycotrack.api._
-import com.mycotrack.api.dao._
+import _root_.com.mycotrack.api.dao._
 import akka.event.slf4j.Logging
 import model.{NestedObject, Project}
-
-
 
 /**
  * @author chris_carrier
@@ -37,22 +35,24 @@ class MycotrackInitializer extends Initializer with Logging {
     case List(s) => MongoConnection(s)(mongoDbName)
     case s: List[String] => MongoConnection(s)(mongoDbName)
   }
+  val dao = new ProjectDao(db(collection))
 
   // ///////////// INDEXES for collections go here (include all lookup fields)
   //  configsCollection.ensureIndex(MongoDBObject("customerId" -> 1), "idx_customerId")
-  val mainModule = new ProjectEndpoint {
-    val service = new ProjectDao(db(collection))
-  }
+  val projectModule = new ProjectEndpoint {val service = dao}
+  val speciesModule = new SpeciesEndpoint {val service = dao}
 
-  val httpService = actorOf(new HttpService(mainModule.restService))
-  val rootService = actorOf(new RootService(httpService))
+  val projectService = actorOf(new HttpService(projectModule.restService))
+  val speciesService = actorOf(new HttpService(speciesModule.restService))
+  val rootService = actorOf(new RootService(projectService, speciesService))
 
   // Start all actors that need supervision, including the root service actor.
   Supervisor(
     SupervisorConfig(
       OneForOneStrategy(List(classOf[Exception]), 3, 100),
       List(
-        Supervise(httpService, Permanent),
+        Supervise(projectService, Permanent),
+      Supervise(speciesService, Permanent),
         Supervise(rootService, Permanent)
       )
     )

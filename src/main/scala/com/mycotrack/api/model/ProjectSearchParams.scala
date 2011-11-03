@@ -22,3 +22,4 @@ object ProjectSearchParams {
 }
 
 case class ProjectSearchParams(name: Option[String], description: Option[String])
+

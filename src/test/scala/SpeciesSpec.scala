@@ -1,3 +1,8 @@
+/*
+ * User: gregg
+ * Date: 10/16/11
+ * Time: 11:12 AM
+ */
 package com.mycotrack.api
 
 import dao._
@@ -12,43 +17,36 @@ import net.liftweb.json.DefaultFormats
 import org.specs2.matcher.ThrownExpectations
 import cc.spray.http._
 import HttpMethods._
-/**
- * @author chris_carrier
- * @version 9/26/11
- */
 
-
-class ProjectSpec extends Specification {
+class SpeciesSpec extends Specification {
   implicit val formats = DefaultFormats
 
-  val BASE_URL = "/projects"
+  val BASE_URL = "/species"
 
   val akkaConfig = akka.config.Config.config
 
   val mongoUrl = akkaConfig.getString("mongodb.mongoUrl", "localhost")
   val mongoDbName = akkaConfig.getString("mongodb.database", "")
-  val collection = akkaConfig.getString("mycotrack.projects.collection", "projects")
+  val collection = akkaConfig.getString("mongodb.species.collection", "Projects")
 
   val db = MongoConnection(mongoUrl, 27017)(mongoDbName)
   val configDb = db(collection)
-  val testObj = Project(None, "name", "description", Some(NestedObject(1, 2)), true)
-  val testObj2 = Project(None, "name2", "description2", Some(NestedObject(1, 2)), true)
+  val testObj = Species(None, "commonName1", "scientificName1")
+  val testObj2 = Species(None, "commonName2", "scientificName2")
   val testObjString = net.liftweb.json.Serialization.write(testObj)
 
-  val jsonText = "{\"name\":\"stringName\",\"description\": \"stringDescription\",\"nestedObject\": {\"nestedId\":333,\"value\":444},\"enabled\": true}"
+  val jsonText = "{\"scientificName\":\"scientificNameString\",\"commonName\": \"commonNameString\",\"nestedObject\": {\"nestedId\":333,\"value\":444},\"enabled\": true}"
   val newJsonText = "{\"name\":\"newName\",\"description\": \"newDescription\",\"nestedObject\": {\"nestedId\":2,\"value\":3},\"enabled\": true}"
   val badJsonText = "{\"description\": \"newDescription\",\"nestedObject\": {\"nestedId\":2,\"value\":3},\"enabled\": true}"
 
-  //db("advocateTweetProjects").drop()
-  val dbo = grater[ProjectWrapper].asDBObject(testObj)
-  //val dbo = grater[NestedObject].asDBObject(NestedObject(1, 2))
+  val dbo = grater[SpeciesWrapper].asDBObject(SpeciesWrapper(None, 1, List(testObj)))
 
   configDb.insert(dbo, WriteConcern.Safe)
-  val testProjectId = dbo.get("_id").toString
+  val testId = dbo.get("_id").toString
 
   def is = args(traceFilter = includeTrace("com.mycotrack*")) ^
-    String.format("The direct GET %s/%s API should", BASE_URL, testProjectId) ^
-    "return HTTP status 200 with a response body from: " + BASE_URL ! as().getTest() ^
+    String.format("The direct GET %s/%s API should", BASE_URL, testId) ^
+    "return HTTP status 200 with a response body from: " + BASE_URL ! as().getDirect ^
     "and return 404 for a non-existent resource" ! as().getNotFound() ^
     "and return 404 for an illegal ID" ! as().getBadObjectId() ^
     p ^
@@ -63,19 +61,19 @@ class ProjectSpec extends Specification {
     String.format("The invalid POST %s API should", BASE_URL) ^
     "return HTTP status 400 with an error message if required field is missing" ! as().postTestFail() ^
     p ^
-    String.format("The PUT %s/%s API should", BASE_URL, testProjectId) ^
+    String.format("The PUT %s/%s API should", BASE_URL, testId) ^
     "return HTTP status 200 with a response body" ! as().putSuccess() ^
     Step {
-      configDb.remove(MongoDBObject("_id" -> testProjectId))
+      configDb.remove(MongoDBObject("_id" -> testId))
     } ^
     end
 
-  case class as() extends SprayTest with ProjectEndpoint with ThrownExpectations {
+  case class as() extends SprayTest with SpeciesEndpoint with ThrownExpectations {
 
     val service = new ProjectDao(configDb)
 
-    def getTest() = {
-      val response = testService(HttpRequest(GET, BASE_URL + "/" + testProjectId)) {
+    def getDirect = {
+      val response = testService(HttpRequest(GET, BASE_URL + "/" + testId)) {
         restService
       }.response
 
@@ -129,7 +127,7 @@ class ProjectSpec extends Specification {
     }
 
     def putSuccess() = {
-      val response = testService(HttpRequest(method = GET, uri = BASE_URL + "/" + testProjectId, content = Some(JsonContent(newJsonText)))) {
+      val response = testService(HttpRequest(method = GET, uri = BASE_URL + "/" + testId, content = Some(JsonContent(newJsonText)))) {
         restService
       }.response
 
