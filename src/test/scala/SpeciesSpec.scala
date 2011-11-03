@@ -25,8 +25,8 @@ class SpeciesSpec extends Specification {
 
   val db = MongoConnection("anduin", 27017)("mycotract_test")
   val configDb = db("species")
-  val testObj = Project(None, "name", "description", Some(NestedObject(1, 2)), true)
-  val testObj2 = Project(None, "name2", "description2", Some(NestedObject(1, 2)), true)
+  val testObj = Species(None, "commonName1", "scientificName1")
+  val testObj2 = Species(None, "commonName2", "scientificName2")
   val testObjString = net.liftweb.json.Serialization.write(testObj)
 
   val jsonText = "{\"scientificName\":\"scientificNameString\",\"commonName\": \"commonNameString\",\"nestedObject\": {\"nestedId\":333,\"value\":444},\"enabled\": true}"
