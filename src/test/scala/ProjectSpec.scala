@@ -4,13 +4,12 @@ import dao._
 import model._
 import org.specs2.Specification
 import org.specs2.specification._
-import com.novus.salat._
-import com.mongodb.casbah.{MongoConnection, WriteConcern}
-import com.novus.salat.global._
+import _root_.com.novus.salat._
+import _root_.com.mongodb.casbah.Imports._
+import _root_.com.novus.salat.global._
 import cc.spray.test.SprayTest
 import net.liftweb.json.DefaultFormats
 import org.specs2.matcher.ThrownExpectations
-import com.mongodb.casbah.commons.MongoDBObject
 import cc.spray.http._
 import HttpMethods._
 /**
@@ -22,12 +21,10 @@ import HttpMethods._
 class ProjectSpec extends Specification {
   implicit val formats = DefaultFormats
 
-  final val PARTNER_ID = 123
-  final val CUSTOMER_ID = 2
   val BASE_URL = "/projects"
 
-  val db = MongoConnection("localhost", 27017)("test")
-  val configDb = db("mycotrack_test")
+  val db = MongoConnection("anduin", 27017)("mycotract_test")
+  val configDb = db("projects")
   val testObj = Project(None, "name", "description", Some(NestedObject(1, 2)), true)
   val testObj2 = Project(None, "name2", "description2", Some(NestedObject(1, 2)), true)
   val testObjString = net.liftweb.json.Serialization.write(testObj)

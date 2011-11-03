@@ -11,8 +11,8 @@ import HttpHeaders._
 import HttpMethods._
 import StatusCodes._
 import MediaTypes._
-import com.mycotrack.api.model._
-import com.mycotrack.api.response._
+import model._
+import response._
 
 /**
  * @author chris carrier

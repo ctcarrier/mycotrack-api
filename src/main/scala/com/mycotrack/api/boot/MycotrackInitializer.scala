@@ -11,7 +11,7 @@ import com.mongodb.ServerAddress
 import com.mongodb.casbah.MongoConnection
 import cc.spray.{HttpService, RootService}
 import com.mycotrack.api._
-import com.mycotrack.api.dao._
+import _root_.com.mycotrack.api.dao._
 
 /**
  * @author chris_carrier
