@@ -17,11 +17,7 @@ import net.liftweb.json.{Formats, DefaultFormats}
 import cc.spray._
 import akka.dispatch.Future
 
-/**
- * @author chris carrier
- */
-
-trait ProjectEndpoint extends Directives with LiftJsonSupport {
+trait SpeciesEndpoint extends Directives with LiftJsonSupport {
   implicit val formats = DefaultFormats + new ObjectIdSerializer
 
   final val NOT_FOUND_MESSAGE = "resource.notFound"
@@ -49,7 +45,7 @@ trait ProjectEndpoint extends Directives with LiftJsonSupport {
   def withSuccessCallback(ctx: RequestContext)(f: Future[_]): Future[_] = {
     f.onComplete(f => {
                         f.result.get match {
-                      case Some(ProjectWrapper(oid, version, content)) => ctx.complete(write(SuccessResponse[Project](version, ctx.request.path, 1, None, content.map(x => x.copy(id = oid)))))
+                      case Some(SpeciesWrapper(oid, version, content)) => ctx.complete(write(SuccessResponse[Species](version, ctx.request.path, 1, None, content.map(x => x.copy(id = oid)))))
                       case None => ctx.fail(StatusCodes.NotFound, write(ErrorResponse(1l, ctx.request.path, List(NOT_FOUND_MESSAGE))))
                     }
                       })
@@ -57,10 +53,10 @@ trait ProjectEndpoint extends Directives with LiftJsonSupport {
 
   //directive compositions
   val objectIdPathMatch = path("^[a-f0-9]+$".r)
-  val directGetProject = authenticate(httpMongo(realm = "mycotrack")) & get
-  val putProject = content(as[Project]) & put
-  val postProject = path("") & content(as[Project]) & post
-  val indirectGetProjects = path("") & parameters('name ?, 'description ?) & get
+  val directGetSpecies = authenticate(httpMongo(realm = "mycotrack")) & get
+  val putSpecies = content(as[Species]) & put
+  val postSpecies = path("") & content(as[Species]) & post
+  val indirectGetSpecies = path("") & parameters('name ?, 'description ?) & get
 
   val restService = {
     // Debugging: /ping -> pong
@@ -73,7 +69,7 @@ trait ProjectEndpoint extends Directives with LiftJsonSupport {
       pathPrefix("projects") {
         objectIdPathMatch {
           resourceId =>
-            directGetProject {
+            directGetSpecies {
               user => ctx =>
                 try {
                   EventHandler.info(this, "User is: " + user)
@@ -89,12 +85,12 @@ trait ProjectEndpoint extends Directives with LiftJsonSupport {
                   }
                 }
             } ~
-              putProject {
+              putSpecies {
                 resource => ctx =>
                   try {
                     withErrorHandling(ctx) {
                       withSuccessCallback(ctx) {
-                        service.updateProject(new ObjectId(resourceId), resource)
+                        service.updateSpecies(new ObjectId(resourceId), resource)
                       }
                     }
                   }
@@ -106,23 +102,23 @@ trait ProjectEndpoint extends Directives with LiftJsonSupport {
 
               }
         } ~
-          postProject {
+          postSpecies {
             resource => ctx =>
-              val resourceWrapper = ProjectWrapper(None, 1, List(resource))
+              val resourceWrapper = SpeciesWrapper(None, 1, List(resource))
               withErrorHandling(ctx) {
                 withSuccessCallback(ctx) {
-                  service.createProject(resourceWrapper)
+                  service.createSpecies(resourceWrapper)
                 }
               }
 
 
           } ~
-          indirectGetProjects {
+          indirectGetSpecies {
             (name, description) => ctx =>
               withErrorHandling(ctx) {
-                  service.searchProject(ProjectSearchParams(name, description)).onComplete(f => {
+                  service.searchSpecies(SpeciesSearchParams(name, description).asDBObject).onComplete(f => {
                     f.result.get match {
-                      case content: Some[List[Project]] => ctx.complete(write(SuccessResponse[Project](1, ctx.request.path, content.get.length, None, content.get)))
+                      case content: Some[List[Species]] => ctx.complete(write(SuccessResponse[Species](1, ctx.request.path, content.get.length, None, content.get)))
                       case None => ctx.fail(StatusCodes.NotFound, write(ErrorResponse(1, ctx.request.path, List(NOT_FOUND_MESSAGE))))
                     }
                   })
@@ -130,8 +126,6 @@ trait ProjectEndpoint extends Directives with LiftJsonSupport {
           }
 
       }
-
-
   }
 
 def httpMongo[U](realm: String = "Secured Resource",

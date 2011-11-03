@@ -11,11 +11,9 @@ import com.mongodb.ServerAddress
 import com.mongodb.casbah.MongoConnection
 import cc.spray.{HttpService, RootService}
 import com.mycotrack.api._
-import com.mycotrack.api.dao._
+import _root_.com.mycotrack.api.dao._
 import akka.event.slf4j.Logging
 import model.{NestedObject, Project}
-
-
 
 /**
  * @author chris_carrier
