@@ -1,3 +1,8 @@
+/*
+ * User: gregg
+ * Date: 10/16/11
+ * Time: 11:12 AM
+ */
 package com.mycotrack.api
 
 import dao._
@@ -12,30 +17,23 @@ import net.liftweb.json.DefaultFormats
 import org.specs2.matcher.ThrownExpectations
 import cc.spray.http._
 import HttpMethods._
-/**
- * @author chris_carrier
- * @version 9/26/11
- */
 
-
-class ProjectSpec extends Specification {
+class SpeciesSpec extends Specification {
   implicit val formats = DefaultFormats
 
-  val BASE_URL = "/projects"
+  val BASE_URL = "/species"
 
   val db = MongoConnection("anduin", 27017)("mycotract_test")
-  val configDb = db("projects")
-  val testObj = Project(None, "name", "description", Some(NestedObject(1, 2)), true)
-  val testObj2 = Project(None, "name2", "description2", Some(NestedObject(1, 2)), true)
+  val configDb = db("species")
+  val testObj = Species(None, "commonName1", "scientificName1")
+  val testObj2 = Species(None, "commonName2", "scientificName2")
   val testObjString = net.liftweb.json.Serialization.write(testObj)
 
-  val jsonText = "{\"name\":\"stringName\",\"description\": \"stringDescription\",\"nestedObject\": {\"nestedId\":333,\"value\":444},\"enabled\": true}"
+  val jsonText = "{\"scientificName\":\"scientificNameString\",\"commonName\": \"commonNameString\",\"nestedObject\": {\"nestedId\":333,\"value\":444},\"enabled\": true}"
   val newJsonText = "{\"name\":\"newName\",\"description\": \"newDescription\",\"nestedObject\": {\"nestedId\":2,\"value\":3},\"enabled\": true}"
   val badJsonText = "{\"description\": \"newDescription\",\"nestedObject\": {\"nestedId\":2,\"value\":3},\"enabled\": true}"
 
-  //db("advocateTweetProjects").drop()
-  val dbo = grater[ProjectWrapper].asDBObject(ProjectWrapper(None, 1, List(testObj)))
-  //val dbo = grater[NestedObject].asDBObject(NestedObject(1, 2))
+  val dbo = grater[SpeciesWrapper].asDBObject(SpeciesWrapper(None, 1, List(testObj)))
 
   configDb.insert(dbo, WriteConcern.Safe)
   val testProjectId = dbo.get("_id").toString
