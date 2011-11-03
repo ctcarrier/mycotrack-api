@@ -36,11 +36,11 @@ class SpeciesSpec extends Specification {
   val dbo = grater[SpeciesWrapper].asDBObject(SpeciesWrapper(None, 1, List(testObj)))
 
   configDb.insert(dbo, WriteConcern.Safe)
-  val testProjectId = dbo.get("_id").toString
+  val testId = dbo.get("_id").toString
 
   def is = args(traceFilter = includeTrace("com.mycotrack*")) ^
-    String.format("The direct GET %s/%s API should", BASE_URL, testProjectId) ^
-    "return HTTP status 200 with a response body from: " + BASE_URL ! as().getTest() ^
+    /*String.format("The direct GET %s/%s API should", BASE_URL, testId) ^
+    "return HTTP status 200 with a response body from: " + BASE_URL ! as().getDirect ^
     "and return 404 for a non-existent resource" ! as().getNotFound() ^
     "and return 404 for an illegal ID" ! as().getBadObjectId() ^
     p ^
@@ -59,15 +59,15 @@ class SpeciesSpec extends Specification {
     "return HTTP status 200 with a response body" ! as().putSuccess() ^
     Step {
       configDb.remove(MongoDBObject("_id" -> testProjectId))
-    } ^
+    } ^*/
     end
 
   case class as() extends SprayTest with ProjectEndpoint with ThrownExpectations {
 
     val service = new ProjectDao(configDb)
 
-    def getTest() = {
-      val response = testService(HttpRequest(GET, BASE_URL + "/" + testProjectId)) {
+    def getDirect = {
+      val response = testService(HttpRequest(GET, BASE_URL + "/" + testId)) {
         restService
       }.response
 
@@ -121,7 +121,7 @@ class SpeciesSpec extends Specification {
     }
 
     def putSuccess() = {
-      val response = testService(HttpRequest(method = GET, uri = BASE_URL + "/" + testProjectId, content = Some(JsonContent(newJsonText)))) {
+      val response = testService(HttpRequest(method = GET, uri = BASE_URL + "/" + testId, content = Some(JsonContent(newJsonText)))) {
         restService
       }.response
 
