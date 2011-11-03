@@ -37,7 +37,7 @@ class ProjectSpec extends Specification {
   val badJsonText = "{\"description\": \"newDescription\",\"nestedObject\": {\"nestedId\":2,\"value\":3},\"enabled\": true}"
 
   //db("advocateTweetProjects").drop()
-  val dbo = grater[ProjectWrapper].asDBObject(ProjectWrapper(None, 1, List(testObj)))
+  val dbo = grater[ProjectWrapper].asDBObject(testObj)
   //val dbo = grater[NestedObject].asDBObject(NestedObject(1, 2))
 
   configDb.insert(dbo, WriteConcern.Safe)

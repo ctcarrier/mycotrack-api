@@ -51,7 +51,7 @@ trait ProjectEndpoint extends Directives with LiftJsonSupport {
   def withSuccessCallback(ctx: RequestContext)(f: Future[_]): Future[_] = {
     f.onComplete(f => {
                         f.result.get match {
-                      case Some(ProjectWrapper(oid, version, content)) => ctx.complete(write(SuccessResponse[Project](version, ctx.request.path, 1, None, content.map(x => x.copy(id = oid)))))
+                      case Some(ProjectWrapper(oid, version, dateCreated, lastUpdated, content)) => ctx.complete(HttpResponse(OK, SuccessResponse[Project](version, ctx.request.path, 1, None, content.map(x => x.copy(id = oid)))))
                       case None => ctx.fail(StatusCodes.NotFound, write(ErrorResponse(1l, ctx.request.path, List(NOT_FOUND_MESSAGE))))
                     }
                       })
@@ -59,7 +59,8 @@ trait ProjectEndpoint extends Directives with LiftJsonSupport {
 
   //directive compositions
   val objectIdPathMatch = path("^[a-f0-9]+$".r)
-  val directGetProject = authenticate(httpMongo(realm = "mycotrack")) & get
+  //val directGetProject = authenticate(httpMongo(realm = "mycotrack")) & get
+  val directGetProject = get
   val putProject = content(as[Project]) & put
   val postProject = path("") & content(as[Project]) & post
   val indirectGetProjects = path("") & parameters('name ?, 'description ?) & get
@@ -76,9 +77,8 @@ trait ProjectEndpoint extends Directives with LiftJsonSupport {
         objectIdPathMatch {
           resourceId =>
             directGetProject {
-              user => ctx =>
+              ctx =>
                 try {
-                  EventHandler.info(this, "User is: " + user)
                   withErrorHandling(ctx) {
                     withSuccessCallback(ctx) {
                       service.getProject(new ObjectId(resourceId))
@@ -110,10 +110,9 @@ trait ProjectEndpoint extends Directives with LiftJsonSupport {
         } ~
           postProject {
             resource => ctx =>
-              val resourceWrapper = ProjectWrapper(None, 1, List(resource))
               withErrorHandling(ctx) {
                 withSuccessCallback(ctx) {
-                  service.createProject(resourceWrapper)
+                  service.createProject(resource)
                 }
               }
 
