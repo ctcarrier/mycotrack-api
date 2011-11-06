@@ -91,11 +91,11 @@ class ProjectDao(mongoCollection: MongoCollection) extends Dao {
     }
   } */
 
-    def searchSpecies(searchObj: MongoDBObject) = {
+  def searchSpecies(searchObj: MongoDBObject) = {
+    println(searchObj)
     Future {
       val data = mongoCollection.find(searchObj)
       val dataList = data.map(f => grater[SpeciesWrapper].asObject(f).content).flatten.toList
-
       if (dataList.isEmpty) {
         None
       }

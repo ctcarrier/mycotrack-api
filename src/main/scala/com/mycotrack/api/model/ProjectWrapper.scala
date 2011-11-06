@@ -11,6 +11,8 @@ case class ProjectWrapper(_id: Option[ObjectId],
 
 case class SpeciesWrapper(_id: Option[ObjectId],
                           version: Long,
+                          dateCreated: Date,
+                          lastUpdated: Date,
                           content: List[Species])
 
 

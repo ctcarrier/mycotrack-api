@@ -46,7 +46,7 @@ trait SpeciesEndpoint extends Directives with LiftJsonSupport {
   def withSuccessCallback(ctx: RequestContext, statusCode: StatusCode = OK)(f: Future[_]): Future[_] = {
     f.onComplete(f => {
       f.result.get match {
-        case Some(SpeciesWrapper(oid, version, content)) => ctx.complete(HttpResponse(statusCode, SuccessResponse[Species](version, ctx.request.path, 1, None, content.map(x => x.copy(id = oid))).toHttpContent))
+        case Some(SpeciesWrapper(oid, version, created, updated, content)) => ctx.complete(HttpResponse(statusCode, SuccessResponse[Species](version, ctx.request.path, 1, None, content.map(x => x.copy(id = oid))).toHttpContent))
         case None => ctx.fail(StatusCodes.NotFound, write(ErrorResponse(1l, ctx.request.path, List(NOT_FOUND_MESSAGE))))
       }
     })
@@ -98,7 +98,8 @@ trait SpeciesEndpoint extends Directives with LiftJsonSupport {
       } ~
         postSpecies {
           resource => ctx =>
-            val resourceWrapper = SpeciesWrapper(None, 1, List(resource))
+            val now = new java.util.Date
+            val resourceWrapper = SpeciesWrapper(None, 1, now, now, List(resource))
             withErrorHandling(ctx) {
               withSuccessCallback(ctx, Created) {
                 service.createSpecies(resourceWrapper)
@@ -108,10 +109,10 @@ trait SpeciesEndpoint extends Directives with LiftJsonSupport {
         searchSpecies {
           (commonName, scientificName) => ctx =>
             withErrorHandling(ctx) {
-              service.searchSpecies(SpeciesSearchParams(commonName, scientificName).asDBObject).onComplete(f => {
-                f.result.get match {
-                  case content: Some[List[Species]] => ctx.complete(write(SuccessResponse[Species](1, ctx.request.path, content.get.length, None, content.get)))
-                  case None => ctx.fail(StatusCodes.NotFound, write(ErrorResponse(1, ctx.request.path, List(NOT_FOUND_MESSAGE))))
+              service.searchSpecies(SpeciesSearchParams(scientificName, commonName).asDBObject).onComplete(f => {
+                f.result match {
+                  case Some(Some(content)) => ctx.complete(write(SuccessResponse[Species](1, ctx.request.path, content.length, None, content)))
+                  case _ => ctx.fail(StatusCodes.NotFound, write(ErrorResponse(1, ctx.request.path, List(NOT_FOUND_MESSAGE))))
                 }
               })
             }

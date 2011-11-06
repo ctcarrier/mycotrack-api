@@ -5,12 +5,19 @@ import com.novus.salat.annotations.raw.Ignore
 import java.util.Date
 
 object Project {
-
   implicit def projToProjWrapper(project: Project): ProjectWrapper = {
-    ProjectWrapper(project.id, 1, new Date, new Date, List(project))
+    val now = new Date
+    ProjectWrapper(project.id, 1, now, now, List(project))
   }
 }
 
 case class Project(@Ignore id: Option[ObjectId], name: String, description: String, nestedObject: Option[NestedObject], enabled: Boolean)
 
-case class Species(@Ignore id: Option[ObjectId], commonName: String, scientificName: String)
+object Species {
+  implicit def species2SpeciesWrapper(species: Species): SpeciesWrapper = {
+    val now = new Date
+    SpeciesWrapper(species.id, 1, now, now, List(species))
+  }
+}
+
+case class Species(@Ignore id: Option[ObjectId], scientificName: String,  commonName: String)

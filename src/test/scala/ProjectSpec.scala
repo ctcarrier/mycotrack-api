@@ -25,7 +25,7 @@ class ProjectSpec extends Specification {
 
   val akkaConfig = akka.config.Config.config
 
-  val mongoUrl = akkaConfig.getString("mongodb.mongoUrl", "localhost")
+  val mongoUrl = akkaConfig.getString("mongodb.url", "localhost")
   val mongoDbName = akkaConfig.getString("mongodb.database", "")
   val collection = akkaConfig.getString("mycotrack.projects.collection", "projects")
 

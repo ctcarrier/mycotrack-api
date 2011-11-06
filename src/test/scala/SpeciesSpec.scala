@@ -25,21 +25,23 @@ class SpeciesSpec extends Specification {
 
   val akkaConfig = akka.config.Config.config
 
-  val mongoUrl = akkaConfig.getString("mongodb.mongoUrl", "localhost")
+  val mongoUrl = akkaConfig.getString("mongodb.url", "localhost")
+  val mongoPort = akkaConfig.getInt("mongodb.port", 27017)
   val mongoDbName = akkaConfig.getString("mongodb.database", "")
-  val collection = akkaConfig.getString("mongodb.species.collection", "Projects")
+  val collection = akkaConfig.getString("mongodb.species.collection", "species")
 
-  val db = MongoConnection(mongoUrl, 27017)(mongoDbName)
+  val db = MongoConnection(mongoUrl, mongoPort)(mongoDbName)
   val configDb = db(collection)
   val testObj = Species(None, "commonName1", "scientificName1")
   val testObj2 = Species(None, "commonName2", "scientificName2")
   val testObjString = net.liftweb.json.Serialization.write(testObj)
 
   val jsonText = "{\"scientificName\":\"scientificNameString\",\"commonName\": \"commonNameString\",\"nestedObject\": {\"nestedId\":333,\"value\":444},\"enabled\": true}"
-  val newJsonText = "{\"name\":\"newName\",\"description\": \"newDescription\",\"nestedObject\": {\"nestedId\":2,\"value\":3},\"enabled\": true}"
-  val badJsonText = "{\"description\": \"newDescription\",\"nestedObject\": {\"nestedId\":2,\"value\":3},\"enabled\": true}"
+  val newJsonText = "{\"scientificName\":\"scientificNameString\",\"commonName\": \"commonNameString\",\"nestedObject\": {\"nestedId\":2,\"value\":3},\"enabled\": true}"
+  val badJsonText = "{\"commonName\": \"commonNameString\",\"nestedObject\": {\"nestedId\":2,\"value\":3},\"enabled\": true}"
 
-  val dbo = grater[SpeciesWrapper].asDBObject(SpeciesWrapper(None, 1, List(testObj)))
+  val now = new java.util.Date
+  val dbo = grater[SpeciesWrapper].asDBObject(SpeciesWrapper(None, 1, now, now, List(testObj)))
 
   configDb.insert(dbo, WriteConcern.Safe)
   val testId = dbo.get("_id").toString
@@ -51,9 +53,9 @@ class SpeciesSpec extends Specification {
     "and return 404 for an illegal ID" ! as().getBadObjectId() ^
     p ^
     String.format("The indirect GET %s API should", BASE_URL) ^
-    "return a 200 with a response body from " + BASE_URL ! as().getIndirectProjectWithParamTest(200, List(("name", "name"))) ^
-    "return a 200 with a response body from " + BASE_URL ! as().getIndirectProjectWithParamTest(200, List(("name", "name"), ("description", "description"))) ^
-    "return a 404 with an error response body from " + BASE_URL ! as().getIndirectProjectWithParamTest(404, List(("name", "NOT_REAL"), ("description", "description"))) ^
+    "return a 200 with a response body from " + BASE_URL ! as().getIndirectSpeciesWithParamTest(200, List(("commonName", "commonName1"))) ^
+    "return a 200 with a response body from " + BASE_URL ! as().getIndirectSpeciesWithParamTest(200, List(("scientificName", "scientificName1"), ("commonName", "commonName1"))) ^
+    "return a 404 with an error response body from " + BASE_URL ! as().getIndirectSpeciesWithParamTest(404, List(("commonName", "NOT_REAL"), ("scientificName", "scientificNameString"))) ^
     p ^
     String.format("The valid POST %s API should", BASE_URL) ^
     "return 201 as the HTTP status" ! as().postTest() ^
@@ -81,7 +83,7 @@ class SpeciesSpec extends Specification {
       response.status must be equalTo 200
     }
 
-    def getIndirectProjectWithParamTest(status: Int, params: Seq[(String, String)]) = {
+    def getIndirectSpeciesWithParamTest(status: Int, params: Seq[(String, String)]) = {
       val response = testService(HttpRequest(method = GET,
         uri = BASE_URL + "?" + params.map(x => x._1 + "=" + x._2).reduceLeft((x1, x2) => String.format("%s&%s", x1, x2)))) {
         restService
