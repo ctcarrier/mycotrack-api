@@ -60,7 +60,7 @@ class SpeciesSpec extends Specification with MycotrackSpec {
 
   case class as() extends SprayTest with SpeciesEndpoint with ThrownExpectations {
 
-    val service = new ProjectDao(configDb)
+    val service = new SpeciesDao(configDb)
 
     def getDirect = {
       val response = testService(HttpRequest(GET, BASE_URL + "/" + testId)) {

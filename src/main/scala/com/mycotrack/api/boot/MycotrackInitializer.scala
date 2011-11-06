@@ -19,28 +19,31 @@ import model.{NestedObject, Project}
  * @author chris_carrier
  */
 
-
 class MycotrackInitializer extends Initializer with Logging {
 
   log.info("Running Initializer")
 
   val akkaConfig = akka.config.Config.config
 
-  val mongoUrl = akkaConfig.getString("mongodb.mongoUrl", "localhost")
-  val mongoDbName = akkaConfig.getString("mongodb.database", "")
-  val collection = akkaConfig.getString("mongodb.collection", "Projects")
+  val mongoUrl = akkaConfig.getString("mongodb.url", "localhost")
+  val mongoDbName = akkaConfig.getString("mongodb.database", "mycotrack")
+
+  val projectCollection = akkaConfig.getString("mycotrack.project.collection", "projects")
+  val speciesCollection = akkaConfig.getString("mycotrack.species.collection", "species")
 
   val urlList = mongoUrl.split(",").toList.map(new ServerAddress(_))
   val db = urlList match {
     case List(s) => MongoConnection(s)(mongoDbName)
     case s: List[String] => MongoConnection(s)(mongoDbName)
+    case _ => MongoConnection("localhost")(mongoDbName)
   }
-  val dao = new ProjectDao(db(collection))
+  val projectDao = new ProjectDao(db(projectCollection))
+  val speciesDao = new SpeciesDao(db(speciesCollection))
 
   // ///////////// INDEXES for collections go here (include all lookup fields)
   //  configsCollection.ensureIndex(MongoDBObject("customerId" -> 1), "idx_customerId")
-  val projectModule = new ProjectEndpoint {val service = dao}
-  val speciesModule = new SpeciesEndpoint {val service = dao}
+  val projectModule = new ProjectEndpoint {val service = projectDao}
+  val speciesModule = new SpeciesEndpoint {val service = speciesDao}
 
   val projectService = actorOf(new HttpService(projectModule.restService))
   val speciesService = actorOf(new HttpService(speciesModule.restService))
@@ -52,11 +55,10 @@ class MycotrackInitializer extends Initializer with Logging {
       OneForOneStrategy(List(classOf[Exception]), 3, 100),
       List(
         Supervise(projectService, Permanent),
-      Supervise(speciesService, Permanent),
+        Supervise(speciesService, Permanent),
         Supervise(rootService, Permanent)
       )
     )
   )
-
 }
 

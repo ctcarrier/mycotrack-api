@@ -33,7 +33,7 @@ trait ProjectEndpoint extends Directives with LiftJsonSupport {
   val requiredFields = List("name", "description")
 
   EventHandler.info(this, "Starting actor.")
-  val service: Dao
+  val service: IProjectDao
 
   def withErrorHandling(ctx: RequestContext)(f: Future[_]): Future[_] = {
     f.onTimeout(f => {
