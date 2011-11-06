@@ -42,7 +42,7 @@ class SpeciesDao(mongoCollection: MongoCollection) extends ISpeciesDao {
 
   def searchSpecies(searchObj: MongoDBObject) = Future {
     mongoCollection.find(searchObj).map(f =>
-      grater[SpeciesWrapper].asObject(f).content).flatten.toList match {
+      grater[SpeciesWrapper].asObject(f).content).toList match {
       case l: List[Species] if (!l.isEmpty) => Some(l)
       case _ => None
     }

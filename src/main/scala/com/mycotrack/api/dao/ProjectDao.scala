@@ -43,17 +43,11 @@ class ProjectDao(mongoCollection: MongoCollection) extends IProjectDao {
     }
   }
 
-  def searchProject(searchObj: MongoDBObject) = {
-    Future {
-      val data = mongoCollection.find(searchObj)
-      val dataList = data.map(f => grater[ProjectWrapper].asObject(f).content).flatten.toList
-
-      if (dataList.isEmpty) {
-        None
-      }
-      else {
-        Some(dataList)
-      }
+  def searchProject(searchObj: MongoDBObject) = Future {
+    mongoCollection.find(searchObj).map(f =>
+      grater[ProjectWrapper].asObject(f).content).toList match {
+      case l: List[Project] if (!l.isEmpty) => Some(l)
+      case _ => None
     }
   }
 }
