@@ -10,3 +10,14 @@ case class SpeciesSearchParams(scientificName: Option[String], commonName: Optio
     builder.result.asDBObject
   }
 }
+
+object ProjectSearchParams {
+  implicit def toDbo(p: ProjectSearchParams): MongoDBObject = {
+    val query = MongoDBObject()
+    p.name.foreach(xs => query += "content.name" -> xs)
+    p.description.foreach(xs => query += "content.description" -> xs)
+    query
+  }
+}
+
+case class ProjectSearchParams(name: Option[String], description: Option[String])

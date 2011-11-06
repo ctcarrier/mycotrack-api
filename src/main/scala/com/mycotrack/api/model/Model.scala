@@ -20,4 +20,4 @@ object Species {
   }
 }
 
-case class Species(@Ignore id: Option[ObjectId], scientificName: String,  commonName: String)
+case class Species(@Ignore id: Option[ObjectId], scientificName: String, commonName: String)
