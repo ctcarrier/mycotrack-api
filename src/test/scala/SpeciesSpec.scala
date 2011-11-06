@@ -13,25 +13,13 @@ import _root_.com.novus.salat._
 import _root_.com.mongodb.casbah.Imports._
 import _root_.com.novus.salat.global._
 import cc.spray.test.SprayTest
-import net.liftweb.json.DefaultFormats
 import org.specs2.matcher.ThrownExpectations
 import cc.spray.http._
 import HttpMethods._
 
-class SpeciesSpec extends Specification {
-  implicit val formats = DefaultFormats
+class SpeciesSpec extends Specification with MycotrackSpec {
+  override val resourceName = "species"
 
-  val BASE_URL = "/species"
-
-  val akkaConfig = akka.config.Config.config
-
-  val mongoUrl = akkaConfig.getString("mongodb.url", "localhost")
-  val mongoPort = akkaConfig.getInt("mongodb.port", 27017)
-  val mongoDbName = akkaConfig.getString("mongodb.database", "")
-  val collection = akkaConfig.getString("mongodb.species.collection", "species")
-
-  val db = MongoConnection(mongoUrl, mongoPort)(mongoDbName)
-  val configDb = db(collection)
   val testObj = Species(None, "commonName1", "scientificName1")
   val testObj2 = Species(None, "commonName2", "scientificName2")
   val testObjString = net.liftweb.json.Serialization.write(testObj)

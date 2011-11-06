@@ -17,20 +17,10 @@ import HttpMethods._
  * @version 9/26/11
  */
 
+class ProjectSpec extends Specification with MycotrackSpec {
 
-class ProjectSpec extends Specification {
-  implicit val formats = DefaultFormats
+  override val resourceName = "projects"
 
-  val BASE_URL = "/projects"
-
-  val akkaConfig = akka.config.Config.config
-
-  val mongoUrl = akkaConfig.getString("mongodb.url", "localhost")
-  val mongoDbName = akkaConfig.getString("mongodb.database", "")
-  val collection = akkaConfig.getString("mycotrack.projects.collection", "projects")
-
-  val db = MongoConnection(mongoUrl, 27017)(mongoDbName)
-  val configDb = db(collection)
   val testObj = Project(None, "name", "description", Some(NestedObject(1, 2)), true)
   val testObj2 = Project(None, "name2", "description2", Some(NestedObject(1, 2)), true)
   val testObjString = net.liftweb.json.Serialization.write(testObj)
@@ -39,9 +29,7 @@ class ProjectSpec extends Specification {
   val newJsonText = "{\"name\":\"newName\",\"description\": \"newDescription\",\"nestedObject\": {\"nestedId\":2,\"value\":3},\"enabled\": true}"
   val badJsonText = "{\"description\": \"newDescription\",\"nestedObject\": {\"nestedId\":2,\"value\":3},\"enabled\": true}"
 
-  //db("advocateTweetProjects").drop()
   val dbo = grater[ProjectWrapper].asDBObject(testObj)
-  //val dbo = grater[NestedObject].asDBObject(NestedObject(1, 2))
 
   configDb.insert(dbo, WriteConcern.Safe)
   val testProjectId = dbo.get("_id").toString
