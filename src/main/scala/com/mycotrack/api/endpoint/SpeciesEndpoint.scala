@@ -1,7 +1,7 @@
-package com.mycotrack.api
+package com.mycotrack.api.endpoint
 
-import auth.FromMongoUserPassAuthenticator
-import json.{ObjectIdSerializer, LiftJsonSupport}
+import com.mycotrack.api.auth.FromMongoUserPassAuthenticator
+import com.mycotrack.api.json.{ObjectIdSerializer, LiftJsonSupport}
 import org.bson.types.ObjectId
 import akka.event.EventHandler
 import cc.spray.http._
@@ -12,8 +12,9 @@ import StatusCodes._
 import MediaTypes._
 import net.liftweb.json.JsonParser._
 import net.liftweb.json.Serialization._
-import model._
-import response._
+import com.mycotrack.api.model._
+import com.mycotrack.api.response._
+import com.mycotrack.api.dao._
 import net.liftweb.json.{Formats, DefaultFormats}
 import cc.spray._
 import akka.dispatch.Future
@@ -109,7 +110,7 @@ trait SpeciesEndpoint extends Directives with LiftJsonSupport {
         searchSpecies {
           (commonName, scientificName) => ctx =>
             withErrorHandling(ctx) {
-              service.searchSpecies(SpeciesSearchParams(scientificName, commonName).asDBObject).onComplete(f => {
+              service.searchSpecies(SpeciesSearchParams(scientificName, commonName)).onComplete(f => {
                 f.result match {
                   case Some(Some(content)) => ctx.complete(write(SuccessResponse[Species](1, ctx.request.path, content.length, None, content)))
                   case _ => ctx.fail(StatusCodes.NotFound, write(ErrorResponse(1, ctx.request.path, List(NOT_FOUND_MESSAGE))))

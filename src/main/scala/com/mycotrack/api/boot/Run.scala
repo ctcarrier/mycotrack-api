@@ -5,11 +5,9 @@ package com.mycotrack.api.boot
  * @version 8/4/11
  */
 
-
 import org.slf4j.LoggerFactory
 import org.eclipse.jetty.servlet.ServletContextHandler
 import cc.spray.connectors.Servlet30ConnectorServlet
-
 import java.util.Calendar
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.nio.SelectChannelConnector
@@ -28,7 +26,7 @@ object Run extends Logging {
     val timeZone: String = Calendar.getInstance().getTimeZone().getDisplayName()
     if (!(env.equals("dev") || env.equals("test")) && !timeZone.equals(GMT_TIMEZONE)) {
       log.error(String.format("System clock is set to non-GMT timezone (%s). This may cause data integrity issues.", timeZone))
-      log.error("Exiting the Campaign Service")
+      log.error("Exiting service")
       throw new RuntimeException("Must set environment (Example: java -Dakka.mode=dev -jar ...)")
     }
 

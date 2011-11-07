@@ -12,6 +12,7 @@ import org.specs2.specification._
 import _root_.com.novus.salat._
 import _root_.com.mongodb.casbah.Imports._
 import _root_.com.novus.salat.global._
+import _root_.com.mycotrack.api.endpoint._
 import cc.spray.test.SprayTest
 import org.specs2.matcher.ThrownExpectations
 import cc.spray.http._

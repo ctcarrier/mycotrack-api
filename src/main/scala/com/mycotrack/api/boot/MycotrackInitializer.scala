@@ -9,11 +9,12 @@ import akka.actor.Actor._
 import cc.spray.HttpService._
 import com.mongodb.ServerAddress
 import com.mongodb.casbah.MongoConnection
+import com.mycotrack.api.endpoint._
 import cc.spray.{HttpService, RootService}
-import com.mycotrack.api._
+import com.mycotrack.api.model._
 import _root_.com.mycotrack.api.dao._
 import akka.event.slf4j.Logging
-import model.{NestedObject, Project}
+import com.mycotrack.api.model.{NestedObject, Project}
 
 /**
  * @author chris_carrier

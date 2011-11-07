@@ -15,5 +15,10 @@ case class SpeciesWrapper(_id: Option[ObjectId],
                           lastUpdated: Date,
                           content: List[Species])
 
+case class CultureWrapper(_id: Option[ObjectId],
+                          version: Long,
+                          dateCreated: Date,
+                          lastUpdated: Date,
+                          content: List[Culture])
 
 
