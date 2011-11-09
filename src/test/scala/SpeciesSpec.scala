@@ -22,12 +22,10 @@ class SpeciesSpec extends Specification with MycotrackSpec {
   override val resourceName = "species"
 
   val testObj = Species(None, "commonName1", "scientificName1")
-  val testObj2 = Species(None, "commonName2", "scientificName2")
-  val testObjString = net.liftweb.json.Serialization.write(testObj)
 
-  val jsonText = "{\"scientificName\":\"scientificNameString\",\"commonName\": \"commonNameString\",\"nestedObject\": {\"nestedId\":333,\"value\":444},\"enabled\": true}"
-  val newJsonText = "{\"scientificName\":\"scientificNameString\",\"commonName\": \"commonNameString\",\"nestedObject\": {\"nestedId\":2,\"value\":3},\"enabled\": true}"
-  val badJsonText = "{\"commonName\": \"commonNameString\",\"nestedObject\": {\"nestedId\":2,\"value\":3},\"enabled\": true}"
+  val jsonText = """{"scientificName":"scientificNameString","commonName": "commonNameString"}"""
+  val newJsonText = """{"scientificName":"scientificNameStringNew","commonName": "commonNameStringNew"}"""
+  val badJsonText = """{"commonName": "commonNameString"}"""
 
   val now = new java.util.Date
   val dbo = grater[SpeciesWrapper].asDBObject(SpeciesWrapper(None, 1, now, now, List(testObj)))
