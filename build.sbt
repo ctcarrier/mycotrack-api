@@ -56,3 +56,18 @@ resolvers ++= Seq(
   "Twitter4j repo" at "http://twitter4j.org/maven2",
   "Local Maven Repository" at "file://"+Path.userHome+"/.m2/repository"
 )
+
+testOptions in Test += Tests.Setup( loader => {
+  val oldEnv = System.getProperty("akka.mode")
+  if (oldEnv != null) {
+    System.setProperty("akka.mode.old", oldEnv)
+  }
+  System.setProperty("akka.mode", "test")
+} )
+
+testOptions in Test += Tests.Cleanup( loader => {
+  val oldEnv = System.getProperty("akka.mode.old")
+  if (oldEnv != null) {
+    System.setProperty("akka.mode", oldEnv)
+  }
+} )
