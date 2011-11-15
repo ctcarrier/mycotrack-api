@@ -1,3 +1,5 @@
+import AssemblyKeys._
+
 organization := "mycotrack"
 
 name := "mycotrack-api"
@@ -7,6 +9,8 @@ version := "0.1.0-SNAPSHOT"
 scalaVersion := "2.9.1"
 
 seq(webSettings :_*)
+
+seq(assemblySettings: _*)
 
 ivyXML :=
  	        <dependencies>
@@ -38,10 +42,11 @@ libraryDependencies ++= Seq(
   "org.specs2" %% "specs2" % "1.5" % "test",
   "org.specs2" % "specs2-scalaz-core_2.9.0-1" % "6.0.RC2" % "test",
   //Jetty
+  "org.mortbay.jetty" % "jetty" % "6.1.22" % "container",
   "org.mortbay.jetty" % "servlet-api" % "3.0.20100224" % "provided",
-  "org.eclipse.jetty" % "jetty-server" % "8.0.0.M3" % "jetty, compile",
-  "org.eclipse.jetty" % "jetty-util" % "8.0.0.M3" % "jetty, compile",
-  "org.eclipse.jetty" % "jetty-webapp" % "8.0.0.M3" % "jetty, compile"
+  "org.eclipse.jetty" % "jetty-server" % "8.0.0.M3" % "container, compile",
+  "org.eclipse.jetty" % "jetty-util" % "8.0.0.M3" % "container, compile",
+  "org.eclipse.jetty" % "jetty-webapp" % "8.0.0.M3" % "container, compile"
 )
 
 resolvers ++= Seq(
