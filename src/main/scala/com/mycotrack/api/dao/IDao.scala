@@ -10,6 +10,7 @@ trait IProjectDao {
   def createProject(modelWrapper: ProjectWrapper): Future[Option[ProjectWrapper]]
   def updateProject(key: ObjectId, model: Project): Future[Option[ProjectWrapper]]
   def searchProject(searchObj: MongoDBObject): Future[Option[List[Project]]]
+  def getChildren(root: Project): Future[Option[List[Project]]]
 }
 
 trait ISpeciesDao {

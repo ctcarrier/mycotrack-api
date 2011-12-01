@@ -23,6 +23,7 @@
             <fileNamePattern>/var/log/mycotrack/mycotrack.log.%d{yyyy-MM-dd-HH}</fileNamePattern>
         </rollingPolicy>
     </appender>
+
     <root level="DEBUG">
         <appender-ref ref="stdout"/>
         <appender-ref ref="R"/>

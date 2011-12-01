@@ -76,6 +76,7 @@ trait ProjectEndpoint extends Directives with LiftJsonSupport {
       pathPrefix("projects") {
         objectIdPathMatch {
           resourceId =>
+            cache {
             directGetProject {
               ctx =>
                 try {
@@ -90,6 +91,7 @@ trait ProjectEndpoint extends Directives with LiftJsonSupport {
                     ctx.fail(StatusCodes.NotFound, write(ErrorResponse(1l, ctx.request.path, List(NOT_FOUND_MESSAGE))))
                   }
                 }
+            }
             } ~
               putProject {
                 resource => ctx =>

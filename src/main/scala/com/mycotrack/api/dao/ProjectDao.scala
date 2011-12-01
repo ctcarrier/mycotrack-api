@@ -50,5 +50,14 @@ class ProjectDao(mongoCollection: MongoCollection) extends IProjectDao {
       case _ => None
     }
   }
+
+  def getChildren(root: Project) = Future {
+    val query = MongoDBObject("parent" -> root.id)
+    mongoCollection.find(query).map(f =>
+      grater[ProjectWrapper].asObject(f).content).toList match {
+      case l: List[Project] if (!l.isEmpty) => Some(l)
+      case _ => None
+    }
+  }
 }
 

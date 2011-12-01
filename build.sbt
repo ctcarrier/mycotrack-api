@@ -25,8 +25,8 @@ libraryDependencies ++= Seq(
   "ch.qos.logback" % "logback-classic" % "0.9.28" % "runtime",
   "ch.qos.logback" % "logback-core" % "0.9.28" % "runtime",
   //SPRAY
-  "cc.spray" % "spray-base" % "0.8.0-RC1" % "compile" withSources(),
-  "cc.spray" % "spray-server" % "0.8.0-RC1" % "compile" withSources(),
+  "cc.spray" % "spray-base" % "0.8.0" % "compile" withSources(),
+  "cc.spray" % "spray-server" % "0.8.0" % "compile" withSources(),
   //AKKA
   "se.scalablesolutions.akka" % "akka-actor" % "1.2",
   "se.scalablesolutions.akka" % "akka-http" % "1.2",
@@ -42,7 +42,6 @@ libraryDependencies ++= Seq(
   "org.specs2" %% "specs2" % "1.5" % "test",
   "org.specs2" % "specs2-scalaz-core_2.9.0-1" % "6.0.RC2" % "test",
   //Jetty
-  "org.mortbay.jetty" % "jetty" % "6.1.22" % "container",
   "org.mortbay.jetty" % "servlet-api" % "3.0.20100224" % "provided",
   "org.eclipse.jetty" % "jetty-server" % "8.0.0.M3" % "container, compile",
   "org.eclipse.jetty" % "jetty-util" % "8.0.0.M3" % "container, compile",
