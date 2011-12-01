@@ -38,23 +38,23 @@ trait ProjectEndpoint extends Directives with LiftJsonSupport {
 
   def withErrorHandling(ctx: RequestContext)(f: Future[_]): Future[_] = {
     f.onTimeout(f => {
-                  ctx.fail(StatusCodes.InternalServerError, write(ErrorResponse(1, ctx.request.path, List("Internal error."))))
-                  EventHandler.info(this, "Timed out")
-                }).onException {
-                  case e => {
-                    EventHandler.info(this, "Excepted: " + e)
-                    ctx.fail(StatusCodes.InternalServerError, write(ErrorResponse(1, ctx.request.path, List(e.getMessage))))
-                  }
-                }
+      ctx.fail(StatusCodes.InternalServerError, write(ErrorResponse(1, ctx.request.path, List("Internal error."))))
+      EventHandler.info(this, "Timed out")
+    }).onException {
+      case e => {
+        EventHandler.info(this, "Excepted: " + e)
+        ctx.fail(StatusCodes.InternalServerError, write(ErrorResponse(1, ctx.request.path, List(e.getMessage))))
+      }
+    }
   }
 
   def withSuccessCallback(ctx: RequestContext, statusCode: StatusCode = OK)(f: Future[_]): Future[_] = {
     f.onComplete(f => {
-                        f.result.get match {
-                      case Some(ProjectWrapper(oid, version, dateCreated, lastUpdated, content)) => ctx.complete(HttpResponse(statusCode, SuccessResponse[Project](version, ctx.request.path, 1, None, content.map(x => x.copy(id = oid))).toHttpContent))
-                      case None => ctx.fail(StatusCodes.NotFound, write(ErrorResponse(1l, ctx.request.path, List(NOT_FOUND_MESSAGE))))
-                    }
-                      })
+      f.result.get match {
+        case Some(ProjectWrapper(oid, version, dateCreated, lastUpdated, content)) => ctx.complete(HttpResponse(statusCode, SuccessResponse[Project](version, ctx.request.path, 1, None, content.map(x => x.copy(id = oid))).toHttpContent))
+        case None => ctx.fail(StatusCodes.NotFound, write(ErrorResponse(1l, ctx.request.path, List(NOT_FOUND_MESSAGE))))
+      }
+    })
   }
 
   //directive compositions
@@ -77,21 +77,21 @@ trait ProjectEndpoint extends Directives with LiftJsonSupport {
         objectIdPathMatch {
           resourceId =>
             cache {
-            directGetProject {
-              ctx =>
-                try {
-                  withErrorHandling(ctx) {
-                    withSuccessCallback(ctx) {
-                      service.getProject(new ObjectId(resourceId))
+              directGetProject {
+                ctx =>
+                  try {
+                    withErrorHandling(ctx) {
+                      withSuccessCallback(ctx) {
+                        service.getProject(new ObjectId(resourceId))
+                      }
                     }
                   }
-                }
-                catch {
-                  case e: IllegalArgumentException => {
-                    ctx.fail(StatusCodes.NotFound, write(ErrorResponse(1l, ctx.request.path, List(NOT_FOUND_MESSAGE))))
+                  catch {
+                    case e: IllegalArgumentException => {
+                      ctx.fail(StatusCodes.NotFound, write(ErrorResponse(1l, ctx.request.path, List(NOT_FOUND_MESSAGE))))
+                    }
                   }
-                }
-            }
+              }
             } ~
               putProject {
                 resource => ctx =>
@@ -123,12 +123,12 @@ trait ProjectEndpoint extends Directives with LiftJsonSupport {
           indirectGetProjects {
             (name, description) => ctx =>
               withErrorHandling(ctx) {
-                  service.searchProject(ProjectSearchParams(name, description)).onComplete(f => {
-                    f.result.get match {
-                      case content: Some[List[Project]] => ctx.complete(write(SuccessResponse[Project](1, ctx.request.path, content.get.length, None, content.get)))
-                      case None => ctx.fail(StatusCodes.NotFound, write(ErrorResponse(1, ctx.request.path, List(NOT_FOUND_MESSAGE))))
-                    }
-                  })
+                service.searchProject(ProjectSearchParams(name, description)).onComplete(f => {
+                  f.result.get match {
+                    case content: Some[List[Project]] => ctx.complete(write(SuccessResponse[Project](1, ctx.request.path, content.get.length, None, content.get)))
+                    case None => ctx.fail(StatusCodes.NotFound, write(ErrorResponse(1, ctx.request.path, List(NOT_FOUND_MESSAGE))))
+                  }
+                })
               }
           }
 
@@ -137,11 +137,10 @@ trait ProjectEndpoint extends Directives with LiftJsonSupport {
 
   }
 
-def httpMongo[U](realm: String = "Secured Resource",
-                 authenticator: UserPassAuthenticator[U] = FromMongoUserPassAuthenticator)
-                 : BasicHttpAuthenticator[U] =
-  new BasicHttpAuthenticator[U](realm, authenticator)
-
+  def httpMongo[U](realm: String = "Secured Resource",
+                   authenticator: UserPassAuthenticator[U] = FromMongoUserPassAuthenticator)
+  : BasicHttpAuthenticator[U] =
+    new BasicHttpAuthenticator[U](realm, authenticator)
 
 
 }
