@@ -1,10 +1,10 @@
 package com.mycotrack.api.model
 
 import org.bson.types.ObjectId
-import com.novus.salat.annotations.raw.Ignore
+import com.novus.salat.annotations.Ignore
 import java.util.Date
 
-case class Project(@Ignore id: Option[ObjectId], name: String, description: String, nestedObject: Option[NestedObject], enabled: Boolean, parent: Option[ObjectId] = None)
+case class Project(@Ignore id: Option[ObjectId], name: String, description: String, nestedObject: Option[NestedObject], enabled: Boolean, parent: Option[ObjectId] = None, @Ignore timestamp: Option[Date] = Some(new Date()))
 object Project {
   implicit def projToProjWrapper(project: Project): ProjectWrapper = {
     val now = new Date

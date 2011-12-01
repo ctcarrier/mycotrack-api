@@ -51,7 +51,7 @@ trait ProjectEndpoint extends Directives with LiftJsonSupport {
   def withSuccessCallback(ctx: RequestContext, statusCode: StatusCode = OK)(f: Future[_]): Future[_] = {
     f.onComplete(f => {
       f.result.get match {
-        case Some(ProjectWrapper(oid, version, dateCreated, lastUpdated, content)) => ctx.complete(HttpResponse(statusCode, SuccessResponse[Project](version, ctx.request.path, 1, None, content.map(x => x.copy(id = oid))).toHttpContent))
+        case Some(ProjectWrapper(oid, version, dateCreated, lastUpdated, content)) => ctx.complete(statusCode, SuccessResponse[Project](version, ctx.request.path, 1, None, content.map(x => x.copy(id = oid, timestamp = Some(new java.util.Date())))))
         case None => ctx.fail(StatusCodes.NotFound, write(ErrorResponse(1l, ctx.request.path, List(NOT_FOUND_MESSAGE))))
       }
     })
@@ -68,8 +68,10 @@ trait ProjectEndpoint extends Directives with LiftJsonSupport {
   val restService = {
     // Debugging: /ping -> pong
     path("ping") {
-      get {
-        _.complete("pong")
+      cache {
+        get {
+          _.complete("pong " + new java.util.Date())
+        }
       }
     } ~
       // Service implementation.
