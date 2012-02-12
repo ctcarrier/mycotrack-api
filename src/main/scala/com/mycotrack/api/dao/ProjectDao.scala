@@ -44,11 +44,17 @@ class ProjectDao(mongoCollection: MongoCollection) extends IProjectDao {
   }
 
   def searchProject(searchObj: MongoDBObject) = Future {
-    mongoCollection.find(searchObj).map(f =>
-      grater[ProjectWrapper].asObject(f).content).toList match {
+    val listRes = mongoCollection.find(searchObj).map(f => {
+      val pw = grater[ProjectWrapper].asObject(f)
+      pw.content.head.copy(id = pw._id)
+    }).toList
+
+    val res = listRes match {
       case l: List[Project] if (!l.isEmpty) => Some(l)
       case _ => None
     }
+
+    res
   }
 
   def getChildren(root: Project) = Future {

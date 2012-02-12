@@ -10,17 +10,18 @@ import cc.spray.HttpService._
 import com.mongodb.ServerAddress
 import com.mongodb.casbah.MongoConnection
 import com.mycotrack.api.endpoint._
-import cc.spray.{HttpService, RootService}
 import com.mycotrack.api.model._
 import _root_.com.mycotrack.api.dao._
 import akka.event.slf4j.Logging
 import com.mycotrack.api.model.{NestedObject, Project}
+import cc.spray.{SprayCanRootService, HttpService, RootService}
+import cc.spray.can.HttpServer
 
 /**
  * @author chris_carrier
  */
 
-class MycotrackInitializer extends Initializer with Logging {
+object MycotrackInitializer extends App with Logging {
 
   log.info("Running Initializer")
 
@@ -45,10 +46,13 @@ class MycotrackInitializer extends Initializer with Logging {
   //  configsCollection.ensureIndex(MongoDBObject("customerId" -> 1), "idx_customerId")
   val projectModule = new ProjectEndpoint {val service = projectDao}
   val speciesModule = new SpeciesEndpoint {val service = speciesDao}
+  val webAppModule = new WebAppEndpoint {}
 
   val projectService = actorOf(new HttpService(projectModule.restService))
   val speciesService = actorOf(new HttpService(speciesModule.restService))
-  val rootService = actorOf(new RootService(projectService, speciesService))
+  val webAppService = actorOf(new HttpService(webAppModule.restService))
+  val rootService = actorOf(new SprayCanRootService(projectService, speciesService, webAppService))
+  val sprayCanServer = actorOf(new HttpServer())
 
   // Start all actors that need supervision, including the root service actor.
   Supervisor(
@@ -57,7 +61,9 @@ class MycotrackInitializer extends Initializer with Logging {
       List(
         Supervise(projectService, Permanent),
         Supervise(speciesService, Permanent),
-        Supervise(rootService, Permanent)
+      Supervise(webAppService, Permanent),
+        Supervise(rootService, Permanent),
+        Supervise(sprayCanServer, Permanent)
       )
     )
   )

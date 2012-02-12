@@ -1,7 +1,7 @@
 package com.mycotrack.api.endpoint
 
 import com.mycotrack.api.auth.FromMongoUserPassAuthenticator
-import com.mycotrack.api.json.{ObjectIdSerializer, LiftJsonSupport}
+import com.mycotrack.api.json.{ObjectIdSerializer}
 import org.bson.types.ObjectId
 import akka.event.EventHandler
 import cc.spray.http._

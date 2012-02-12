@@ -1,7 +1,7 @@
 package com.mycotrack.api.endpoint
 
 import com.mycotrack.api.auth.FromMongoUserPassAuthenticator
-import com.mycotrack.api.json.{ObjectIdSerializer, LiftJsonSupport}
+import com.mycotrack.api.json.{ObjectIdSerializer}
 import org.bson.types.ObjectId
 import akka.event.EventHandler
 import cc.spray.http._
@@ -18,12 +18,15 @@ import com.mycotrack.api.dao._
 import net.liftweb.json.{Formats, DefaultFormats}
 import cc.spray._
 import akka.dispatch.Future
+import caching._
+import caching.LruCache._
+import utils.Logging
 
 /**
  * @author chris carrier
  */
 
-trait ProjectEndpoint extends Directives with LiftJsonSupport {
+trait ProjectEndpoint extends Directives with LiftJsonSupport with Logging {
   implicit val formats = DefaultFormats + new ObjectIdSerializer
 
   final val NOT_FOUND_MESSAGE = "resource.notFound"
@@ -32,6 +35,9 @@ trait ProjectEndpoint extends Directives with LiftJsonSupport {
   def JsonContent(content: String) = HttpContent(ContentType(`application/json`), content)
 
   val requiredFields = List("name", "description")
+
+  //caches
+  lazy val projectCache: Cache[Either[Set[Rejection], HttpResponse]] = LruCache(maxEntries = 100)
 
   EventHandler.info(this, "Starting actor.")
   val service: IProjectDao
@@ -51,7 +57,7 @@ trait ProjectEndpoint extends Directives with LiftJsonSupport {
   def withSuccessCallback(ctx: RequestContext, statusCode: StatusCode = OK)(f: Future[_]): Future[_] = {
     f.onComplete(f => {
       f.result.get match {
-        case Some(ProjectWrapper(oid, version, dateCreated, lastUpdated, content)) => ctx.complete(statusCode, SuccessResponse[Project](version, ctx.request.path, 1, None, content.map(x => x.copy(id = oid, timestamp = Some(new java.util.Date())))))
+        case Some(ProjectWrapper(oid, version, dateCreated, lastUpdated, content)) => ctx.complete(content.map(x => x.copy(id = oid, timestamp = Some(new java.util.Date()))))
         case None => ctx.fail(StatusCodes.NotFound, write(ErrorResponse(1l, ctx.request.path, List(NOT_FOUND_MESSAGE))))
       }
     })
@@ -78,7 +84,7 @@ trait ProjectEndpoint extends Directives with LiftJsonSupport {
       pathPrefix("projects") {
         objectIdPathMatch {
           resourceId =>
-            cache {
+            cacheResults(projectCache) {
               directGetProject {
                 ctx =>
                   try {
@@ -127,8 +133,12 @@ trait ProjectEndpoint extends Directives with LiftJsonSupport {
               withErrorHandling(ctx) {
                 service.searchProject(ProjectSearchParams(name, description)).onComplete(f => {
                   f.result.get match {
-                    case content: Some[List[Project]] => ctx.complete(write(SuccessResponse[Project](1, ctx.request.path, content.get.length, None, content.get)))
-                    case None => ctx.fail(StatusCodes.NotFound, write(ErrorResponse(1, ctx.request.path, List(NOT_FOUND_MESSAGE))))
+                    case Some(content) => {
+                      val res: List[Project] = content
+                      log.info("test: " + content.isInstanceOf[List[List[Project]]] + " : " + content.isInstanceOf[List[Project]])
+                      ctx.complete(res)
+                    }
+                    case None => ctx.fail(StatusCodes.NotFound, ErrorResponse(1, ctx.request.path, List(NOT_FOUND_MESSAGE)))
                   }
                 })
               }
