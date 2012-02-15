@@ -34,17 +34,59 @@
                     Project name
                 </a>
                 <ul class="nav">
-                    <li class="active">
+                    <li>
                         <a href="#">Home</a>
                     </li>
-                    <li><a href="/projectList">Project</a></li>
+                    <li class="active"><a href="/projectList">Project</a></li>
                     <li><a href="#">Link</a></li>
                 </ul>
             </div>
         </div>
     </div>
     <div class="container">
-        <h1>Welcome</h1>
+        <div id="detail">
+            <script type="text/x-handlebars">
+                {{#view Mycotrack.CardView}}
+                <div class="name">
+                    {{view Ember.TextField valueBinding="content.name" placeholder="name"}}
+                </div>
+                <div class="description">
+                    {{view Ember.TextField valueBinding="content.description" placeholder="description"}}
+                </div>
+                <br/>
+
+                <div class="enabled">
+                    {{view Ember.Checkbox class="enabled"
+                    title="Enabled"
+                    valueBinding="content.enabled"}}
+                </div>
+                <br/>
+                {{/view}}
+
+
+                {{#view Ember.Button
+                target="Mycotrack.projects"
+                action="saveSelectedProject"}}
+                Save
+                {{/view}}
+
+            </script>
+
+        </div>
+        <script type="text/html">
+
+            <!--{{view Ember.Checkbox class="mark-all-done"
+            title="Mark All as Done"
+            valueBinding="Mycotrack.projectController.allAreDone"}}-->
+
+            {{#view Mycotrack.ProjectListView contentBinding="Mycotrack.projects"}}
+            {{#each content}}
+            {{#view Mycotrack.ClickableProjectView contentBinding="this" }}
+            {{content.name}}
+            {{/view}}
+            {{/each}}
+            {{/view}}
+        </script>
 
     </div>
 </div>

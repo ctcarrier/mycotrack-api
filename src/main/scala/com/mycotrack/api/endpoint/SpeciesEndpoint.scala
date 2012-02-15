@@ -18,9 +18,10 @@ import com.mycotrack.api.dao._
 import net.liftweb.json.{Formats, DefaultFormats}
 import cc.spray._
 import akka.dispatch.Future
+import cc.spray.authentication._
 
 trait SpeciesEndpoint extends Directives with LiftJsonSupport {
-  implicit val formats = DefaultFormats + new ObjectIdSerializer
+  implicit val liftJsonFormats = DefaultFormats + new ObjectIdSerializer
 
   final val NOT_FOUND_MESSAGE = "resource.notFound"
   final val INTERNAL_ERROR_MESSAGE = "error"

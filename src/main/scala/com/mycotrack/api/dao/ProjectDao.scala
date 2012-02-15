@@ -33,13 +33,16 @@ class ProjectDao(mongoCollection: MongoCollection) extends IProjectDao {
 
   def updateProject(key: ObjectId, model: Project) = {
     Future {
+      val inputDbo = grater[Project].asDBObject(model)
       val query = MongoDBObject("_id" -> key)
-      val update = $addToSet("content" -> model)
+      val update = $set("content" -> List(inputDbo))
 
       mongoCollection.update(query, update, false, false, WriteConcern.Safe)
 
       val dbo = mongoCollection.findOne(query)
-      dbo.map(f => grater[ProjectWrapper].asObject(f))
+      val result = dbo.map(f => grater[ProjectWrapper].asObject(f))
+
+      result
     }
   }
 

@@ -10,6 +10,7 @@ import com.mongodb.casbah.commons.Imports._
 import com.novus.salat._
 import com.novus.salat.global._
 import akka.event.EventHandler
+import akka.dispatch.Future
 
 /**
  * @author chris_carrier
@@ -42,13 +43,15 @@ import akka.event.EventHandler
 object FromMongoUserPassAuthenticator extends UserPassAuthenticator[BasicUserContext] {
   def apply(userPass: Option[(String, String)]) = {
     EventHandler.info(this, "Mongo auth")
-    userPass.flatMap {
-      case (user, pass) => {
-        val db = MongoConnection()("mycotrack")("users")
-        val userResult = db.findOne(MongoDBObject("username" -> user) ++ ("password" -> pass))
-        userResult.map(grater[BasicUserContext].asObject(_))
+    Future {
+      userPass.flatMap {
+        case (user, pass) => {
+          val db = MongoConnection()("mycotrack")("users")
+          val userResult = db.findOne(MongoDBObject("username" -> user) ++ ("password" -> pass))
+          userResult.map(grater[BasicUserContext].asObject(_))
+        }
+        case _ => None
       }
-      case _ => None
     }
   }
   

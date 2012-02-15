@@ -1,89 +1,18 @@
-Mycotrack = Ember.Application.create();
+Mycotrack = Ember.Application.create({
+        // When everything is loaded.
+        ready: function() {
 
-Mycotrack.Project = Ember.Resource.define({
-  url: '/projects',
-  schema: {
-    id: String,
-    name: String,
-    description: String,
-    enabled: Boolean,
-    selected: Boolean
-  }
-});
+            Mycotrack.projects.getProjects();
 
-Mycotrack.projectController = Ember.ResourceCollection.create({
-  type: Mycotrack.Project,
+            // Start polling Twitter
+            //      setInterval(function() {
+            //      Dashboard.customerResults.refresh();
+            //  }, 20000);
 
-  createProject: function(title) {
-    var project = Mycotrack.Project.create({ name: name || '', description: description || '', enabled: true });
-    project.save().done(function() {
-      Mycotrack.projectController.pushObject(project);
-    })
-  },
+            // The default search is empty, let's find some cats.
+            //Twitter.searchResults.set("query", "cats");
 
-  clearCompletedProjects: function() {
-    this.filterProperty('enabled', true).forEach(function(project) {
-      project.destroy().done(function() {
-        Mycotrack.projectController.removeObject(project);
-      })
+            // Call the superclass's `ready` method.
+            this._super();
+        }
     });
-  },
-
-  remaining: function() {
-    return this.filterProperty('enabled', false).get('length');
-  }.property('@each.enabled'),
-
-  allAreDone: function(key, value) {
-    if (value !== undefined) {
-      this.setEach('enabled', value);
-
-      return value;
-    } else {
-      return !!this.get('length') && this.everyProperty('enabled', true);
-    }
-  }.property('@each.enabled')
-});
-
-Mycotrack.selectedProjectController = SC.Object.create({
-  content: null
-});
-
-Mycotrack.StatsView = Ember.View.extend({
-  remainingBinding: 'Mycotrack.projectController.remaining',
-
-  remainingString: function() {
-    var remaining = this.get('remaining');
-    return remaining + (remaining === 1 ? " item" : " items");
-  }.property('remaining')
-});
-
-Mycotrack.ProjectCheckbox = Ember.Checkbox.extend({
-
-    content: null,
-
-    click: function() {
-        Mycotrack.selectedProjectController.set('content', content);
-      },
-
-      isSelected: function() {
-        var selectedItem = App.selectedContactController.get('content');
-
-        if (content === selectedItem) { return true; }
-      }.property('App.selectedProjectController.content')
-});
-
-Mycotrack.CreateProjectView = Ember.TextField.extend({
-  insertNewline: function() {
-    var value = this.get('value');
-
-    if (value) {
-      Mycotrack.projectController.createProject(value);
-      this.set('value', '');
-    }
-  }
-});
-
-Mycotrack.CardView = SC.View.extend({
-  contentBinding: 'Mycotrack.selectedProjectController.content',
-  classNames: ['card'],
-});

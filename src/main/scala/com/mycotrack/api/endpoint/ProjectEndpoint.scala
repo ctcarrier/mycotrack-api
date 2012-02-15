@@ -10,6 +10,7 @@ import HttpHeaders._
 import HttpMethods._
 import StatusCodes._
 import MediaTypes._
+import cc.spray.authentication._
 import net.liftweb.json.JsonParser._
 import net.liftweb.json.Serialization._
 import com.mycotrack.api.model._
@@ -27,7 +28,7 @@ import utils.Logging
  */
 
 trait ProjectEndpoint extends Directives with LiftJsonSupport with Logging {
-  implicit val formats = DefaultFormats + new ObjectIdSerializer
+  implicit val liftJsonFormats = DefaultFormats + new ObjectIdSerializer
 
   final val NOT_FOUND_MESSAGE = "resource.notFound"
   final val INTERNAL_ERROR_MESSAGE = "error"
