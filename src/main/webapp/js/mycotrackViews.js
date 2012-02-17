@@ -31,10 +31,27 @@ Mycotrack.CardView = SC.View.extend({
   classNames: ['card'],
 });
 
+Mycotrack.SpeciesListView = Ember.View.extend({
+        tagName: 'ul',
+        classNames: ['species', 'unstyled']
+
+    });
+
 Mycotrack.ProjectListView = Ember.View.extend({
         tagName: 'ul',
-        classNames: ['projects']
+        classNames: ['projects', 'unstyled']
 
+    });
+
+Mycotrack.SpeciesView = Ember.View.extend({
+        tagName: 'li',
+        classNames: ['species'],
+
+        click: function(evt) {
+            var selectedContent = this.get('content');
+
+            Mycotrack.selectedSpeciesController.set('content', selectedContent);
+        }
     });
 
 Mycotrack.ProjectView = Ember.View.extend({

@@ -7,6 +7,7 @@ Mycotrack.Project = Ember.Object.extend({
 
 });
 
+
 Mycotrack.projects = Ember.ArrayController.create({
     content: [],
 
@@ -27,6 +28,19 @@ Mycotrack.projects = Ember.ArrayController.create({
             url: url,
             contentType: "application/json",
             data: JSON.stringify(toSave)
+        });
+    }
+});
+
+Mycotrack.species = Ember.ArrayController.create({
+    content: [],
+
+    populate: function() {
+        var self = this;
+        var url = "/species";
+        $.get(url, function(data) {
+            self.set('content', data);
+            return;
         });
     }
 });

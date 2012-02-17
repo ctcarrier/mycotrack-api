@@ -3,6 +3,7 @@ Mycotrack = Ember.Application.create({
         ready: function() {
 
             Mycotrack.projects.getProjects();
+            Mycotrack.species.populate();
 
             // Start polling Twitter
             //      setInterval(function() {

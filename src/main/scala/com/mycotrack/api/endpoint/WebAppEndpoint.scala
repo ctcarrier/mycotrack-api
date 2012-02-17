@@ -26,6 +26,11 @@ class WebAppEndpoint extends Directives with Logging {
             getFromResource("projectList.html")
         }
     } ~
+    path("speciesList") {
+        cache {
+            getFromResource("speciesList.html")
+        }
+    } ~
     pathPrefix("test") {
         cache {
             log.info("test endpoint")

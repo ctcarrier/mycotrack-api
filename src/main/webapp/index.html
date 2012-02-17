@@ -28,21 +28,41 @@
 <body>
 <div class="container">
     <div class="navbar">
-        <div class="navbar-inner">
-            <div class="container">
-                <a class="brand" href="#">
-                    Project name
-                </a>
-                <ul class="nav">
-                    <li class="active">
-                        <a href="#">Home</a>
-                    </li>
-                    <li><a href="/projectList">Project</a></li>
-                    <li><a href="#">Link</a></li>
-                </ul>
-            </div>
-        </div>
-    </div>
+    <div class="navbar-inner">
+      <div style="width: auto;" class="container">
+        <a data-target=".nav-collapse" data-toggle="collapse" class="btn btn-navbar">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </a>
+        <a href="#" class="brand">Mycotrack</a>
+        <div class="nav-collapse">
+          <ul class="nav">
+            <li class="active"><a href="/app">Home</a></li>
+            <li><a href="/projectList">Project</a></li>
+            <li><a href="/speciesList">Species</a></li>
+          </ul>
+          <form action="" class="navbar-search pull-left">
+            <input type="text" placeholder="Search" class="search-query span2">
+          </form>
+          <ul class="nav pull-right">
+            <li><a href="#">Link</a></li>
+            <li class="divider-vertical"></li>
+            <li class="dropdown">
+              <a data-toggle="dropdown" class="dropdown-toggle" href="#">Dropdown <b class="caret"></b></a>
+              <ul class="dropdown-menu">
+                <li><a href="#">Create Project</a></li>
+                <li><a href="#">Do someting</a></li>
+                <li><a href="#">Something else here</a></li>
+                <li class="divider"></li>
+                <li><a href="#">Separated link</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div><!-- /.nav-collapse -->
+      </div>
+    </div><!-- /navbar-inner -->
+  </div>
     <div class="container">
         <h1>Welcome</h1>
 

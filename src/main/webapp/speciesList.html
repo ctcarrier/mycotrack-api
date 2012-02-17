@@ -39,8 +39,8 @@
         <div class="nav-collapse">
           <ul class="nav">
             <li><a href="/app">Home</a></li>
-            <li class="active"><a href="/projectList">Project</a></li>
-            <li><a href="/speciesList">Species</a></li>
+            <li><a href="/projectList">Project</a></li>
+            <li class="active"><a href="/speciesList">Species</a></li>
           </ul>
           <form action="" class="navbar-search pull-left">
             <input type="text" placeholder="Search" class="search-query span2">
@@ -51,9 +51,7 @@
             <li class="dropdown">
               <a data-toggle="dropdown" class="dropdown-toggle" href="#">Dropdown <b class="caret"></b></a>
               <ul class="dropdown-menu">
-                <li><a href="#">New Project</a></li>
-                <li><a href="#">Do someting</a></li>
-                <li><a href="#">Something else here</a></li>
+                <li><a href="#">New Species</a></li>
                 <li class="divider"></li>
                 <li><a href="#">Separated link</a></li>
               </ul>
@@ -67,16 +65,12 @@
         <div class="row">
             <div class="span4">
                 <div class="row">
-                    <div class="span4"><h4>Projects</h4></div>
+                    <div class="span4"><h4>Species</h4></div>
                 </div>
                 <div class="row">
                     <script type="text/html">
 
-                        <!--{{view Ember.Checkbox class="mark-all-done"
-                        title="Mark All as Done"
-                        valueBinding="Mycotrack.projectController.allAreDone"}}-->
-
-                        {{#view Mycotrack.ProjectListView contentBinding="Mycotrack.projects"}}
+                        {{#view Mycotrack.SpeciesListView contentBinding="Mycotrack.species"}}
                         {{#each content}}
                         {{#view Mycotrack.ClickableProjectView contentBinding="this" }}
                         {{content.name}}

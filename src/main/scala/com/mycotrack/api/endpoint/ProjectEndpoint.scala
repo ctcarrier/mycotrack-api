@@ -136,7 +136,6 @@ trait ProjectEndpoint extends Directives with LiftJsonSupport with Logging {
                   f.result.get match {
                     case Some(content) => {
                       val res: List[Project] = content
-                      log.info("test: " + content.isInstanceOf[List[List[Project]]] + " : " + content.isInstanceOf[List[Project]])
                       ctx.complete(res)
                     }
                     case None => ctx.fail(StatusCodes.NotFound, ErrorResponse(1, ctx.request.path, List(NOT_FOUND_MESSAGE)))
