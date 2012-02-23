@@ -2,22 +2,15 @@ Requires [MongoDB][www.mongodb.com] running on localhost:27017 and [SBT 0.11.0][
 
 1. Launch [SBT](http://code.google.com/p/simple-build-tool).
 
-        ./sbt
+        sbt
 
 
-2. Run Jetty
+2. Run spray-can in continuous deployment mode.  Right now the akka.mode is configured in the build.sbt until we have a better way to override it at run time.
 
-        jetty-run
+        ~re:start
 
 
 3. Run tests
 
         test
 
-4. Package project as a runnable jar
-
-        assembly
-
-5. Run JAR
-
-        java -Dakka.mode=dev -jar target/<JAR_NAME>.jar
