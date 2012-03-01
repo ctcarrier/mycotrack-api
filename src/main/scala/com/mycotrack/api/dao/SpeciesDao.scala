@@ -8,13 +8,14 @@ import com.mongodb.casbah.commons.MongoDBObject
 import com.mycotrack.api._
 import model._
 import org.bson.types.ObjectId
+import cc.spray.utils.Logging
 
 /*
  * User: gregg
  * Date: 11/6/11
  * Time: 1:23 PM
  */
-class SpeciesDao(mongoCollection: MongoCollection) extends ISpeciesDao {
+class SpeciesDao(mongoCollection: MongoCollection) extends ISpeciesDao with Logging {
 
   def getSpecies(key: ObjectId) = {
     Future {
@@ -41,10 +42,19 @@ class SpeciesDao(mongoCollection: MongoCollection) extends ISpeciesDao {
   }
 
   def searchSpecies(searchObj: MongoDBObject) = Future {
-    mongoCollection.find(searchObj).map(f =>
-      grater[SpeciesWrapper].asObject(f).content).toList match {
+    val listRes = mongoCollection.find(searchObj).map(f => {
+      val pw = grater[SpeciesWrapper].asObject(f)
+      pw.content.head.copy(id = pw._id)
+    }).toList
+
+    log.info("Search species result: " + listRes.head)
+
+    val res = listRes match {
       case l: List[Species] if (!l.isEmpty) => Some(l)
       case _ => None
     }
+
+    log.info("Search species result: " + res.get.head)
+    res
   }
 }

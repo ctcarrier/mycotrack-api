@@ -34,9 +34,9 @@ libraryDependencies ++= Seq(
   "ch.qos.logback" % "logback-classic" % "0.9.28" % "runtime",
   "ch.qos.logback" % "logback-core" % "0.9.28" % "runtime",
   //SPRAY
-  "cc.spray" % "spray-base" % "0.9.0-SNAPSHOT" % "compile" withSources(),
-  "cc.spray" % "spray-server" % "0.9.0-SNAPSHOT" % "compile" withSources(),
-  "cc.spray.can" % "spray-can" % "0.9.1" % "compile" withSources(),
+  "cc.spray" % "spray-base" % "0.9.0-RC4" % "compile" withSources(),
+  "cc.spray" % "spray-server" % "0.9.0-RC4" % "compile" withSources(),
+  "cc.spray" % "spray-can" % "0.9.2" % "compile" withSources(),
   //AKKA
   "se.scalablesolutions.akka" % "akka-actor" % "1.3-RC4",
   "se.scalablesolutions.akka" % "akka-http" % "1.3-RC4",
@@ -65,6 +65,7 @@ resolvers ++= Seq(
   "repo.novus rels" at "http://repo.novus.com/releases/",
   "repo.novus snaps" at "http://repo.novus.com/snapshots/",
   "Twitter4j repo" at "http://twitter4j.org/maven2",
+  "Spray repo" at "http://repo.spray.cc",
   "Local Maven Repository" at "file://"+Path.userHome+"/.m2/repository"
 )
 

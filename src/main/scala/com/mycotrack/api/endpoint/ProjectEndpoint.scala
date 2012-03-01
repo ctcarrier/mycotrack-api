@@ -38,7 +38,7 @@ trait ProjectEndpoint extends Directives with LiftJsonSupport with Logging {
   val requiredFields = List("name", "description")
 
   //caches
-  lazy val projectCache: Cache[Either[Set[Rejection], HttpResponse]] = LruCache(maxEntries = 100)
+  lazy val projectCache: Cache[Either[Set[Rejection], HttpResponse]] = LruCache(100)
 
   EventHandler.info(this, "Starting actor.")
   val service: IProjectDao
@@ -75,10 +75,12 @@ trait ProjectEndpoint extends Directives with LiftJsonSupport with Logging {
   val restService = {
     // Debugging: /ping -> pong
     path("ping") {
+      detach{
       cache {
         get {
           _.complete("pong " + new java.util.Date())
         }
+      }
       }
     } ~
       // Service implementation.

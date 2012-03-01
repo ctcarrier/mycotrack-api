@@ -73,7 +73,7 @@
                         {{#view Mycotrack.SpeciesListView contentBinding="Mycotrack.species"}}
                         {{#each content}}
                         {{#view Mycotrack.ClickableProjectView contentBinding="this" }}
-                        {{content.name}}
+                        {{content.commonName}}
                         {{/view}}
                         {{/each}}
                         {{/view}}
@@ -84,10 +84,10 @@
                 <script type="text/x-handlebars">
                     {{#view Mycotrack.CardView}}
                     <div class="name">
-                        {{view Ember.TextField valueBinding="content.name" placeholder="name"}}
+                        {{view Ember.TextField valueBinding="content.commonName" placeholder="commonName"}}
                     </div>
                     <div class="description">
-                        {{view Ember.TextField valueBinding="content.description" placeholder="description"}}
+                        {{view Ember.TextField valueBinding="content.scientificName" placeholder="scientificName"}}
                     </div>
                     <br/>
 

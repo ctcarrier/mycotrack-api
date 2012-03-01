@@ -19,8 +19,9 @@ import net.liftweb.json.{Formats, DefaultFormats}
 import cc.spray._
 import akka.dispatch.Future
 import cc.spray.authentication._
+import utils.Logging
 
-trait SpeciesEndpoint extends Directives with LiftJsonSupport {
+trait SpeciesEndpoint extends Directives with LiftJsonSupport with Logging {
   implicit val liftJsonFormats = DefaultFormats + new ObjectIdSerializer
 
   final val NOT_FOUND_MESSAGE = "resource.notFound"
@@ -36,7 +37,7 @@ trait SpeciesEndpoint extends Directives with LiftJsonSupport {
   def withErrorHandling(ctx: RequestContext)(f: Future[_]): Future[_] = {
     f.onTimeout(f => {
       ctx.fail(StatusCodes.InternalServerError, write(ErrorResponse(1, ctx.request.path, List("Internal error."))))
-      EventHandler.info(this, "Timed out")
+      log.info("Timed out")
     }).onException {
       case e => {
         EventHandler.info(this, "Excepted: " + e)
@@ -112,11 +113,15 @@ trait SpeciesEndpoint extends Directives with LiftJsonSupport {
           (commonName, scientificName) => ctx =>
             withErrorHandling(ctx) {
               service.searchSpecies(SpeciesSearchParams(scientificName, commonName)).onComplete(f => {
-                f.result match {
-                  case Some(Some(content)) => ctx.complete(write(SuccessResponse[Species](1, ctx.request.path, content.length, None, content)))
-                  case _ => ctx.fail(StatusCodes.NotFound, write(ErrorResponse(1, ctx.request.path, List(NOT_FOUND_MESSAGE))))
-                }
-              })
+                log.info("Completing species call")
+                f.result.get match {
+                    case Some(content) => {
+                      val res: List[Species] = content
+                      ctx.complete(res)
+                    }
+                    case None => ctx.fail(StatusCodes.NotFound, ErrorResponse(1, ctx.request.path, List(NOT_FOUND_MESSAGE)))
+                  }
+                })
             }
         }
     }
