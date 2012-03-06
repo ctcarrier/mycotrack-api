@@ -21,7 +21,7 @@ import akka.dispatch.Future
 import cc.spray.authentication._
 import utils.Logging
 
-trait SpeciesEndpoint extends Directives with LiftJsonSupport with Logging {
+trait CultureEndpoint extends Directives with LiftJsonSupport with Logging {
   implicit val liftJsonFormats = DefaultFormats + new ObjectIdSerializer
 
   final val NOT_FOUND_MESSAGE = "resource.notFound"
@@ -29,17 +29,18 @@ trait SpeciesEndpoint extends Directives with LiftJsonSupport with Logging {
 
   def JsonContent(content: String) = HttpContent(ContentType(`application/json`), content)
 
-  EventHandler.info(this, "Starting actor.")
-  val service: ISpeciesDao
+  val requiredFields = List("name")
+
+  val service: ICultureDao
 
   def withErrorHandling(ctx: RequestContext)(f: Future[_]): Future[_] = {
     f.onTimeout(f => {
-      ctx.fail(StatusCodes.InternalServerError, write(ErrorResponse(1, ctx.request.path, List("Internal error."))))
+      ctx.fail(StatusCodes.InternalServerError, ErrorResponse(1, ctx.request.path, List("Internal error.")))
       log.info("Timed out")
     }).onException {
       case e => {
         EventHandler.info(this, "Excepted: " + e)
-        ctx.fail(StatusCodes.InternalServerError, write(ErrorResponse(1, ctx.request.path, List(e.getMessage))))
+        ctx.fail(StatusCodes.InternalServerError, ErrorResponse(1, ctx.request.path, List(e.getMessage)))
       }
     }
   }
@@ -47,31 +48,31 @@ trait SpeciesEndpoint extends Directives with LiftJsonSupport with Logging {
   def withSuccessCallback(ctx: RequestContext, statusCode: StatusCode = OK)(f: Future[_]): Future[_] = {
     f.onComplete(f => {
       f.result.get match {
-        case Some(SpeciesWrapper(oid, version, created, updated, content)) => ctx.complete(HttpResponse(statusCode, SuccessResponse[Species](version, ctx.request.path, 1, None, content.map(x => x.copy(id = oid))).toHttpContent))
-        case None => ctx.fail(StatusCodes.NotFound, write(ErrorResponse(1l, ctx.request.path, List(NOT_FOUND_MESSAGE))))
+        case Some(CultureWrapper(oid, version, created, updated, content)) => ctx.complete(HttpResponse(statusCode, SuccessResponse[Culture](version, ctx.request.path, 1, None, content.map(x => x.copy(id = oid))).toHttpContent))
+        case Some(c: Culture) => ctx.complete(c)
+        case None => ctx.fail(StatusCodes.NotFound, ErrorResponse(1l, ctx.request.path, List(NOT_FOUND_MESSAGE)))
       }
     })
   }
 
   //directive compositions
   val objectIdPathMatch = path("^[a-f0-9]+$".r)
-  val getSpecies = get
-  val putSpecies = content(as[Species]) & put
-  val postSpecies = path("") & content(as[Species]) & post
-  val searchSpecies = path("") & parameters('commonName ?, 'scientificName ?) & get
+  val putCulture = content(as[Culture]) & put
+  val postCulture = path("") & content(as[Culture]) & post
+  val searchCultures = path("") & parameters('name ?) & get
 
   val restService = {
     // Debugging: /ping -> pong
     // Service implementation.
-    pathPrefix("species") {
+    pathPrefix("cultures") {
       objectIdPathMatch {
         resourceId =>
-          getSpecies {
+          get {
             ctx =>
               try {
                 withErrorHandling(ctx) {
                   withSuccessCallback(ctx) {
-                    service.getSpecies(new ObjectId(resourceId))
+                    service.getCulture(new ObjectId(resourceId))
                   }
                 }
               }
@@ -81,12 +82,12 @@ trait SpeciesEndpoint extends Directives with LiftJsonSupport with Logging {
                 }
               }
           } ~
-            putSpecies {
+            putCulture {
               resource => ctx =>
                 try {
                   withErrorHandling(ctx) {
                     withSuccessCallback(ctx) {
-                      service.updateSpecies(new ObjectId(resourceId), resource)
+                      service.updateCulture(new ObjectId(resourceId), resource)
                     }
                   }
                 }
@@ -97,24 +98,23 @@ trait SpeciesEndpoint extends Directives with LiftJsonSupport with Logging {
                 }
             }
       } ~
-        postSpecies {
+        postCulture {
           resource => ctx =>
             val now = new java.util.Date
-            val resourceWrapper = SpeciesWrapper(None, 1, now, now, List(resource))
+            val resourceWrapper = CultureWrapper(None, 1, now, now, List(resource))
             withErrorHandling(ctx) {
               withSuccessCallback(ctx, Created) {
-                service.createSpecies(resourceWrapper)
+                service.createCulture(resourceWrapper)
               }
             }
         } ~
-        searchSpecies {
-          (commonName, scientificName) => ctx =>
+        searchCultures {
+          (name) => ctx =>
             withErrorHandling(ctx) {
-              service.searchSpecies(SpeciesSearchParams(scientificName, commonName)).onComplete(f => {
-                log.info("Completing species call")
+              service.searchCulture(CultureSearchParams(name)).onComplete(f => {
                 f.result.get match {
                     case Some(content) => {
-                      val res: List[Species] = content
+                      val res: List[Culture] = content
                       ctx.complete(res)
                     }
                     case None => ctx.fail(StatusCodes.NotFound, ErrorResponse(1, ctx.request.path, List(NOT_FOUND_MESSAGE)))

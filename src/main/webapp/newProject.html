@@ -67,21 +67,10 @@
         <div class="row">
             <div class="span4">
                 <div class="row">
-                    <div class="span4">
-                        <h4>Projects</h4>
-                        <script type="text/x-handlebars">
-                            {{#view Ember.Button
-                            target="Mycotrack.projectController"
-                            action="createNewProject"}}
-                            New
-                            {{/view}}
-                        </script>
-                    </div>
+                    <div class="span4"><h4>Projects</h4></div>
                 </div>
-                <br />
                 <div class="row">
-                    <div id="projectList" class="span2">
-                    <script type="text/x-handlebars">
+                    <script type="text/html">
 
                         <!--{{view Ember.Checkbox class="mark-all-done"
                         title="Mark All as Done"
@@ -90,12 +79,11 @@
                         {{#view Mycotrack.ProjectListView contentBinding="Mycotrack.projects"}}
                         {{#each content}}
                         {{#view Mycotrack.ClickableProjectView contentBinding="this" }}
-                            <a href="#">{{content.name}}</a>
+                        {{content.name}}
                         {{/view}}
                         {{/each}}
                         {{/view}}
                     </script>
-                    </div>
                 </div>
             </div>
             <div id="detail" class="span4">
@@ -110,13 +98,7 @@
                     
                     <br />
                     <div class="species">
-                        Culture:
-                        {{view Ember.Select
-                           contentBinding="Mycotrack.cultures"
-                           selectionBinding="Mycotrack.selectedProjectController.content.culture"
-                           optionLabelPath="content.name"
-                           optionValuePath="content.id"
-                           prompt="Select Culture" }}
+                        Culture: {{content.culture.name}}
                     </div>
                     <br/>
 
@@ -130,7 +112,7 @@
 
 
                     {{#view Ember.Button
-                    target="Mycotrack.projectController"
+                    target="Mycotrack.projects"
                     action="saveSelectedProject"}}
                     Save
                     {{/view}}
@@ -152,8 +134,6 @@
 <script src="js/lib/ember-0.9.5.min.js"></script>
 <script src="js/lib/ember-resource.js"></script>
 <script src="js/lib/bootstrap.min.js"></script>
-<script src="js/lib/spin.js"></script>
-<script src="js/lib/jquery.spin.js"></script>
 <script src="js/mycotrack.js"></script>
 <script src="js/mycotrackModel.js"></script>
 <script src="js/mycotrackViews.js"></script>

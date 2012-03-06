@@ -18,7 +18,10 @@ class CultureDao(mongoCollection: MongoCollection) extends ICultureDao {
   def getCulture(key: ObjectId) = {
     Future {
       val dbo = mongoCollection.findOneByID(key)
-      dbo.map(f => grater[CultureWrapper].asObject(f))
+      dbo.map(f => {
+        val wrapper = grater[CultureWrapper].asObject(f)
+        wrapper.content.head.copy(id = wrapper._id)
+      })
     }
   }
 
@@ -40,10 +43,17 @@ class CultureDao(mongoCollection: MongoCollection) extends ICultureDao {
   }
 
   def searchCulture(searchObj: MongoDBObject) = Future {
-    mongoCollection.find(searchObj).map(f =>
-      grater[CultureWrapper].asObject(f).content).toList match {
+    val listRes = mongoCollection.find(searchObj).map(f => {
+      val pw = grater[CultureWrapper].asObject(f)
+      pw.content.head.copy(id = pw._id)
+    }).toList
+
+
+    val res = listRes match {
       case l: List[Culture] if (!l.isEmpty) => Some(l)
       case _ => None
     }
+
+    res
   }
 }

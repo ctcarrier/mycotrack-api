@@ -21,7 +21,7 @@ trait ISpeciesDao {
 }
 
 trait ICultureDao {
-  def getCulture(key: ObjectId): Future[Option[CultureWrapper]]
+  def getCulture(key: ObjectId): Future[Option[Culture]]
   def createCulture(cultureWrapper: CultureWrapper): Future[Option[CultureWrapper]]
   def updateCulture(key: ObjectId, model: Culture): Future[Option[CultureWrapper]]
   def searchCulture(searchObj: MongoDBObject): Future[Option[List[Culture]]]

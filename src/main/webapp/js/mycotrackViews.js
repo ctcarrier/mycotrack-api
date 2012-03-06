@@ -39,7 +39,7 @@ Mycotrack.SpeciesListView = Ember.View.extend({
 
 Mycotrack.ProjectListView = Ember.View.extend({
         tagName: 'ul',
-        classNames: ['projects', 'unstyled']
+        classNames: ['projects', 'nav', 'nav-tabs', 'nav-stacked']
 
     });
 
@@ -68,5 +68,7 @@ Mycotrack.ClickableProjectView = Ember.View.extend({
             var selectedContent = this.get('content');
 
             Mycotrack.selectedProjectController.set('content', selectedContent);
+
+            return false;
         }
     });

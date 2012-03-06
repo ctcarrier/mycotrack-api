@@ -47,14 +47,12 @@ class SpeciesDao(mongoCollection: MongoCollection) extends ISpeciesDao with Logg
       pw.content.head.copy(id = pw._id)
     }).toList
 
-    log.info("Search species result: " + listRes.head)
 
     val res = listRes match {
       case l: List[Species] if (!l.isEmpty) => Some(l)
       case _ => None
     }
 
-    log.info("Search species result: " + res.get.head)
     res
   }
 }

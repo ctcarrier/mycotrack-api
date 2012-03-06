@@ -22,11 +22,11 @@ object SpeciesSearchParams {
   }
 }
 
-case class CultureSearchParams(names: Option[List[String]])
+case class CultureSearchParams(name: Option[String])
 object CultureSearchParams {
   implicit def toDbo(c: CultureSearchParams): MongoDBObject = {
     val builder = MongoDBObject.newBuilder
-    c.names.foreach(_.foreach(builder += "content.name" -> _))
+    c.name.foreach(_.foreach(builder += "content.name" -> _))
     builder.result.asDBObject
   }
 }

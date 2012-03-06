@@ -12,24 +12,25 @@ Mycotrack.projects = Ember.ArrayController.create({
     content: [],
 
     getProjects: function() {
+        $('#projectList').spin("small");
         var self = this;
         var url = "/projects";
         $.get(url, function(data) {
-            self.set('content', data);
+            for (var i = 0; i < data.length; i++) {
+                var proj = data[i]
+                $.get(proj.cultureUrl, function(cultureData) {
+                    proj.culture = cultureData
+                    return;
+                });
+
+            }
+            self.set("content", data)
+            $('#projectList').spin(false);
             return;
         });
-    },
-
-    saveSelectedProject: function() {
-        var toSave = Mycotrack.selectedProjectController.get('content');
-        var url = '/projects/' + toSave.id;
-        $.ajax({
-            type: "PUT",
-            url: url,
-            contentType: "application/json",
-            data: JSON.stringify(toSave)
-        });
     }
+
+
 });
 
 Mycotrack.species = Ember.ArrayController.create({
@@ -38,6 +39,19 @@ Mycotrack.species = Ember.ArrayController.create({
     populate: function() {
         var self = this;
         var url = "/species";
+        $.get(url, function(data) {
+            self.set('content', data);
+            return;
+        });
+    }
+});
+
+Mycotrack.cultures = Ember.ArrayController.create({
+    content: [],
+
+    populate: function() {
+        var self = this;
+        var url = "/cultures";
         $.get(url, function(data) {
             self.set('content', data);
             return;

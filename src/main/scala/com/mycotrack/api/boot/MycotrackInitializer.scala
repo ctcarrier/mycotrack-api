@@ -32,6 +32,7 @@ object MycotrackInitializer extends App with Logging {
 
   val projectCollection = akkaConfig.getString("mycotrack.project.collection", "projects")
   val speciesCollection = akkaConfig.getString("mycotrack.species.collection", "species")
+  val cultureCollection = akkaConfig.getString("mycotrack.culture.collection", "cultures")
 
   val urlList = mongoUrl.split(",").toList.map(new ServerAddress(_))
   val db = urlList match {
@@ -41,17 +42,20 @@ object MycotrackInitializer extends App with Logging {
   }
   val projectDao = new ProjectDao(db(projectCollection))
   val speciesDao = new SpeciesDao(db(speciesCollection))
+  val cultureDao = new CultureDao(db(cultureCollection))
 
   // ///////////// INDEXES for collections go here (include all lookup fields)
   //  configsCollection.ensureIndex(MongoDBObject("customerId" -> 1), "idx_customerId")
   val projectModule = new ProjectEndpoint {val service = projectDao}
   val speciesModule = new SpeciesEndpoint {val service = speciesDao}
+  val cultureModule = new CultureEndpoint {val service = cultureDao}
   val webAppModule = new WebAppEndpoint {}
 
   val projectService = actorOf(new HttpService(projectModule.restService))
   val speciesService = actorOf(new HttpService(speciesModule.restService))
+  val cultureService = actorOf(new HttpService(cultureModule.restService))
   val webAppService = actorOf(new HttpService(webAppModule.restService))
-  val rootService = actorOf(new SprayCanRootService(projectService, speciesService, webAppService))
+  val rootService = actorOf(new SprayCanRootService(projectService, speciesService, cultureService, webAppService))
   val sprayCanServer = actorOf(new HttpServer())
 
   // Start all actors that need supervision, including the root service actor.
@@ -61,6 +65,7 @@ object MycotrackInitializer extends App with Logging {
       List(
         Supervise(projectService, Permanent),
         Supervise(speciesService, Permanent),
+      Supervise(cultureService, Permanent),
       Supervise(webAppService, Permanent),
         Supervise(rootService, Permanent),
         Supervise(sprayCanServer, Permanent)
