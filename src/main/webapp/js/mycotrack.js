@@ -3,10 +3,6 @@ Mycotrack = Ember.Application.create({
         // When everything is loaded.
         ready: function() {
 
-            Mycotrack.projects.getProjects();
-            Mycotrack.species.populate();
-            Mycotrack.cultures.populate();
-
             // Start polling Twitter
             //      setInterval(function() {
             //      Dashboard.customerResults.refresh();
@@ -19,3 +15,35 @@ Mycotrack = Ember.Application.create({
             this._super();
         }
     });
+
+(function($) {
+
+        var app = $.sammy('#main', function() {
+      
+            this.use('Handlebars', 'hb');
+
+          this.get('/projectList', function(context) {
+            console.log('Yo yo yo');
+            Mycotrack.projects.getProjects();
+            this.partial('templates/projectList.hb');
+          });
+
+          this.get('/speciesList', function(context) {
+            console.log('Yo yo yo');
+            Mycotrack.species.populate();
+          });
+
+          this.get('/cultureList', function(context) {
+            console.log('Yo yo yo');
+            Mycotrack.cultures.populate();
+          });
+
+        });
+
+        $(function() {
+          app.run('/projectList');
+          app.run('/speciesList');
+          app.run('/cultureList');
+        });
+
+      })(jQuery);

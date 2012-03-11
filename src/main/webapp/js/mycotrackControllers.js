@@ -27,7 +27,10 @@ Mycotrack.projectController = Ember.Object.create({
                 type: "POST",
                 url: url,
                 contentType: "application/json",
-                data: JSON.stringify(toSave)
+                data: JSON.stringify(toSave),
+                success: function(data, textStatus, jqXHR) {
+                    toSave.id = data.id
+                }
             });
         }
     },

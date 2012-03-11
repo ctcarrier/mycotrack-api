@@ -58,7 +58,7 @@ trait ProjectEndpoint extends Directives with LiftJsonSupport with Logging {
   def withSuccessCallback(ctx: RequestContext, statusCode: StatusCode = OK)(f: Future[_]): Future[_] = {
     f.onComplete(f => {
       f.result.get match {
-        case Some(ProjectWrapper(oid, version, dateCreated, lastUpdated, content)) => ctx.complete(content.map(x => x.copy(id = oid, timestamp = Some(new java.util.Date()))))
+        case Some(ProjectWrapper(oid, version, dateCreated, lastUpdated, content)) => ctx.complete(content.map(x => x.copy(id = oid, timestamp = Some(new java.util.Date()))).head)
         case None => ctx.fail(StatusCodes.NotFound, write(ErrorResponse(1l, ctx.request.path, List(NOT_FOUND_MESSAGE))))
       }
     })
