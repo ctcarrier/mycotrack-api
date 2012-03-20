@@ -12,7 +12,10 @@ require.config({
     jquery: "../assets/js/libs/jquery",
     underscore: "../assets/js/libs/underscore",
     backbone: "../assets/js/libs/backbone",
-    backbone-forms: "../assets/js/libs/backbone-forms",
+    backboneforms: "../assets/js/libs/backbone-forms",
+    modelbinding: "../assets/js/libs/backbone.modelbinding",
+    handlebars: "../assets/js/libs/handlebars-1.0.0.beta.6",
+    layoutmanager: "../assets/js/plugins/backbone.layoutmanager",
 
     // Shim Plugin
     use: "../assets/js/plugins/use"
@@ -24,12 +27,23 @@ require.config({
       attach: "Backbone"
     },
 
-    backbone-forms: {
+    backboneforms: {
       deps: ["use!backbone"]
     },
 
     underscore: {
       attach: "_"
+    },
+
+    layoutmanager: {
+      deps: ["use!backbone"]
+    },
+     handlebars: {
+        attach: "Handlebars"
+    },
+    modelbinding: {
+        deps: ["use!backbone", "use!underscore"],
+        attach: "ModelBinding"
     }
   }
 });

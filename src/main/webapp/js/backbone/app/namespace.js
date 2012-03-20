@@ -2,16 +2,47 @@ define([
   // Libs
   "jquery",
   "use!underscore",
-  "use!backbone"
+  "use!backbone",
+  "use!handlebars",
+
+  //Plugins
+  "use!layoutmanager"
 ],
 
-function($, _, Backbone) {
+function($, _, Backbone, Handlebars) {
   // Put application wide code here
 
+    Backbone.LayoutManager.configure({
+        paths: {
+          layout: "js/backbone/app/templates/layouts/",
+          template: "js/backbone/app/templates/"
+        },
+
+        render: function(template, context) {
+          return template(context);
+        },
+
+        fetch: function(path) {
+          path = path + ".html";
+
+          var done = this.async();
+          var JST = window.JST = window.JST || {};
+
+          if (JST[path]) {
+            return done(Handlebars.template(JST[path]));
+          }
+
+          $.get(path, function(contents) {
+            var tmpl = Handlebars.compile(contents);
+
+            done(JST[path] = tmpl);
+          }, "text");
+        }
+      });
   return {
     // This is useful when developing if you don't want to use a
     // build process every time you change a template.
-    //
+
     // Delete if you are using a different template loading method.
     fetchTemplate: function(path, done) {
       var JST = window.JST = window.JST || {};

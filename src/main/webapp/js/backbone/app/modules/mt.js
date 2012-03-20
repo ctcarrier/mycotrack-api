@@ -57,34 +57,72 @@ function(namespace, Backbone) {
     }
    });*/
 
-  // This will fetch the tutorial template and render it.
-  Mycotrack.Views.ProjectList = Backbone.View.extend({
-
+  Mycotrack.Views.ProjectView = Backbone.View.extend({
     template: "/js/backbone/app/templates/project_list.html",
-    className: 'projects nav nav-tabs nav-stacked',
 
-    initialize: function(){
-            this.model.bind('reset', this.render, this);
-        },
+    tagName: "li",
+
+    events: {
+        "click a": "clicked"
+    },
+
+    initialize: function() {
+        _.bindAll('render');
+    },
 
     render: function(done) {
-      var view = this;
+        var view = this;
+        //var html = "<a href=#>" + this.model.get('name') + "</ a>";
+        // Fetch the template, render it to the View element and call done.
+        $(view.el).html("TEST");
+      /*namespace.fetchTemplate(this.template, function(tmpl) {
+        var projectName = view.model.get('name');
 
-      // Fetch the template, render it to the View element and call done.
-      namespace.fetchTemplate(this.template, function(tmpl) {
-        //console.log("tmp = " + tmpl);
-        var project = view.model;
-
-        view.el.innerHTML = tmpl( {projects: project.models} );
+        var content = tmpl({ project: projectName });
+        console.log("Content: " + content);
+        $(view.el).append(content);
 
         // If a done function is passed, call it with the element
         if (_.isFunction(done)) {
           done(view.el);
         }
-        else {
-            $("#main").html(view.el);
-        }
-      });
+      });*/
+      return this;
+    },
+
+    clicked: function(e){
+        e.preventDefault();
+        var name = this.model.get("name");
+        alert(name);
+    }
+  })
+
+  // This will fetch the tutorial template and render it.
+  Mycotrack.Views.ProjectList = Backbone.View.extend({
+
+    tagName: "ul",
+    className: 'projects nav nav-tabs nav-stacked',
+
+    initialize: function(){
+            this.collection.bind('reset', this.render, this);
+        },
+
+    renderItem: function(model){
+        var view = this;
+        var itemView = new Mycotrack.Views.ProjectView({model: model});
+        itemView.render();
+        console.log("appending: " + itemView.el);
+        $(view.el).append(itemView.el);
+    },
+
+    render: function(done) {
+      console.log('RENDERING');
+      var view = this;
+
+      this.collection.each(this.renderItem);
+      console.log("Finished UL: " + this.el);
+      this.html("TEST");
+      return this;
     }
   });
 

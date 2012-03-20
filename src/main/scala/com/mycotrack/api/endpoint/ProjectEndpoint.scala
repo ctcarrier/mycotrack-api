@@ -88,6 +88,7 @@ trait ProjectEndpoint extends Directives with LiftJsonSupport with Logging {
         objectIdPathMatch {
           resourceId =>
             cacheResults(projectCache) {
+              respondWithHeader(CustomHeader("TEST", "Awesome")){
               directGetProject {
                 ctx =>
                   try {
@@ -102,6 +103,7 @@ trait ProjectEndpoint extends Directives with LiftJsonSupport with Logging {
                       ctx.fail(StatusCodes.NotFound, write(ErrorResponse(1l, ctx.request.path, List(NOT_FOUND_MESSAGE))))
                     }
                   }
+              }
               }
             } ~
               putProject {

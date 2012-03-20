@@ -3,20 +3,21 @@ require([
 
   // Libs
   "jquery",
+  "use!underscore",
   "use!backbone",
 
   // Modules
   "modules/example",
-  "modules/mt"
+  "modules/mt-layout"
 ],
 
-function(namespace, jQuery, Backbone, Example, Mycotrack) {
+function(namespace, jQuery, _, Backbone, Example, Mycotrack) {
 
   // Defining the application router, you can attach sub routers here.
   var Router = Backbone.Router.extend({
     routes: {
       "bb": "index",
-      "bb_mt": "mt"
+      "bb_mt": "mtlayout"
     },
 
     index: function(hash) {
@@ -47,25 +48,41 @@ function(namespace, jQuery, Backbone, Example, Mycotrack) {
       projects.reset();
       projects.fetch();
       var projectView = new Mycotrack.Views.ProjectList({
-        model: projects
+        collection: projects
       });
 
       // Attach the tutorial to the DOM
-      projectView.render(function(el) {
-        $("#main").html(el);
+      $('#projectList').html(projectView.el);
+      //$('#projectList').innerHtml = "TEST";
+    },
 
-        // Fix for hashes in pushState and hash fragment
-        if (hash && !route._alreadyTriggered) {
-          // Reset to home, pushState support automatically converts hashes
-          //Backbone.history.navigate("", false);
+    mtlayout: function(hash) {
+      var route = this;
+      var projects = new Mycotrack.ProjectList();
+      var selectedModel = new Mycotrack.Project();
 
-          // Trigger the default browser behavior
-          //location.hash = hash;
-
-          // Set an internal flag to stop recursive looping
-          //route._alreadyTriggered = true;
-        }
+      projects.fetch();
+      var projectView = new Mycotrack.Views.ProjectList({
+        collection: projects,
+        selectedModel: selectedModel
       });
+
+      var main = new Backbone.LayoutManager({
+        template: "base"
+      });
+
+      main.setViews({
+        "#projectList": projectView
+      });
+
+      main.render(function(el) {
+        $("#main").html(el);
+      });
+
+      var selectedProjectView = new Mycotrack.Views.SelectedProjectView({
+            model: selectedModel
+        });
+      main.view("#detail", selectedProjectView)
     }
   });
 
