@@ -5,13 +5,15 @@ require([
   "jquery",
   "use!underscore",
   "use!backbone",
+  "modelbinding",
 
   // Modules
   "modules/example",
-  "modules/mt-layout"
+  "modules/mt-layout",
+  "modules/mt-context"
 ],
 
-function(namespace, jQuery, _, Backbone, Example, Mycotrack) {
+function(namespace, jQuery, _, Backbone, ModelBinding, Example, Mycotrack, Context) {
 
   // Defining the application router, you can attach sub routers here.
   var Router = Backbone.Router.extend({
@@ -20,51 +22,15 @@ function(namespace, jQuery, _, Backbone, Example, Mycotrack) {
       "bb_mt": "mtlayout"
     },
 
-    index: function(hash) {
-      var route = this;
-      var tutorial = new Example.Views.Tutorial();
-
-      // Attach the tutorial to the DOM
-      tutorial.render(function(el) {
-        $("#main").html(el);
-
-        // Fix for hashes in pushState and hash fragment
-        if (hash && !route._alreadyTriggered) {
-          // Reset to home, pushState support automatically converts hashes
-          //Backbone.history.navigate("", false);
-
-          // Trigger the default browser behavior
-          //location.hash = hash;
-
-          // Set an internal flag to stop recursive looping
-          //route._alreadyTriggered = true;
-        }
-      });
-    },
-
-    mt: function(hash) {
-      var route = this;
-      var projects = new Mycotrack.ProjectList();
-      projects.reset();
-      projects.fetch();
-      var projectView = new Mycotrack.Views.ProjectList({
-        collection: projects
-      });
-
-      // Attach the tutorial to the DOM
-      $('#projectList').html(projectView.el);
-      //$('#projectList').innerHtml = "TEST";
-    },
-
     mtlayout: function(hash) {
       var route = this;
       var projects = new Mycotrack.ProjectList();
-      var selectedModel = new Mycotrack.Project();
+      var context = new Context.Model( {selectedProject: new Mycotrack.Project()} );
 
       projects.fetch();
       var projectView = new Mycotrack.Views.ProjectList({
         collection: projects,
-        selectedModel: selectedModel
+        context: context
       });
 
       var main = new Backbone.LayoutManager({
@@ -79,10 +45,22 @@ function(namespace, jQuery, _, Backbone, Example, Mycotrack) {
         $("#main").html(el);
       });
 
-      var selectedProjectView = new Mycotrack.Views.SelectedProjectView({
-            model: selectedModel
-        });
-      main.view("#detail", selectedProjectView)
+      var selectedProjectView = new Mycotrack.Views.SelectedProjectView({context: context});
+      main.view("#detail", selectedProjectView);
+
+      context.on('project:selected', function(eventName){
+        selectedProjectView.model = context.get('selectedProject');
+        console.log('Should refresh with: ' + JSON.stringify(selectedProjectView.model));
+
+        //ModelBinding.bind(selectedProjectView);
+        selectedProjectView.render();
+        ModelBinding.bind(selectedProjectView);
+      });
+
+      context.on('project:save', function(eventName){
+        console.log('Refreshing project view');
+        context.get('selectedProjectView').render();
+      });
     }
   });
 

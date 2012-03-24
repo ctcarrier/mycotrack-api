@@ -5,18 +5,17 @@ define([
   "jquery",
   "use!underscore",
   "use!backbone",
-  "modelbinding"
+  "modelbinding",
 
   // Modules
-
+  "modules/mt-context"
   // Plugins
 ],
 
-function(namespace, $, _, Backbone, ModelBinding) {
+function(namespace, $, _, Backbone, ModelBinding, Context) {
 
   // Create a new module
   var Mycotrack = namespace.module();
-  var selectedProject
 
   // Example extendings
   Mycotrack.Project = Backbone.Model.extend({
@@ -37,23 +36,28 @@ function(namespace, $, _, Backbone, ModelBinding) {
    Mycotrack.Views.SelectedProjectView = Backbone.View.extend({
     template: "selected_project_hb",
 
-    initialize: function(){
-            this.model.bind("change", function() {
-              this.render();
-            }, this);
-        },
+    events: {
+        "click #id-submit": "saveSelected"
+    },
 
-    render: function(manage) {
-        var result = manage(this).render();
-        ModelBinding.bind(this);
-        return result;
-      }
+    saveSelected: function() {
+        var view = this;
+        console.log('Saving selected');
+        this.model.save({}, {success: function(model, response){
+            view.options.context.trigger('project:save');
+        }});
+        
+    }
   });
 
   Mycotrack.Views.ProjectView = Backbone.View.extend({
     template: "project_list_hb",
 
     tagName: "li",
+
+    initialize: function(){
+        _.bindAll('clicked');
+    },
 
     events: {
         "click a": "clicked"
@@ -64,7 +68,9 @@ function(namespace, $, _, Backbone, ModelBinding) {
     },
 
     clicked: function(e){
-        this.options.selectedModel = this.model;
+        this.options.context.set('selectedProject', this.model);
+        this.options.context.set('selectedProjectView', this);
+        this.options.context.trigger('project:selected');
     }
   })
 
@@ -75,25 +81,29 @@ function(namespace, $, _, Backbone, ModelBinding) {
 
     initialize: function(){
         _.bindAll('render');
-            this.collection.bind("reset", function() {
-              this.render();
-            }, this);
-        },
+        this.collection.bind("reset", function() {
+          this.render();
+        }, this);
+
+    },
 
     render: function(manage) {
         // Have LayoutManager manage this View and call render.
         var view = manage(this);
-        var sm = this.options.selectedModel;
+        var ctx = this.options.context;
 
-        // Iterate over the passed collection and create a view for each item
-        this.collection.each(function(model) {
-          // Pass the data to the new SomeItem view
-          var projectView = new Mycotrack.Views.ProjectView({
-            model: model,
-            selectedModel: sm
-          });
-          view.insert(projectView);
-        });
+        if (!this.intialized) {
+            // Iterate over the passed collection and create a view for each item
+            this.collection.each(function(model) {
+              // Pass the data to the new SomeItem view
+              var projectView = new Mycotrack.Views.ProjectView({
+                model: model,
+                context: ctx
+              });
+              view.insert(projectView);
+            });
+        }
+        this.initialized = true;
 
         // You still must return this view to render, works identical to
         // existing functionality.
