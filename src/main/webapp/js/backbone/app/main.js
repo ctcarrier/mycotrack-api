@@ -10,10 +10,14 @@ require([
   // Modules
   "modules/example",
   "modules/mt-layout",
-  "modules/mt-context"
+  "modules/mt-context",
+  "modules/views/navbar",
+  "modules/models/project",
+  "modules/models/species",
+  "modules/models/culture"
 ],
 
-function(namespace, jQuery, _, Backbone, ModelBinding, Example, Mycotrack, Context) {
+function(namespace, jQuery, _, Backbone, ModelBinding, Example, Mycotrack, Context, Navbar, Project, Species, Culture) {
 
   // Defining the application router, you can attach sub routers here.
   var Router = Backbone.Router.extend({
@@ -24,12 +28,19 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Example, Mycotrack, Conte
 
     mtlayout: function(hash) {
       var route = this;
-      var projects = new Mycotrack.ProjectList();
-      var context = new Context.Model( {selectedProject: new Mycotrack.Project()} );
+      var projects = new Project.Collection();
+      var cultures = new Culture.Collection();
+      var context = new Context.Model( {selectedProject: new Project.Model()} );
 
-      projects.fetch();
+      cultures.fetch({success: function(){
+        projects.fetch();
+      }});
+
       var projectView = new Mycotrack.Views.ProjectList({
         collection: projects,
+        context: context
+      });
+      var navBarView = new Navbar.Views.Navbar({
         context: context
       });
 
@@ -38,7 +49,8 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Example, Mycotrack, Conte
       });
 
       main.setViews({
-        "#projectList": projectView
+        "#projectList": projectView,
+        "#mtnav": navBarView
       });
 
       main.render(function(el) {
@@ -46,10 +58,12 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Example, Mycotrack, Conte
       });
 
       var selectedProjectView = new Mycotrack.Views.SelectedProjectView({context: context});
-      main.view("#detail", selectedProjectView);
 
       context.on('project:selected', function(eventName){
+
         selectedProjectView.model = context.get('selectedProject');
+        selectedProjectView.model.set('cultureList', cultures.toJSON());
+        main.view("#detail", selectedProjectView);
         console.log('Should refresh with: ' + JSON.stringify(selectedProjectView.model));
 
         //ModelBinding.bind(selectedProjectView);
@@ -60,6 +74,10 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Example, Mycotrack, Conte
       context.on('project:save', function(eventName){
         console.log('Refreshing project view');
         context.get('selectedProjectView').render();
+      });
+
+      context.on('project:new', function(eventName){
+        console.log('Should display new project');
       });
     }
   });

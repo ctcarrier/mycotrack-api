@@ -6,11 +6,24 @@ define([
   "use!handlebars",
 
   //Plugins
-  "use!layoutmanager"
+  "use!layoutmanager",
+  "use!bootstrapdropdown"
 ],
 
 function($, _, Backbone, Handlebars) {
   // Put application wide code here
+
+    Handlebars.registerHelper("debug", function(optionalValue) {
+      console.log("Current Context");
+      console.log("====================");
+      console.log(this);
+
+      if (optionalValue) {
+        console.log("Value");
+        console.log("====================");
+        console.log(optionalValue);
+      }
+    });
 
     Backbone.LayoutManager.configure({
         paths: {

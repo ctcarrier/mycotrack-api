@@ -16,6 +16,7 @@ require.config({
     modelbinding: "../assets/js/libs/backbone.modelbinding",
     handlebars: "../assets/js/libs/handlebars-1.0.0.beta.6",
     layoutmanager: "../assets/js/plugins/backbone.layoutmanager",
+    bootstrapdropdown: "../assets/js/plugins/bootstrap-dropdown",
 
     // Shim Plugin
     use: "../assets/js/plugins/use"
@@ -44,6 +45,9 @@ require.config({
     modelbinding: {
         deps: ["use!backbone", "use!underscore"],
         attach: "ModelBinding"
+    },
+    bootstrapdropdown: {
+        deps: ["jquery"]
     }
   }
 });

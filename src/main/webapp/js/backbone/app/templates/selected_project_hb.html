@@ -11,6 +11,12 @@
                         <input id="description" type="text" class="input-xlarge" >
                 </div>
         </div>
+        <select id="cultureUrl">
+            <option name=""></option>
+            {{#each cultureList}}
+               <option name="/cultures/{{this.id}}">{{this.name}}</option>
+            {{/each}}
+        </select>
         <div class="">
                 <button class="btn btn-primary" id="id-submit" type="button">Submit</button>
         </div>

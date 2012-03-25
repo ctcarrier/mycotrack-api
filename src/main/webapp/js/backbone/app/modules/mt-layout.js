@@ -47,6 +47,11 @@ function(namespace, $, _, Backbone, ModelBinding, Context) {
             view.options.context.trigger('project:save');
         }});
         
+    },
+
+    serialize: function() {
+        console.log('Serializing: ' + JSON.stringify(this.model.toJSON()));
+      return this.model.toJSON();
     }
   });
 
