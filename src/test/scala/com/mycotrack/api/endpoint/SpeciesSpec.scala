@@ -1,12 +1,12 @@
+package com.mycotrack.api.endpoint
+
 /*
  * User: gregg
  * Date: 10/16/11
  * Time: 11:12 AM
  */
-package com.mycotrack.api
-
-import dao._
-import model._
+import com.mycotrack.api.dao._
+import com.mycotrack.api.model._
 import org.specs2.Specification
 import org.specs2.specification._
 import _root_.com.novus.salat._
@@ -21,10 +21,10 @@ import HttpMethods._
 class SpeciesSpec extends Specification with MycotrackSpec {
   override val resourceName = "species"
 
-  val testObj = Species(None, "commonName1", "scientificName1")
+  val testObj = Species(None, "scientificName1", "commonName1", "image.jpg")
 
-  val jsonText = """{"scientificName":"scientificNameString","commonName": "commonNameString"}"""
-  val newJsonText = """{"scientificName":"scientificNameStringNew","commonName": "commonNameStringNew"}"""
+  val jsonText = """{"scientificName":"scientificNameString","commonName": "commonNameString", "imageUrl": "image2.jpg"}"""
+  val newJsonText = """{"scientificName":"scientificNameStringNew","commonName": "commonNameStringNew", "imageUrl": "image3.jpg"}"""
   val badJsonText = """{"commonName": "commonNameString"}"""
 
   val now = new java.util.Date
@@ -71,8 +71,9 @@ class SpeciesSpec extends Specification with MycotrackSpec {
     }
 
     def getIndirectSpeciesWithParamTest(status: Int, params: Seq[(String, String)]) = {
+      val myUri = BASE_URL + "?" + params.map(x => x._1 + "=" + x._2).reduceLeft((x1, x2) => String.format("%s&%s", x1, x2))
       val response = testService(HttpRequest(method = GET,
-        uri = BASE_URL + "?" + params.map(x => x._1 + "=" + x._2).reduceLeft((x1, x2) => String.format("%s&%s", x1, x2)))) {
+        uri = myUri)) {
         restService
       }.response
 

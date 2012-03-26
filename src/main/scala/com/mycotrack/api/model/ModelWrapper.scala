@@ -22,3 +22,14 @@ case class CultureWrapper(_id: Option[ObjectId],
                           content: List[Culture])
 
 
+case class UserWrapper(_id: Option[String],
+                          version: Long,
+                          dateCreated: Date,
+                          lastUpdated: Date,
+                          content: List[User])
+object UserWrapper {
+
+  implicit def userWrapper2User(userWrapper: UserWrapper): User = {
+    userWrapper.content.head.copy(id = userWrapper._id, dateCreated = Some(userWrapper.dateCreated), lastUpdated = Some(userWrapper.lastUpdated))
+  }
+}

@@ -33,6 +33,7 @@ object MycotrackInitializer extends App with Logging {
   val projectCollection = akkaConfig.getString("mycotrack.project.collection", "projects")
   val speciesCollection = akkaConfig.getString("mycotrack.species.collection", "species")
   val cultureCollection = akkaConfig.getString("mycotrack.culture.collection", "cultures")
+  val userCollection = akkaConfig.getString("mycotrack.user.collection", "users")
 
   val urlList = mongoUrl.split(",").toList.map(new ServerAddress(_))
   val db = urlList match {
@@ -43,19 +44,25 @@ object MycotrackInitializer extends App with Logging {
   val projectDao = new ProjectDao(db(projectCollection))
   val speciesDao = new SpeciesDao(db(speciesCollection))
   val cultureDao = new CultureDao(db(cultureCollection))
+  val aggregationDao = new AggregationDao(db(projectCollection))
+  val userDao = new UserDao(db(userCollection))
 
   // ///////////// INDEXES for collections go here (include all lookup fields)
   //  configsCollection.ensureIndex(MongoDBObject("customerId" -> 1), "idx_customerId")
   val projectModule = new ProjectEndpoint {val service = projectDao}
   val speciesModule = new SpeciesEndpoint {val service = speciesDao}
   val cultureModule = new CultureEndpoint {val service = cultureDao}
+  val aggregationModule = new AggregationEndpoint {val service = aggregationDao}
+  val userModule = new UserEndpoint {val service = userDao}
   val webAppModule = new WebAppEndpoint {}
 
   val projectService = actorOf(new HttpService(projectModule.restService))
   val speciesService = actorOf(new HttpService(speciesModule.restService))
   val cultureService = actorOf(new HttpService(cultureModule.restService))
   val webAppService = actorOf(new HttpService(webAppModule.restService))
-  val rootService = actorOf(new SprayCanRootService(projectService, speciesService, cultureService, webAppService))
+  val aggregationService = actorOf(new HttpService(aggregationModule.restService))
+  val userService = actorOf(new HttpService(userModule.restService))
+  val rootService = actorOf(new SprayCanRootService(projectService, speciesService, cultureService, webAppService, aggregationService, userService))
   val sprayCanServer = actorOf(new HttpServer())
 
   // Start all actors that need supervision, including the root service actor.
@@ -66,6 +73,8 @@ object MycotrackInitializer extends App with Logging {
         Supervise(projectService, Permanent),
         Supervise(speciesService, Permanent),
       Supervise(cultureService, Permanent),
+      Supervise(aggregationService, Permanent),
+      Supervise(userService, Permanent),
       Supervise(webAppService, Permanent),
         Supervise(rootService, Permanent),
         Supervise(sprayCanServer, Permanent)

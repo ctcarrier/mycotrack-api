@@ -1,7 +1,7 @@
-package com.mycotrack.api
+package com.mycotrack.api.endpoint
 
-import dao._
-import model._
+import com.mycotrack.api.dao._
+import com.mycotrack.api.model._
 import org.specs2.Specification
 import org.specs2.specification._
 import _root_.com.novus.salat._
@@ -22,13 +22,13 @@ class ProjectSpec extends Specification with MycotrackSpec {
 
   override val resourceName = "projects"
 
-  val testObj = Project(None, "name", "description", Some(NestedObject(1, 2)), true)
-  val testObj2 = Project(None, "name2", "description2", Some(NestedObject(1, 2)), true)
+  val testObj = Project(None, "name", "description", Some("/culture/1"), true)
+  val testObj2 = Project(None, "name2", "description2", Some("/culture/2"), true)
   val testObjString = net.liftweb.json.Serialization.write(testObj)
 
-  val jsonText = "{\"name\":\"stringName\",\"description\": \"stringDescription\",\"nestedObject\": {\"nestedId\":333,\"value\":444},\"enabled\": true}"
-  val newJsonText = "{\"name\":\"newName\",\"description\": \"newDescription\",\"nestedObject\": {\"nestedId\":2,\"value\":3},\"enabled\": true}"
-  val badJsonText = "{\"description\": \"newDescription\",\"nestedObject\": {\"nestedId\":2,\"value\":3},\"enabled\": true}"
+  val jsonText = "{\"name\":\"stringName\",\"description\": \"stringDescription\",\"cultureUrl\": \"/culture/3\",\"enabled\": true}"
+  val newJsonText = "{\"name\":\"newName\",\"description\": \"newDescription\",\"cultureUrl\": \"/culture/3\",\"enabled\": true}"
+  val badJsonText = "{\"description\": \"newDescription\",\"enabled\": true}"
 
   val dbo = grater[ProjectWrapper].asDBObject(testObj)
 

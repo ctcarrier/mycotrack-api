@@ -45,12 +45,12 @@ trait ProjectEndpoint extends Directives with LiftJsonSupport with Logging {
 
   def withErrorHandling(ctx: RequestContext)(f: Future[_]): Future[_] = {
     f.onTimeout(f => {
-      ctx.fail(StatusCodes.InternalServerError, write(ErrorResponse(1, ctx.request.path, List("Internal error."))))
-      EventHandler.info(this, "Timed out")
+      ctx.fail(StatusCodes.InternalServerError, ErrorResponse(1, ctx.request.path, List("Internal error.")))
+      log.info("Timed out")
     }).onException {
       case e => {
-        EventHandler.info(this, "Excepted: " + e)
-        ctx.fail(StatusCodes.InternalServerError, write(ErrorResponse(1, ctx.request.path, List(e.getMessage))))
+        log.info("Excepted: " + e)
+        ctx.fail(StatusCodes.InternalServerError, ErrorResponse(1, ctx.request.path, List(e.getMessage)))
       }
     }
   }
@@ -58,8 +58,8 @@ trait ProjectEndpoint extends Directives with LiftJsonSupport with Logging {
   def withSuccessCallback(ctx: RequestContext, statusCode: StatusCode = OK)(f: Future[_]): Future[_] = {
     f.onComplete(f => {
       f.result.get match {
-        case Some(ProjectWrapper(oid, version, dateCreated, lastUpdated, content)) => ctx.complete(content.map(x => x.copy(id = oid, timestamp = Some(new java.util.Date()))).head)
-        case None => ctx.fail(StatusCodes.NotFound, write(ErrorResponse(1l, ctx.request.path, List(NOT_FOUND_MESSAGE))))
+        case Some(ProjectWrapper(oid, version, dateCreated, lastUpdated, content)) => ctx.complete(statusCode, content.map(x => x.copy(id = oid, timestamp = Some(new java.util.Date()))).head)
+        case None => ctx.fail(StatusCodes.NotFound, ErrorResponse(1l, ctx.request.path, List(NOT_FOUND_MESSAGE)))
       }
     })
   }

@@ -26,8 +26,17 @@ case class CultureSearchParams(name: Option[String])
 object CultureSearchParams {
   implicit def toDbo(c: CultureSearchParams): MongoDBObject = {
     val builder = MongoDBObject.newBuilder
-    c.name.foreach(_.foreach(builder += "content.name" -> _))
+    c.name.foreach(builder += "content.name" -> _)
     builder.result.asDBObject
   }
 }
 
+case class UserSearchParams(email: Option[String], password: Option[String])
+object UserSearchParams {
+  implicit def toDbo(c: UserSearchParams): MongoDBObject = {
+    val builder = MongoDBObject.newBuilder
+    c.email.foreach(builder += "content.email" -> _)
+    c.password.foreach(builder += "content.password" -> _)
+    builder.result.asDBObject
+  }
+}

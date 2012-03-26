@@ -1,4 +1,4 @@
-package com.mycotrack.api
+package com.mycotrack.api.endpoint
 
 import _root_.com.mongodb.casbah.Imports._
 import net.liftweb.json.DefaultFormats
