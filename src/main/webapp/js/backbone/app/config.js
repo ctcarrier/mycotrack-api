@@ -17,6 +17,7 @@ require.config({
     handlebars: "../assets/js/libs/handlebars-1.0.0.beta.6",
     layoutmanager: "../assets/js/plugins/backbone.layoutmanager",
     bootstrapdropdown: "../assets/js/plugins/bootstrap-dropdown",
+    base64: "../assets/js/libs/base64",
 
     // Shim Plugin
     use: "../assets/js/plugins/use"
@@ -34,6 +35,10 @@ require.config({
 
     underscore: {
       attach: "_"
+    },
+
+    base64: {
+      attach: "Base64"
     },
 
     layoutmanager: {

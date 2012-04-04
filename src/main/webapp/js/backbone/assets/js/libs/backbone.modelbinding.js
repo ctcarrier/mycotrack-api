@@ -12,9 +12,6 @@
 ;(function(root){
 
 var modelbinding = (function(Backbone, _, $) {
-    console.log("Underscore: " + _);
-    console.log("Backbone: " + Backbone);
-    console.log("$: " + $);
   var modelBinding = {
     version: "0.5.0",
 

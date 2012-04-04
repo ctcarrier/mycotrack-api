@@ -85,26 +85,29 @@ trait ProjectEndpoint extends Directives with LiftJsonSupport with Logging {
     } ~
       // Service implementation.
       pathPrefix("projects") {
+        authenticate(httpMongo(realm = "mycotrack", authenticator = FromMongoUserPassAuthenticator)) { user =>
         objectIdPathMatch {
           resourceId =>
-            cacheResults(projectCache) {
-              respondWithHeader(CustomHeader("TEST", "Awesome")){
-              directGetProject {
-                ctx =>
-                  try {
-                    withErrorHandling(ctx) {
-                      withSuccessCallback(ctx) {
-                        service.getProject(new ObjectId(resourceId))
+
+              cacheResults(projectCache) {
+                respondWithHeader(CustomHeader("TEST", "Awesome")){
+                directGetProject {
+                  ctx =>
+                    try {
+                      withErrorHandling(ctx) {
+                        withSuccessCallback(ctx) {
+                          service.getProject(new ObjectId(resourceId))
+                        }
                       }
                     }
-                  }
-                  catch {
-                    case e: IllegalArgumentException => {
-                      ctx.fail(StatusCodes.NotFound, write(ErrorResponse(1l, ctx.request.path, List(NOT_FOUND_MESSAGE))))
+                    catch {
+                      case e: IllegalArgumentException => {
+                        ctx.fail(StatusCodes.NotFound, write(ErrorResponse(1l, ctx.request.path, List(NOT_FOUND_MESSAGE))))
+                      }
                     }
-                  }
-              }
-              }
+                }
+                }
+
             } ~
               putProject {
                 resource => ctx =>
@@ -147,6 +150,7 @@ trait ProjectEndpoint extends Directives with LiftJsonSupport with Logging {
                 })
               }
           }
+        }
 
       }
 

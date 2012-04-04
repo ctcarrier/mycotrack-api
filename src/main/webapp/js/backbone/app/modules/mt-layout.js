@@ -86,9 +86,6 @@ function(namespace, $, _, Backbone, ModelBinding, Context) {
 
     initialize: function(){
         _.bindAll('render');
-        this.collection.bind("reset", function() {
-          this.render();
-        }, this);
 
     },
 

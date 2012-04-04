@@ -14,16 +14,9 @@ class WebAppEndpoint extends Directives with Logging {
   log.info("Starting web ap endpoint.")
 
   val restService = {
-    path("app") {
+    path("") {
         cache {
-            log.info("test endpoint")
-            //ctx.complete("OK")
-            getFromResource("index.html")
-        }
-    } ~
-    path("projectList") {
-        cache {
-            getFromResource("projectList.html")
+            getFromResource("bb_mt.html")
         }
     } ~
     path("bb") {

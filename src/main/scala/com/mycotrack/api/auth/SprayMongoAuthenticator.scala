@@ -11,6 +11,8 @@ import com.novus.salat._
 import com.novus.salat.global._
 import akka.event.EventHandler
 import akka.dispatch.Future
+import com.mycotrack.api.model.{UserWrapper, User}
+import utils.Logging
 
 /**
  * @author chris_carrier
@@ -40,15 +42,15 @@ import akka.dispatch.Future
   def authenticate(credentials: Option[HttpCredentials], ctx: RequestContext): Option[U]
 }*/
 
-object FromMongoUserPassAuthenticator extends UserPassAuthenticator[BasicUserContext] {
+object FromMongoUserPassAuthenticator extends UserPassAuthenticator[User] with Logging {
   def apply(userPass: Option[(String, String)]) = {
-    EventHandler.info(this, "Mongo auth")
+    log.info("Mongo auth")
     Future {
       userPass.flatMap {
         case (user, pass) => {
           val db = MongoConnection()("mycotrack")("users")
-          val userResult = db.findOne(MongoDBObject("username" -> user) ++ ("password" -> pass))
-          userResult.map(grater[BasicUserContext].asObject(_))
+          val userResult = db.findOne(MongoDBObject("content.email" -> user) ++ ("content.password" -> pass))
+          userResult.map(grater[UserWrapper].asObject(_).content.head)
         }
         case _ => None
       }
@@ -56,5 +58,3 @@ object FromMongoUserPassAuthenticator extends UserPassAuthenticator[BasicUserCon
   }
   
 }
-
-case class BasicUserContext(_id: ObjectId, username: String, password: String)

@@ -22,7 +22,7 @@ class ProjectSpec extends Specification with MycotrackSpec {
 
   override val resourceName = "projects"
 
-  val testObj = Project(None, "name", "description", Some("/culture/1"), true)
+  val testObj = Project(None, "name", "description", Some("/culture/1"), "/users/3", true)
   val testObj2 = Project(None, "name2", "description2", Some("/culture/2"), true)
   val testObjString = net.liftweb.json.Serialization.write(testObj)
 
