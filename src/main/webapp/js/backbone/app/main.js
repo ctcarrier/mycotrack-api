@@ -203,7 +203,7 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
 
         context.selectedProjectView.model = context.get('selectedProject');
         context.selectedProjectView.model.set('cultureList', cultures.toJSON());
-        context.main.view("#detail", selectedProjectView);
+        context.main.view("#detail", context.selectedProjectView);
         console.log('Should refresh with: ' + JSON.stringify(context.selectedProjectView.model));
 
         //ModelBinding.bind(selectedProjectView);
