@@ -50,7 +50,10 @@ trait CultureEndpoint extends Directives with LiftJsonSupport with Logging {
       f.result.get match {
         case Some(CultureWrapper(oid, version, created, updated, content)) => ctx.complete(HttpResponse(statusCode, SuccessResponse[Culture](version, ctx.request.path, 1, None, content.map(x => x.copy(id = oid))).toHttpContent))
         case Some(c: Culture) => ctx.complete(c)
-        case None => ctx.fail(StatusCodes.NotFound, ErrorResponse(1l, ctx.request.path, List(NOT_FOUND_MESSAGE)))
+        case x => {
+          log.info("Received unexpected: %s" format(x.toString))
+          ctx.fail(StatusCodes.NotFound, ErrorResponse(1l, ctx.request.path, List(NOT_FOUND_MESSAGE)))
+        }
       }
     })
   }

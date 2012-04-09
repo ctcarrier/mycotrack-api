@@ -43,15 +43,18 @@ object MycotrackInitializer extends App with Logging {
   }
   val projectDao = new ProjectDao(db(projectCollection))
   val speciesDao = new SpeciesDao(db(speciesCollection))
-  val cultureDao = new CultureDao(db(cultureCollection))
+  val cultureDao = new CultureDao {
+    val mongoCollection = db(cultureCollection)
+    val speciesService = speciesDao
+  }
   val aggregationDao = new AggregationDao(db(projectCollection))
   val userDao = new UserDao(db(userCollection))
 
   // ///////////// INDEXES for collections go here (include all lookup fields)
   //  configsCollection.ensureIndex(MongoDBObject("customerId" -> 1), "idx_customerId")
   val projectModule = new ProjectEndpoint {val service = projectDao}
-  val speciesModule = new SpeciesEndpoint {val service = speciesDao}
   val cultureModule = new CultureEndpoint {val service = cultureDao}
+  val speciesModule = new SpeciesEndpoint {val service = speciesDao}
   val aggregationModule = new AggregationEndpoint {val service = aggregationDao}
   val userModule = new UserEndpoint {val service = userDao}
   val webAppModule = new WebAppEndpoint {}

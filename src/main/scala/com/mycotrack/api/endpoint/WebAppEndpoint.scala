@@ -31,7 +31,12 @@ class WebAppEndpoint extends Directives with Logging {
     } ~
     path("speciesList") {
         cache {
-            getFromResource("speciesList.html")
+            getFromResource("bb_mt.html")
+        }
+    } ~
+    path("cultureList") {
+        cache {
+            getFromResource("bb_mt.html")
         }
     } ~
     pathPrefix("test") {
@@ -49,6 +54,11 @@ class WebAppEndpoint extends Directives with Logging {
     pathPrefix("js") {
         cache {
             getFromResourceDirectory("js")
+        }
+    } ~
+    pathPrefix("img") {
+        cache {
+            getFromResourceDirectory("img")
         }
     } ~
     pathPrefix("templates") {

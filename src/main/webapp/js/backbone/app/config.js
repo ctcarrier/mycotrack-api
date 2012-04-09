@@ -17,6 +17,7 @@ require.config({
     handlebars: "../assets/js/libs/handlebars-1.0.0.beta.6",
     layoutmanager: "../assets/js/plugins/backbone.layoutmanager",
     bootstrapdropdown: "../assets/js/plugins/bootstrap-dropdown",
+    bootstrapdatepicker: "../assets/js/plugins/bootstrap-datepicker",
     base64: "../assets/js/libs/base64",
 
     // Shim Plugin
@@ -52,6 +53,9 @@ require.config({
         attach: "ModelBinding"
     },
     bootstrapdropdown: {
+        deps: ["jquery"]
+    },
+    bootstrapdatepicker: {
         deps: ["jquery"]
     }
   }

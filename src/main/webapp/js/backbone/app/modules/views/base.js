@@ -20,6 +20,10 @@ function(namespace, $, _, Backbone) {
     template: "base/project_base"
   });
 
+  BaseView.Culture = Backbone.View.extend({
+    template: "base/culture_base"
+  });
+
   BaseView.Home = Backbone.View.extend({
     template: "base/home_base"
   });

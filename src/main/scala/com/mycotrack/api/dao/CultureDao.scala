@@ -13,7 +13,10 @@ import model._
  * Date: 11/6/11
  * Time: 3:52 PM
  */
-class CultureDao(mongoCollection: MongoCollection) extends ICultureDao {
+trait CultureDao extends ICultureDao {
+
+  val mongoCollection: MongoCollection
+  val speciesService: ISpeciesDao
 
   def getCulture(key: ObjectId) = {
     Future {
@@ -45,7 +48,10 @@ class CultureDao(mongoCollection: MongoCollection) extends ICultureDao {
   def searchCulture(searchObj: MongoDBObject) = Future {
     val listRes = mongoCollection.find(searchObj).map(f => {
       val pw = grater[CultureWrapper].asObject(f)
-      pw.content.head.copy(id = pw._id)
+      val SpeciesMatch = """/species/([a-f0-9]+)""".r
+      val SpeciesMatch(speciesId) = pw.content.head.speciesUrl.get
+      val speciesObj = speciesService.getSpecies(new ObjectId(speciesId)).get
+      pw.content.head.copy(id = pw._id, species = speciesObj.map(f => f.content.head))
     }).toList
 
 

@@ -26,8 +26,8 @@ class ProjectSpec extends Specification with MycotrackSpec {
   val testObj2 = Project(None, "name2", "description2", Some("/culture/2"), true)
   val testObjString = net.liftweb.json.Serialization.write(testObj)
 
-  val jsonText = "{\"name\":\"stringName\",\"description\": \"stringDescription\",\"cultureUrl\": \"/culture/3\",\"enabled\": true}"
-  val newJsonText = "{\"name\":\"newName\",\"description\": \"newDescription\",\"cultureUrl\": \"/culture/3\",\"enabled\": true}"
+  val jsonText = "{\"name\":\"stringName\",\"description\": \"stringDescription\",\"cultureUrl\": \"/culture/3\",\"container\": \"filterbag\",\"substrate\": \"rye\",\"enabled\": true}"
+  val newJsonText = "{\"name\":\"newName\",\"description\": \"newDescription\",\"cultureUrl\": \"/culture/3\",\"container\": \"filterbag\",\"substrate\": \"rye\",\"enabled\": true}"
   val badJsonText = "{\"description\": \"newDescription\",\"enabled\": true}"
 
   val dbo = grater[ProjectWrapper].asDBObject(testObj)

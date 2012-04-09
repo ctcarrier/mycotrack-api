@@ -64,6 +64,16 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
             }
         });
 
+        context.cultureView = new Mycotrack.Views.CultureList({
+            context: context
+          });
+
+        context.cultureBaseView = new BaseView.Culture({
+            views: {
+                "#cultureList": context.cultureView
+            }
+        });
+
         context.selectedProjectView = new Mycotrack.Views.SelectedProjectView({context: context});
 
         context.main = new Backbone.LayoutManager({
@@ -95,6 +105,7 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
     routes: {
       "": "index",
       "bb_mt": "mtlayout",
+      "cultureList": "cultureLayout",
       "login": "login"
     },
 
@@ -104,38 +115,6 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
         var generalAggregation = new GeneralAggregation.Model();
         generalAggregation.fetch();
 
-//        var loginForm = new Navbar.Views.LoginForm({
-//            context: context,
-//            model: context.currentUser
-//        });
-//
-//        var navBarView = new Navbar.Views.Navbar({
-//            context: context,
-//            views: {
-//                "#loginanchor": loginForm
-//            }
-//        });
-//
-//        var generalAggregationView = new Aggregation.Views.GeneralAggregation({
-//            context: context,
-//            model: generalAggregation
-//        });
-//
-//        var homeView = new BaseView.Home({
-//            views: {
-//                "#aggregationDetail": generalAggregationView
-//            }
-//        });
-//
-//        var main = new Backbone.LayoutManager({
-//            template: "base"
-//        });
-//
-//        main.setViews({
-//            "#mtnav": navBarView
-//        });
-
-        $("#menu_home").addClass('active');
         context.generalAggregationView.model=generalAggregation;
 
         context.main.view("#contentAnchor", context.homeView);
@@ -163,35 +142,7 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
 
       context.projectView.collection = projects;
 
-//      var projectView = new Mycotrack.Views.ProjectList({
-//        collection: projects,
-//        context: context
-//      });
-//      var navBarView = new Navbar.Views.Navbar({
-//        context: context
-//      });
-//
-//      var projectBaseView = new BaseView.Project({
-//            views: {
-//                "#projectList": projectView
-//            }
-//        });
-//
-//      var main = new Backbone.LayoutManager({
-//        template: "base",
-//        views: {
-//            "#mtnav": navBarView
-//        }
-//      });
-
       context.main.view("#contentAnchor", context.projectBaseView);
-
-//      main.render(function(el) {
-//        $("#main").html(el);
-//        $("#menu_projects").addClass('active');
-//      });
-
-//      var selectedProjectView = new Mycotrack.Views.SelectedProjectView({context: context});
 
       projects.on('projects:fetch', function(eventName){
             console.log('Rendering project view');
@@ -209,6 +160,32 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
         //ModelBinding.bind(selectedProjectView);
         context.selectedProjectView.render();
         ModelBinding.bind(context.selectedProjectView);
+        console.log("DATEPICKING");
+        $("#dp1").datepicker();
+      });
+    },
+
+    cultureLayout: function(hash) {
+      var route = this;
+      var cultures = new Culture.Collection();
+
+      cultures.fetch({success: function(){
+        cultures.trigger('cultures:fetch');
+      }});
+
+      context.cultureView.collection = cultures;
+
+      context.main.view("#contentAnchor", context.cultureBaseView);
+
+      cultures.on('cultures:fetch', function(eventName){
+            console.log('Rendering culture view');
+            context.cultureView.render();
+            context.cultureBaseView.render();
+        });
+
+      context.on('culture:selected', function(eventName){
+
+        console.log("Selected culture");
       });
     }
   });
