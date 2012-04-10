@@ -17,7 +17,10 @@ require([
   "modules/models/culture",
   "modules/models/general_aggregation",
   "modules/views/aggregation",
-  "modules/views/base"
+  "modules/views/base",
+
+  //plugins
+  "use!bootstrapdatepicker"
 ],
 
 function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Context, Navbar, Project, Species, Culture, GeneralAggregation, Aggregation, BaseView) {
@@ -64,6 +67,8 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
             }
         });
 
+        context.newProjectView = new BaseView.NewProject();
+
         context.cultureView = new Mycotrack.Views.CultureList({
             context: context
           });
@@ -106,6 +111,7 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
       "": "index",
       "bb_mt": "mtlayout",
       "cultureList": "cultureLayout",
+      "newProject": "newProject",
       "login": "login"
     },
 
@@ -160,6 +166,29 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
         //ModelBinding.bind(selectedProjectView);
         context.selectedProjectView.render();
         ModelBinding.bind(context.selectedProjectView);
+        console.log("DATEPICKING");
+        $("#dp1").datepicker();
+      });
+    },
+
+    newProject: function(hash) {
+      var route = this;
+      var newProject = new Project.Model({});
+      var cultures = new Culture.Collection();
+
+      cultures.fetch({success: function(){
+        cultures.trigger('cultures:fetch');
+      }});
+
+      context.main.view("#contentAnchor", context.newProjectView);
+      cultures.on('cultures:fetch', function(eventName){
+
+        context.newProjectView.model = newProject;
+        context.newProjectView.model.set('cultureList', cultures.toJSON());
+
+        //ModelBinding.bind(selectedProjectView);
+        context.newProjectView.render();
+        ModelBinding.bind(context.newProjectView);
         console.log("DATEPICKING");
         $("#dp1").datepicker();
       });

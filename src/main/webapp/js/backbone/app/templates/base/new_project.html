@@ -1,0 +1,47 @@
+<div class="span4 offset2">
+    <form id="idForm">
+            <div class="control-group">
+                    <label class="control-label" for="name">name</label>
+                    <div class="controls">
+                            <input id="name" type="text" class="input-xlarge" >
+                    </div>
+            </div>
+            <div class="control-group">
+                    <label class="control-label" for="description">description</label>
+                    <div class="controls">
+                            <input id="description" type="text" class="input-xlarge" >
+                    </div>
+            </div>
+            <select id="cultureUrl">
+                {{debug}}
+                <option name="">Cultures...</option>
+                {{#each cultureList}}
+                   <option name="/cultures/{{this.id}}">{{this.name}}</option>
+                {{/each}}
+            </select>
+            <select id="substrate">
+                <option name="">Substrate...</option>
+                <option name="rye">rye</option>
+                <option name="sorghum">sorghum</option>
+                <option name="wbs">wild bird seed</option>
+                <option name="sawdust">sawdust</option>
+                <option name="enrichedsawdust">sawdust(enriched)</option>
+                <option name="woodchips">wood chips</option>
+            </select>
+            <select id="container">
+                <option name="">Container...</option>
+                <option name="quart">mason jar(quart)</option>
+                <option name="halfpint">mason jar(half-pint)</option>
+                <option name="pint">mason jar(pint)</option>
+                <option name="filterbag">filter patch bag</option>
+                <option name="tub">tub</option>
+            </select>
+            <div class="input-append date" id="dp1" data-date="12-02-2012" data-date-format="dd-mm-yyyy">
+                <input id="startDate" class="span2" size="16" type="text" value="12-02-2012">
+                <span class="add-on"><i class="icon-th"></i></span>
+            </div>
+            <div class="">
+                    <button class="btn btn-primary" id="project-submit" type="button">Submit</button>
+            </div>
+    </form>
+</div>

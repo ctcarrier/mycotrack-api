@@ -4,14 +4,15 @@ define([
   // Libs
   "jquery",
   "use!underscore",
-  "use!backbone"
+  "use!backbone",
+  "modelbinding"
 
   // Modules
 
   // Plugins
 ],
 
-function(namespace, $, _, Backbone) {
+function(namespace, $, _, Backbone, ModelBinding) {
 
   // Create a new module
   var BaseView = namespace.module();
@@ -26,6 +27,28 @@ function(namespace, $, _, Backbone) {
 
   BaseView.Home = Backbone.View.extend({
     template: "base/home_base"
+  });
+
+  BaseView.NewProject = Backbone.View.extend({
+    template: "base/new_project",
+
+    events: {
+        "click #project-submit": "saveSelected"
+    },
+
+    saveSelected: function() {
+        var view = this;
+        ModelBinding.bind(this);
+        console.log('Saving new: ' + JSON.stringify(this.model));
+        this.model.save({}, {success: function(model, response){
+            namespace.app.router.navigate("/bb_mt", true);
+        }});
+
+    },
+
+    serialize: function() {
+      return this.model.toJSON();
+    }
   });
 
   // Required, return the module for AMD compliance

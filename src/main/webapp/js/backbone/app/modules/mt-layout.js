@@ -37,7 +37,7 @@ function(namespace, $, _, Backbone, ModelBinding, Context) {
     template: "selected_project_hb",
 
     events: {
-        "click #id-submit": "saveSelected"
+        "click #project-submit": "saveSelected"
     },
 
     saveSelected: function() {

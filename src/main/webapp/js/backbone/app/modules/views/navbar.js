@@ -23,7 +23,8 @@ function(namespace, $, _, Backbone) {
         "click #new_project": "newProject",
         "click #menu_home": "navHome",
         "click #menu_projects": "navProjects",
-        "click #menu_species": "navSpecies"
+        "click #menu_species": "navSpecies",
+        "click #new_culture": "newCulture"
     },
 
     navHome: function(e) {
@@ -40,11 +41,17 @@ function(namespace, $, _, Backbone) {
 
     navSpecies: function(e) {
         e.preventDefault();
-        namespace.app.router.navigate("/nowhere", true);
+        namespace.app.router.navigate("/newSpecies", true);
     },
 
-    newProject: function() {
-        this.options.context.trigger('project:new');
+    newProject: function(e) {
+        e.preventDefault();
+        namespace.app.router.navigate("/newProject", true);
+    },
+
+    newCulture: function(e) {
+        e.preventDefault();
+        namespace.app.router.navigate("/newCulture", true);
     }
   });
 
