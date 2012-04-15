@@ -4,11 +4,11 @@ import org.bson.types.ObjectId
 import com.novus.salat.annotations.Ignore
 import java.util.Date
 
-case class Project(@Ignore id: Option[ObjectId],
+case class Project(@Ignore id: Option[String],
                    name: String,
                    description: String,
                    cultureUrl: Option[String],
-                   userUrl: String,
+                   userUrl: Option[String],
                    enabled: Boolean,
                    substrate: Option[String],
                    container: Option[String],
@@ -22,7 +22,7 @@ object Project {
   }
 }
 
-case class Species(@Ignore id: Option[ObjectId], scientificName: String, commonName: String, imageUrl: String)
+case class Species(@Ignore id: Option[String], scientificName: String, commonName: String, imageUrl: String)
 object Species {
   implicit def species2SpeciesWrapper(species: Species): SpeciesWrapper = {
     val now = new Date
@@ -30,7 +30,7 @@ object Species {
   }
 }
 
-case class Culture(@Ignore id: Option[ObjectId], name: String, speciesUrl: Option[String], userUrl: String, species: Option[Species])
+case class Culture(@Ignore id: Option[String], name: String, speciesUrl: Option[String], userUrl: Option[String], species: Option[Species])
 object Culture {
   implicit def culture2CultureWrapper(culture: Culture): CultureWrapper = {
     val now = new Date

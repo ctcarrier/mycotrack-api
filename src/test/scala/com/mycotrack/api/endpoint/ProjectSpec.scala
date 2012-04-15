@@ -13,6 +13,8 @@ import net.liftweb.json.DefaultFormats
 import org.specs2.matcher.ThrownExpectations
 import cc.spray.http._
 import HttpMethods._
+import java.util.Date
+
 /**
  * @author chris_carrier
  * @version 9/26/11
@@ -22,8 +24,8 @@ class ProjectSpec extends Specification with MycotrackSpec {
 
   override val resourceName = "projects"
 
-  val testObj = Project(None, "name", "description", Some("/culture/1"), "/users/3", true)
-  val testObj2 = Project(None, "name2", "description2", Some("/culture/2"), true)
+  val testObj = Project(None, "name", "description", Some("/culture/1"), Some("/users/3"), true, Some("substrate"), Some("container"), Some(new Date()))
+  val testObj2 = Project(None, "name2", "description2", Some("/culture/2"), Some("/users/3"), true, Some("substrate"), Some("container"), Some(new Date()))
   val testObjString = net.liftweb.json.Serialization.write(testObj)
 
   val jsonText = "{\"name\":\"stringName\",\"description\": \"stringDescription\",\"cultureUrl\": \"/culture/3\",\"container\": \"filterbag\",\"substrate\": \"rye\",\"enabled\": true}"
@@ -64,7 +66,7 @@ class ProjectSpec extends Specification with MycotrackSpec {
     val service = new ProjectDao(configDb)
 
     def getTest() = {
-      val response = testService(HttpRequest(GET, BASE_URL + "/" + testProjectId)) {
+      val response = testService(HttpRequest(GET, testProjectId)) {
         restService
       }.response
 
@@ -118,7 +120,7 @@ class ProjectSpec extends Specification with MycotrackSpec {
     }
 
     def putSuccess() = {
-      val response = testService(HttpRequest(method = GET, uri = BASE_URL + "/" + testProjectId, content = Some(JsonContent(newJsonText)))) {
+      val response = testService(HttpRequest(method = GET, uri = testProjectId, content = Some(JsonContent(newJsonText)))) {
         restService
       }.response
 

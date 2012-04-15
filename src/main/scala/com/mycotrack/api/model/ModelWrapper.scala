@@ -3,23 +3,44 @@ package com.mycotrack.api.model
 import org.bson.types.ObjectId
 import java.util.Date
 
-case class ProjectWrapper(_id: Option[ObjectId],
+case class ProjectWrapper(_id: Option[String],
                           version: Long,
                           dateCreated: Date,
                           lastUpdated: Date,
                           content: List[Project])
 
-case class SpeciesWrapper(_id: Option[ObjectId],
+object ProjectWrapper {
+
+  implicit def projectWrapper2Project(wrapper: ProjectWrapper): Project = {
+    wrapper.content.head.copy(id = wrapper._id)
+  }
+}
+
+case class SpeciesWrapper(_id: Option[String],
                           version: Long,
                           dateCreated: Date,
                           lastUpdated: Date,
                           content: List[Species])
 
-case class CultureWrapper(_id: Option[ObjectId],
+object SpeciesWrapper {
+
+  implicit def speciesWrapper2Species(wrapper: SpeciesWrapper): Species = {
+    wrapper.content.head.copy(id = wrapper._id)
+  }
+}
+
+case class CultureWrapper(_id: Option[String],
                           version: Long,
                           dateCreated: Date,
                           lastUpdated: Date,
                           content: List[Culture])
+
+object CultureWrapper {
+
+  implicit def cultureWrapper2Culture(wrapper: CultureWrapper): Culture = {
+    wrapper.content.head.copy(id = wrapper._id)
+  }
+}
 
 
 case class UserWrapper(_id: Option[String],

@@ -3,3 +3,10 @@
     margin-bottom:  0;
     padding: 0;
 }
+
+.speciesCard {
+    display: block;
+    width: 200px;
+    float: left;
+    margin: 10px;
+}

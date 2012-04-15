@@ -14,31 +14,29 @@ import org.bson.types.ObjectId
  * @author chris carrier
  */
 
-trait UserService {
+trait UserService extends MycotrackDao[User, UserWrapper] {
   def get(key: String): Future[Option[User]]
 
   def create(model: UserWrapper): Future[Option[User]]
 
   def update(key: String, model: User): Future[Option[User]]
 
-  def search(searchObj: MongoDBObject): Future[Option[List[User]]]
 }
 
 class UserDao(mongoCollection: MongoCollection) extends UserService {
 
+  def urlPrefix = "/users/"
+
   def get(key: String) = {
     Future {
-      val q = MongoDBObject("_id" -> key)
-      val dbo = mongoCollection.findOne(q)
-      dbo.map(f => {
-        grater[UserWrapper].asObject(f)
-      })
+      val dbo = mongoCollection.findOneByID(key)
+      dbo.map(f => {grater[UserWrapper].asObject(f)})
     }
   }
 
   def create(model: UserWrapper) = {
     Future {
-      val dbo = grater[UserWrapper].asDBObject(model.copy(_id = RandomId.getNextValue))
+      val dbo = grater[UserWrapper].asDBObject(model.copy(_id = Some(nextRandomId)))
       mongoCollection += dbo
       Some(model)
     }

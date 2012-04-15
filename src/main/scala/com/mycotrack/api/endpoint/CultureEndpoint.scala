@@ -50,6 +50,7 @@ trait CultureEndpoint extends Directives with LiftJsonSupport with Logging {
       f.result.get match {
         case Some(CultureWrapper(oid, version, created, updated, content)) => ctx.complete(HttpResponse(statusCode, SuccessResponse[Culture](version, ctx.request.path, 1, None, content.map(x => x.copy(id = oid))).toHttpContent))
         case Some(c: Culture) => ctx.complete(c)
+        case Some(c: List[Culture]) => ctx.complete(c)
         case x => {
           log.info("Received unexpected: %s" format(x.toString))
           ctx.fail(StatusCodes.NotFound, ErrorResponse(1l, ctx.request.path, List(NOT_FOUND_MESSAGE)))
@@ -59,7 +60,7 @@ trait CultureEndpoint extends Directives with LiftJsonSupport with Logging {
   }
 
   //directive compositions
-  val objectIdPathMatch = path("^[a-f0-9]+$".r)
+  val objectIdPathMatch = path("^[a-zA-Z0-9]+$".r)
   val putCulture = content(as[Culture]) & put
   val postCulture = path("") & content(as[Culture]) & post
   val searchCultures = path("") & parameters('name ?) & get
@@ -72,18 +73,11 @@ trait CultureEndpoint extends Directives with LiftJsonSupport with Logging {
         resourceId =>
           get {
             ctx =>
-              try {
                 withErrorHandling(ctx) {
                   withSuccessCallback(ctx) {
-                    service.getCulture(new ObjectId(resourceId))
+                    service.getByKey(resourceId)
                   }
                 }
-              }
-              catch {
-                case e: IllegalArgumentException => {
-                  ctx.fail(StatusCodes.NotFound, write(ErrorResponse(1l, ctx.request.path, List(NOT_FOUND_MESSAGE))))
-                }
-              }
           } ~
             putCulture {
               resource => ctx =>
@@ -114,7 +108,7 @@ trait CultureEndpoint extends Directives with LiftJsonSupport with Logging {
         searchCultures {
           (name) => ctx =>
             withErrorHandling(ctx) {
-              service.searchCulture(CultureSearchParams(name)).onComplete(f => {
+              service.search(CultureSearchParams(name)).onComplete(f => {
                 f.result.get match {
                     case Some(content) => {
                       val res: List[Culture] = content

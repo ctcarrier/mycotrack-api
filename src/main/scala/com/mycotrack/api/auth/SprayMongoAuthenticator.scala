@@ -50,7 +50,7 @@ object FromMongoUserPassAuthenticator extends UserPassAuthenticator[User] with L
         case (user, pass) => {
           val db = MongoConnection()("mycotrack")("users")
           val userResult = db.findOne(MongoDBObject("content.email" -> user) ++ ("content.password" -> pass))
-          userResult.map(grater[UserWrapper].asObject(_).content.head)
+          userResult.map(grater[UserWrapper].asObject(_))
         }
         case _ => None
       }

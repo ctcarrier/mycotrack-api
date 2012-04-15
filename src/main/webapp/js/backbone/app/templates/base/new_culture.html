@@ -1,0 +1,20 @@
+<div class="span4 offset2">
+    <form id="idForm">
+            <div class="control-group">
+                    <label class="control-label" for="name">name</label>
+                    <div class="controls">
+                            <input id="name" type="text" class="input-xlarge" >
+                    </div>
+            </div>
+            <select id="speciesUrl">
+                <option name="">Species...</option>
+                {{debug}}
+                {{#each speciesList}}
+                   <option value="{{this.id}}">{{this.commonName}}({{scientificName}})</option>
+                {{/each}}
+            </select>
+            <div class="">
+                    <button class="btn btn-primary" id="culture-submit" type="button">Submit</button>
+            </div>
+    </form>
+</div>

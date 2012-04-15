@@ -48,13 +48,14 @@ trait SpeciesEndpoint extends Directives with LiftJsonSupport with Logging {
     f.onComplete(f => {
       f.result.get match {
         case Some(SpeciesWrapper(oid, version, created, updated, content)) => ctx.complete(HttpResponse(statusCode, SuccessResponse[Species](version, ctx.request.path, 1, None, content.map(x => x.copy(id = oid))).toHttpContent))
+        case Some(c: Species) => ctx.complete(c)
         case None => ctx.fail(StatusCodes.NotFound, write(ErrorResponse(1l, ctx.request.path, List(NOT_FOUND_MESSAGE))))
       }
     })
   }
 
   //directive compositions
-  val objectIdPathMatch = path("^[a-f0-9]+$".r)
+  val objectIdPathMatch = path("^[a-zA-Z0-9]+$".r)
   val getSpecies = get
   val putSpecies = content(as[Species]) & put
   val postSpecies = path("") & content(as[Species]) & post
@@ -68,18 +69,12 @@ trait SpeciesEndpoint extends Directives with LiftJsonSupport with Logging {
         resourceId =>
           getSpecies {
             ctx =>
-              try {
                 withErrorHandling(ctx) {
                   withSuccessCallback(ctx) {
-                    service.getSpecies(new ObjectId(resourceId))
+                    service.getByKey(resourceId)
                   }
                 }
-              }
-              catch {
-                case e: IllegalArgumentException => {
-                  ctx.fail(StatusCodes.NotFound, write(ErrorResponse(1l, ctx.request.path, List(NOT_FOUND_MESSAGE))))
-                }
-              }
+              
           } ~
             putSpecies {
               resource => ctx =>
@@ -110,7 +105,7 @@ trait SpeciesEndpoint extends Directives with LiftJsonSupport with Logging {
         searchSpecies {
           (commonName, scientificName) => ctx =>
             withErrorHandling(ctx) {
-              service.searchSpecies(SpeciesSearchParams(scientificName, commonName)).onComplete(f => {
+              service.search(SpeciesSearchParams(scientificName, commonName)).onComplete(f => {
                 log.info("Completing species call")
                 f.result.get match {
                     case Some(content) => {

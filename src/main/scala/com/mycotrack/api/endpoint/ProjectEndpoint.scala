@@ -59,13 +59,14 @@ trait ProjectEndpoint extends Directives with LiftJsonSupport with Logging {
     f.onComplete(f => {
       f.result.get match {
         case Some(ProjectWrapper(oid, version, dateCreated, lastUpdated, content)) => ctx.complete(statusCode, content.map(x => x.copy(id = oid, timestamp = Some(new java.util.Date()))).head)
+        case Some(c: Project) => ctx.complete(c)
         case None => ctx.fail(StatusCodes.NotFound, ErrorResponse(1l, ctx.request.path, List(NOT_FOUND_MESSAGE)))
       }
     })
   }
 
   //directive compositions
-  val objectIdPathMatch = path("^[a-f0-9]+$".r)
+  val objectIdPathMatch = path("^[a-zA-Z0-9]+$".r)
   //val directGetProject = authenticate(httpMongo(realm = "mycotrack")) & get
   val directGetProject = get
   val putProject = content(as[Project]) & put
@@ -88,25 +89,18 @@ trait ProjectEndpoint extends Directives with LiftJsonSupport with Logging {
         authenticate(httpMongo(realm = "mycotrack", authenticator = FromMongoUserPassAuthenticator)) { user =>
         objectIdPathMatch {
           resourceId =>
-
               cacheResults(projectCache) {
                 respondWithHeader(CustomHeader("TEST", "Awesome")){
                 directGetProject {
                   ctx =>
-                    try {
                       withErrorHandling(ctx) {
                         withSuccessCallback(ctx) {
-                          service.getProject(new ObjectId(resourceId))
+                          service.getByKey(resourceId)
                         }
                       }
                     }
-                    catch {
-                      case e: IllegalArgumentException => {
-                        ctx.fail(StatusCodes.NotFound, write(ErrorResponse(1l, ctx.request.path, List(NOT_FOUND_MESSAGE))))
-                      }
-                    }
                 }
-                }
+
 
             } ~
               putProject {
@@ -130,7 +124,7 @@ trait ProjectEndpoint extends Directives with LiftJsonSupport with Logging {
             resource => ctx =>
               withErrorHandling(ctx) {
                 withSuccessCallback(ctx, Created) {
-                  service.createProject(resource)
+                  service.createProject(resource.copy(userUrl = user.id))
                 }
               }
 
@@ -139,7 +133,7 @@ trait ProjectEndpoint extends Directives with LiftJsonSupport with Logging {
           indirectGetProjects {
             (name, description) => ctx =>
               withErrorHandling(ctx) {
-                service.searchProject(ProjectSearchParams(name, description)).onComplete(f => {
+                service.search(ProjectSearchParams(name, description)).onComplete(f => {
                   f.result.get match {
                     case Some(content) => {
                       val res: List[Project] = content

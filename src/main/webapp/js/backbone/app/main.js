@@ -18,12 +18,13 @@ require([
   "modules/models/general_aggregation",
   "modules/views/aggregation",
   "modules/views/base",
+  "modules/views/species",
 
   //plugins
   "use!bootstrapdatepicker"
 ],
 
-function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Context, Navbar, Project, Species, Culture, GeneralAggregation, Aggregation, BaseView) {
+function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Context, Navbar, Project, Species, Culture, GeneralAggregation, Aggregation, BaseView, SpeciesView) {
 
     var context = new Context.Model();
 
@@ -57,6 +58,14 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
             }
         });
 
+        context.speciesView = new SpeciesView.List();
+
+        context.speciesBaseView = new BaseView.Species({
+            views: {
+                "#detail": context.speciesView
+            }
+        });
+
         context.projectView = new Mycotrack.Views.ProjectList({
             context: context
           });
@@ -68,6 +77,7 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
         });
 
         context.newProjectView = new BaseView.NewProject();
+        context.newCultureView = new BaseView.NewCulture();
 
         context.cultureView = new Mycotrack.Views.CultureList({
             context: context
@@ -110,8 +120,10 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
     routes: {
       "": "index",
       "bb_mt": "mtlayout",
-      "cultureList": "cultureLayout",
-      "newProject": "newProject",
+      "culture_list": "cultureLayout",
+      "species_list": "speciesLayout",
+      "new_project": "newProject",
+      "new_culture": "newCulture",
       "login": "login"
     },
 
@@ -152,7 +164,6 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
 
       projects.on('projects:fetch', function(eventName){
             console.log('Rendering project view');
-            context.projectView.render();
             context.projectBaseView.render();
         });
 
@@ -163,11 +174,12 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
         context.main.view("#detail", context.selectedProjectView);
         console.log('Should refresh with: ' + JSON.stringify(context.selectedProjectView.model));
 
-        //ModelBinding.bind(selectedProjectView);
-        context.selectedProjectView.render();
-        ModelBinding.bind(context.selectedProjectView);
-        console.log("DATEPICKING");
-        $("#dp1").datepicker();
+        //ModelBinding.bind(context.selectedProjectView);
+        $.when(context.selectedProjectView.render()).then(function(){
+           ModelBinding.bind(context.selectedProjectView);
+           console.log("DATEPICKING");
+           $("#dp1").datepicker();
+        });
       });
     },
 
@@ -194,6 +206,27 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
       });
     },
 
+    newCulture: function(hash) {
+      var route = this;
+      var newCulture = new Culture.Model({});
+      var species = new Species.Collection();
+      console.log('Rendering new culture');
+
+      species.fetch({success: function(){
+        species.trigger('species:fetch');
+      }});
+
+      context.main.view("#contentAnchor", context.newCultureView);
+      species.on('species:fetch', function(eventName){
+
+        context.newCultureView.model = newCulture;
+        context.newCultureView.model.set('speciesList', species.toJSON());
+
+        //ModelBinding.bind(selectedProjectView);
+        context.newCultureView.render();
+      });
+    },
+
     cultureLayout: function(hash) {
       var route = this;
       var cultures = new Culture.Collection();
@@ -208,7 +241,6 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
 
       cultures.on('cultures:fetch', function(eventName){
             console.log('Rendering culture view');
-            context.cultureView.render();
             context.cultureBaseView.render();
         });
 
@@ -216,6 +248,24 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
 
         console.log("Selected culture");
       });
+    },
+
+    speciesLayout: function(hash) {
+      var route = this;
+      var species = new Species.Collection();
+
+      species.fetch({success: function(){
+        species.trigger('species:fetch');
+      }});
+
+      context.speciesView.collection = species;
+
+      context.main.view("#contentAnchor", context.speciesBaseView);
+
+      species.on('species:fetch', function(eventName){
+            console.log('Rendering species view');
+            context.speciesBaseView.render();
+        });
     }
   });
 

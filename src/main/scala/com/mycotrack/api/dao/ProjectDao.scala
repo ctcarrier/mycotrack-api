@@ -7,6 +7,7 @@ import com.novus.salat.global._
 import com.mongodb.casbah.commons.MongoDBObject
 import com.mycotrack.api._
 import model._
+import mongo.RandomId
 import org.bson.types.ObjectId
 
 /**
@@ -15,19 +16,20 @@ import org.bson.types.ObjectId
 
 class ProjectDao(mongoCollection: MongoCollection) extends IProjectDao {
 
-  def getProject(key: ObjectId) = {
+  def urlPrefix = "/projects/"
+
+  def get(key: String) = {
     Future {
-      val q = MongoDBObject("_id" -> key)
-      val dbo = mongoCollection.findOne(q)
+      val dbo = mongoCollection.findOneByID(key)
       dbo.map(f => grater[ProjectWrapper].asObject(f))
     }
   }
 
   def createProject(modelWrapper: ProjectWrapper) = {
     Future {
-      val dbo = grater[ProjectWrapper].asDBObject(modelWrapper)
+      val dbo = grater[ProjectWrapper].asDBObject(modelWrapper.copy(_id = Some(nextRandomId)))
       mongoCollection += dbo
-      Some(modelWrapper.copy(_id = dbo.getAs[org.bson.types.ObjectId]("_id")))
+      Some(modelWrapper.copy(_id = dbo.getAs[String]("_id")))
     }
   }
 
@@ -46,7 +48,7 @@ class ProjectDao(mongoCollection: MongoCollection) extends IProjectDao {
     }
   }
 
-  def searchProject(searchObj: MongoDBObject) = Future {
+  def search(searchObj: MongoDBObject) = Future {
     val listRes = mongoCollection.find(searchObj).map(f => {
       val pw = grater[ProjectWrapper].asObject(f)
       pw.content.head.copy(id = pw._id)

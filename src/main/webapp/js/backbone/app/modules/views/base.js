@@ -25,6 +25,10 @@ function(namespace, $, _, Backbone, ModelBinding) {
     template: "base/culture_base"
   });
 
+  BaseView.Species = Backbone.View.extend({
+    template: "base/species_base"
+  });
+
   BaseView.Home = Backbone.View.extend({
     template: "base/home_base"
   });
@@ -39,9 +43,32 @@ function(namespace, $, _, Backbone, ModelBinding) {
     saveSelected: function() {
         var view = this;
         ModelBinding.bind(this);
+        this.model.set('enabled', true);
         console.log('Saving new: ' + JSON.stringify(this.model));
         this.model.save({}, {success: function(model, response){
             namespace.app.router.navigate("/bb_mt", true);
+        }});
+
+    },
+
+    serialize: function() {
+      return this.model.toJSON();
+    }
+  });
+
+  BaseView.NewCulture = Backbone.View.extend({
+    template: "base/new_culture",
+
+    events: {
+        "click #culture-submit": "saveSelected"
+    },
+
+    saveSelected: function() {
+        var view = this;
+        ModelBinding.bind(this);
+        console.log('Saving new: ' + JSON.stringify(this.model));
+        this.model.save({}, {success: function(model, response){
+            namespace.app.router.navigate("/cultureList", true);
         }});
 
     },

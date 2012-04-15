@@ -46,12 +46,12 @@ function(namespace, $, _, Backbone) {
 
     newProject: function(e) {
         e.preventDefault();
-        namespace.app.router.navigate("/newProject", true);
+        namespace.app.router.navigate("/new_project", true);
     },
 
     newCulture: function(e) {
         e.preventDefault();
-        namespace.app.router.navigate("/newCulture", true);
+        namespace.app.router.navigate("/new_culture", true);
     }
   });
 

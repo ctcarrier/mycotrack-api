@@ -17,6 +17,7 @@ import cc.spray.test.SprayTest
 import org.specs2.matcher.ThrownExpectations
 import cc.spray.http._
 import HttpMethods._
+import com.mycotrack.api.mongo.RandomId
 
 class SpeciesSpec extends Specification with MycotrackSpec {
   override val resourceName = "species"
@@ -28,13 +29,13 @@ class SpeciesSpec extends Specification with MycotrackSpec {
   val badJsonText = """{"commonName": "commonNameString"}"""
 
   val now = new java.util.Date
-  val dbo = grater[SpeciesWrapper].asDBObject(SpeciesWrapper(None, 1, now, now, List(testObj)))
+  val dbo = grater[SpeciesWrapper].asDBObject(SpeciesWrapper(Some("/species/" + RandomId.getNextValue.get), 1, now, now, List(testObj)))
 
   configDb.insert(dbo, WriteConcern.Safe)
   val testId = dbo.get("_id").toString
 
   def is = args(traceFilter = includeTrace("com.mycotrack*")) ^
-    String.format("The direct GET %s/%s API should", BASE_URL, testId) ^
+    String.format("The direct GET %s API should", testId) ^
     "return HTTP status 200 with a response body from: " + BASE_URL ! as().getDirect ^
     "and return 404 for a non-existent resource" ! as().getNotFound() ^
     "and return 404 for an illegal ID" ! as().getBadObjectId() ^
@@ -50,7 +51,7 @@ class SpeciesSpec extends Specification with MycotrackSpec {
     String.format("The invalid POST %s API should", BASE_URL) ^
     "return HTTP status 400 with an error message if required field is missing" ! as().postTestFail() ^
     p ^
-    String.format("The PUT %s/%s API should", BASE_URL, testId) ^
+    String.format("The PUT %s API should", testId) ^
     "return HTTP status 200 with a response body" ! as().putSuccess() ^
     Step {
       configDb.remove(MongoDBObject("_id" -> testId))
@@ -62,7 +63,7 @@ class SpeciesSpec extends Specification with MycotrackSpec {
     val service = new SpeciesDao(configDb)
 
     def getDirect = {
-      val response = testService(HttpRequest(GET, BASE_URL + "/" + testId)) {
+      val response = testService(HttpRequest(GET, testId)) {
         restService
       }.response
 
@@ -117,7 +118,7 @@ class SpeciesSpec extends Specification with MycotrackSpec {
     }
 
     def putSuccess() = {
-      val response = testService(HttpRequest(method = GET, uri = BASE_URL + "/" + testId, content = Some(JsonContent(newJsonText)))) {
+      val response = testService(HttpRequest(method = GET, uri = testId, content = Some(JsonContent(newJsonText)))) {
         restService
       }.response
 

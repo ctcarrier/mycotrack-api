@@ -74,7 +74,7 @@ trait UserEndpoint extends Directives with LiftJsonSupport with Logging {
             ctx =>
                 withErrorHandling(ctx) {
                   withSuccessCallback(ctx) {
-                    service.get(resourceId)
+                    service.getByKey(resourceId)
                   }
                 }
           } ~

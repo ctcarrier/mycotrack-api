@@ -7,6 +7,7 @@ import com.novus.salat.global._
 import com.mongodb.casbah.commons.MongoDBObject
 import com.mycotrack.api._
 import model._
+import mongo.RandomId
 
 /*
  * User: gregg
@@ -15,24 +16,25 @@ import model._
  */
 trait CultureDao extends ICultureDao {
 
+  def urlPrefix = "/cultures"
+
   val mongoCollection: MongoCollection
   val speciesService: ISpeciesDao
 
-  def getCulture(key: ObjectId) = {
+  def get(key: String) = {
     Future {
       val dbo = mongoCollection.findOneByID(key)
       dbo.map(f => {
-        val wrapper = grater[CultureWrapper].asObject(f)
-        wrapper.content.head.copy(id = wrapper._id)
+        grater[CultureWrapper].asObject(f)
       })
     }
   }
 
   def createCulture(cultureWrapper: CultureWrapper) = {
     Future {
-      val dbo = grater[CultureWrapper].asDBObject(cultureWrapper)
+      val dbo = grater[CultureWrapper].asDBObject(cultureWrapper.copy(_id = Some(nextRandomId)))
       mongoCollection += dbo
-      Some(cultureWrapper.copy(_id = dbo.getAs[org.bson.types.ObjectId]("_id"))) // TODO grater was not working here. If this were an actor you would just do a "self.channel" as before.
+      Some(cultureWrapper.copy(_id = dbo.getAs[String]("_id"))) // TODO grater was not working here. If this were an actor you would just do a "self.channel" as before.
     }
   }
 
@@ -45,19 +47,17 @@ trait CultureDao extends ICultureDao {
     }
   }
 
-  def searchCulture(searchObj: MongoDBObject) = Future {
+  def search(searchObj: MongoDBObject) = Future {
     val listRes = mongoCollection.find(searchObj).map(f => {
       val pw = grater[CultureWrapper].asObject(f)
-      val SpeciesMatch = """/species/([a-f0-9]+)""".r
-      val SpeciesMatch(speciesId) = pw.content.head.speciesUrl.get
-      val speciesObj = speciesService.getSpecies(new ObjectId(speciesId)).get
+      val speciesObj = speciesService.get(pw.content.head.speciesUrl.get).get
       pw.content.head.copy(id = pw._id, species = speciesObj.map(f => f.content.head))
     }).toList
 
 
     val res = listRes match {
       case l: List[Culture] if (!l.isEmpty) => Some(l)
-      case _ => None
+      case _ => Some(List.empty[Culture])
     }
 
     res

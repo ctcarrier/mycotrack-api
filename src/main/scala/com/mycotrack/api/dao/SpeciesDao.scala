@@ -7,6 +7,7 @@ import com.novus.salat.global._
 import com.mongodb.casbah.commons.MongoDBObject
 import com.mycotrack.api._
 import model._
+import mongo.RandomId
 import org.bson.types.ObjectId
 import cc.spray.utils.Logging
 
@@ -17,7 +18,9 @@ import cc.spray.utils.Logging
  */
 class SpeciesDao(mongoCollection: MongoCollection) extends ISpeciesDao with Logging {
 
-  def getSpecies(key: ObjectId) = {
+  def urlPrefix = "/species/"
+
+  def get(key: String) = {
     Future {
       val dbo = mongoCollection.findOneByID(key)
       dbo.map(f => grater[SpeciesWrapper].asObject(f))
@@ -26,9 +29,9 @@ class SpeciesDao(mongoCollection: MongoCollection) extends ISpeciesDao with Logg
 
   def createSpecies(speciesWrapper: SpeciesWrapper) = {
     Future {
-      val dbo = grater[SpeciesWrapper].asDBObject(speciesWrapper)
+      val dbo = grater[SpeciesWrapper].asDBObject(speciesWrapper.copy(_id = Some(nextRandomId)))
       mongoCollection += dbo
-      Some(speciesWrapper.copy(_id = dbo.getAs[org.bson.types.ObjectId]("_id"))) // TODO grater was not working here. If this were an actor you would just do a "self.channel" as before.
+      Some(speciesWrapper.copy(_id = dbo.getAs[String]("_id"))) // TODO grater was not working here. If this were an actor you would just do a "self.channel" as before.
     }
   }
 
@@ -41,7 +44,7 @@ class SpeciesDao(mongoCollection: MongoCollection) extends ISpeciesDao with Logg
     }
   }
 
-  def searchSpecies(searchObj: MongoDBObject) = Future {
+  def search(searchObj: MongoDBObject) = Future {
     val listRes = mongoCollection.find(searchObj).map(f => {
       val pw = grater[SpeciesWrapper].asObject(f)
       pw.content.head.copy(id = pw._id)

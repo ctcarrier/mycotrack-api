@@ -85,6 +85,7 @@ function(namespace, $, _, Backbone, ModelBinding, Context) {
     className: 'projects nav nav-tabs nav-stacked',
 
     initialize: function(){
+        console.log('Initializing projectListView');
         _.bindAll('render');
 
     },
@@ -94,18 +95,20 @@ function(namespace, $, _, Backbone, ModelBinding, Context) {
         var view = manage(this);
         var ctx = this.options.context;
 
-        if (!this.intialized) {
+//        if (!namespace.app.initialized) {
+//            namespace.app.initialized = true;
             // Iterate over the passed collection and create a view for each item
+            console.log(this.collection);
             this.collection.each(function(model) {
               // Pass the data to the new SomeItem view
+              console.log('Adding project');
               var projectView = new Mycotrack.Views.ProjectView({
                 model: model,
                 context: ctx
               });
               view.insert(projectView);
             });
-        }
-        this.initialized = true;
+//        }
 
         // You still must return this view to render, works identical to
         // existing functionality.
@@ -153,7 +156,8 @@ function(namespace, $, _, Backbone, ModelBinding, Context) {
         var view = manage(this);
         var ctx = this.options.context;
 
-        if (!this.intialized) {
+//        if (!this.initialized) {
+//            this.initialized = true;
             // Iterate over the passed collection and create a view for each item
             this.collection.each(function(model) {
               // Pass the data to the new SomeItem view
@@ -163,8 +167,7 @@ function(namespace, $, _, Backbone, ModelBinding, Context) {
               });
               view.insert(cultureView);
             });
-        }
-        this.initialized = true;
+//        }
 
         // You still must return this view to render, works identical to
         // existing functionality.
