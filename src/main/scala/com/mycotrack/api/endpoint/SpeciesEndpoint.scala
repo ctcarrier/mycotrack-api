@@ -81,7 +81,7 @@ trait SpeciesEndpoint extends Directives with LiftJsonSupport with Logging {
                 try {
                   withErrorHandling(ctx) {
                     withSuccessCallback(ctx) {
-                      service.updateSpecies(new ObjectId(resourceId), resource)
+                      service.updateSpecies(resourceId, resource)
                     }
                   }
                 }

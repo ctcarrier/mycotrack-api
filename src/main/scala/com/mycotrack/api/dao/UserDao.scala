@@ -15,7 +15,6 @@ import org.bson.types.ObjectId
  */
 
 trait UserService extends MycotrackDao[User, UserWrapper] {
-  def get(key: String): Future[Option[User]]
 
   def create(model: UserWrapper): Future[Option[User]]
 
@@ -23,16 +22,10 @@ trait UserService extends MycotrackDao[User, UserWrapper] {
 
 }
 
-class UserDao(mongoCollection: MongoCollection) extends UserService {
+trait UserDao extends UserService {
 
+  val mongoCollection: MongoCollection
   def urlPrefix = "/users/"
-
-  def get(key: String) = {
-    Future {
-      val dbo = mongoCollection.findOneByID(key)
-      dbo.map(f => {grater[UserWrapper].asObject(f)})
-    }
-  }
 
   def create(model: UserWrapper) = {
     Future {

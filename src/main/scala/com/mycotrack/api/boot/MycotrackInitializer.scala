@@ -41,14 +41,20 @@ object MycotrackInitializer extends App with Logging {
     case s: List[String] => MongoConnection(s)(mongoDbName)
     case _ => MongoConnection("localhost")(mongoDbName)
   }
-  val projectDao = new ProjectDao(db(projectCollection))
-  val speciesDao = new SpeciesDao(db(speciesCollection))
+  val projectDao = new ProjectDao {
+    val mongoCollection = db(cultureCollection)
+  }
+  val speciesDao = new SpeciesDao {
+    val mongoCollection = db(cultureCollection)
+  }
   val cultureDao = new CultureDao {
     val mongoCollection = db(cultureCollection)
     val speciesService = speciesDao
   }
   val aggregationDao = new AggregationDao(db(projectCollection))
-  val userDao = new UserDao(db(userCollection))
+  val userDao = new UserDao {
+    val mongoCollection = db(cultureCollection)
+  }
 
   // ///////////// INDEXES for collections go here (include all lookup fields)
   //  configsCollection.ensureIndex(MongoDBObject("customerId" -> 1), "idx_customerId")

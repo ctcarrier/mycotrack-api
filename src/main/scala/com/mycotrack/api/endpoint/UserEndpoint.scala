@@ -62,12 +62,13 @@ trait UserEndpoint extends Directives with LiftJsonSupport with Logging {
   val objectIdPathMatch = path("^[a-zA-Z0-9]+$".r)
   val putUser = content(as[User]) & put
   val postUser = path("") & content(as[User]) & post
-  val searchUser = path("") & parameters('email ?, 'password ?) & get
+  val searchUser = (path("") & get)
 
   val restService = {
     // Debugging: /ping -> pong
     // Service implementation.
     pathPrefix("users") {
+      authenticate(httpMongo(realm = "mycotrack", authenticator = FromMongoUserPassAuthenticator)) { user =>
       objectIdPathMatch {
         resourceId =>
           get {
@@ -96,13 +97,10 @@ trait UserEndpoint extends Directives with LiftJsonSupport with Logging {
             }
         } ~
         searchUser {
-          (email, password) => ctx =>
-            withErrorHandling(ctx) {
-              withSuccessCallback(ctx) {
-                service.search(UserSearchParams(email, password))
-              }
-            }
+          ctx =>
+            ctx.complete("")
         }
+    }
     }
   }
 

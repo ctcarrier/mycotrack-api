@@ -16,16 +16,10 @@ import cc.spray.utils.Logging
  * Date: 11/6/11
  * Time: 1:23 PM
  */
-class SpeciesDao(mongoCollection: MongoCollection) extends ISpeciesDao with Logging {
+trait SpeciesDao extends ISpeciesDao with Logging {
 
+  val mongoCollection: MongoCollection
   def urlPrefix = "/species/"
-
-  def get(key: String) = {
-    Future {
-      val dbo = mongoCollection.findOneByID(key)
-      dbo.map(f => grater[SpeciesWrapper].asObject(f))
-    }
-  }
 
   def createSpecies(speciesWrapper: SpeciesWrapper) = {
     Future {
@@ -35,10 +29,12 @@ class SpeciesDao(mongoCollection: MongoCollection) extends ISpeciesDao with Logg
     }
   }
 
-  def updateSpecies(key: ObjectId, model: Species) = {
+  def updateSpecies(key: String, model: Species) = {
     Future {
-      val query = MongoDBObject("_id" -> key)
-      val update = $addToSet("content" -> model)
+      val inputDbo = grater[Species].asDBObject(model)
+      val query = MongoDBObject("_id" -> formatKeyAsId(key))
+      val update = $set("content" -> List(inputDbo))
+
       mongoCollection.update(query, update, false, false, WriteConcern.Safe)
       mongoCollection.findOne(query).map(f => grater[SpeciesWrapper].asObject(f))
     }

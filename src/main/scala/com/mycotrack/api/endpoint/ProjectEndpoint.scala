@@ -105,18 +105,11 @@ trait ProjectEndpoint extends Directives with LiftJsonSupport with Logging {
             } ~
               putProject {
                 resource => ctx =>
-                  try {
                     withErrorHandling(ctx) {
                       withSuccessCallback(ctx) {
-                        service.updateProject(new ObjectId(resourceId), resource)
+                        service.updateProject(resourceId, resource)
                       }
                     }
-                  }
-                  catch {
-                    case e: IllegalArgumentException => {
-                      ctx.fail(StatusCodes.NotFound, write(ErrorResponse(1l, ctx.request.path, List(NOT_FOUND_MESSAGE))))
-                    }
-                  }
 
               }
         } ~

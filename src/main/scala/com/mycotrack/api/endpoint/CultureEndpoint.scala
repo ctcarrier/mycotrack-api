@@ -69,6 +69,7 @@ trait CultureEndpoint extends Directives with LiftJsonSupport with Logging {
     // Debugging: /ping -> pong
     // Service implementation.
     pathPrefix("cultures") {
+      authenticate(httpMongo(realm = "mycotrack", authenticator = FromMongoUserPassAuthenticator)) { user =>
       objectIdPathMatch {
         resourceId =>
           get {
@@ -81,27 +82,18 @@ trait CultureEndpoint extends Directives with LiftJsonSupport with Logging {
           } ~
             putCulture {
               resource => ctx =>
-                try {
                   withErrorHandling(ctx) {
                     withSuccessCallback(ctx) {
-                      service.updateCulture(new ObjectId(resourceId), resource)
+                      service.updateCulture(resourceId, resource)
                     }
                   }
-                }
-                catch {
-                  case e: IllegalArgumentException => {
-                    ctx.fail(StatusCodes.NotFound, write(ErrorResponse(1l, ctx.request.path, List(NOT_FOUND_MESSAGE))))
-                  }
-                }
             }
       } ~
         postCulture {
           resource => ctx =>
-            val now = new java.util.Date
-            val resourceWrapper = CultureWrapper(None, 1, now, now, List(resource))
             withErrorHandling(ctx) {
               withSuccessCallback(ctx, Created) {
-                service.createCulture(resourceWrapper)
+                service.createCulture(resource.copy(userUrl = user.id))
               }
             }
         } ~
@@ -119,6 +111,7 @@ trait CultureEndpoint extends Directives with LiftJsonSupport with Logging {
                 })
             }
         }
+      }
     }
   }
 

@@ -16,19 +16,10 @@ import mongo.RandomId
  */
 trait CultureDao extends ICultureDao {
 
-  def urlPrefix = "/cultures"
+  def urlPrefix = "/cultures/"
 
   val mongoCollection: MongoCollection
   val speciesService: ISpeciesDao
-
-  def get(key: String) = {
-    Future {
-      val dbo = mongoCollection.findOneByID(key)
-      dbo.map(f => {
-        grater[CultureWrapper].asObject(f)
-      })
-    }
-  }
 
   def createCulture(cultureWrapper: CultureWrapper) = {
     Future {
@@ -38,10 +29,12 @@ trait CultureDao extends ICultureDao {
     }
   }
 
-  def updateCulture(key: ObjectId, model: Culture) = {
+  def updateCulture(key: String, model: Culture) = {
     Future {
-      val query = MongoDBObject("_id" -> key)
-      val update = $addToSet("content" -> model)
+      val inputDbo = grater[Culture].asDBObject(model)
+      val query = MongoDBObject("_id" -> formatKeyAsId(key))
+      val update = $set("content" -> List(inputDbo))
+
       mongoCollection.update(query, update, false, false, WriteConcern.Safe)
       mongoCollection.findOne(query).map(f => grater[CultureWrapper].asObject(f))
     }
@@ -50,7 +43,7 @@ trait CultureDao extends ICultureDao {
   def search(searchObj: MongoDBObject) = Future {
     val listRes = mongoCollection.find(searchObj).map(f => {
       val pw = grater[CultureWrapper].asObject(f)
-      val speciesObj = speciesService.get(pw.content.head.speciesUrl.get).get
+      val speciesObj: Option[Species] = speciesService.get(pw.content.head.speciesUrl.get).get
       pw.content.head.copy(id = pw._id, species = speciesObj.map(f => f.content.head))
     }).toList
 

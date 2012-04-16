@@ -14,16 +14,10 @@ import org.bson.types.ObjectId
  * @author chris carrier
  */
 
-class ProjectDao(mongoCollection: MongoCollection) extends IProjectDao {
+trait ProjectDao extends IProjectDao {
 
+  val mongoCollection: MongoCollection
   def urlPrefix = "/projects/"
-
-  def get(key: String) = {
-    Future {
-      val dbo = mongoCollection.findOneByID(key)
-      dbo.map(f => grater[ProjectWrapper].asObject(f))
-    }
-  }
 
   def createProject(modelWrapper: ProjectWrapper) = {
     Future {
@@ -33,10 +27,10 @@ class ProjectDao(mongoCollection: MongoCollection) extends IProjectDao {
     }
   }
 
-  def updateProject(key: ObjectId, model: Project) = {
+  def updateProject(key: String, model: Project) = {
     Future {
       val inputDbo = grater[Project].asDBObject(model)
-      val query = MongoDBObject("_id" -> key)
+      val query = MongoDBObject("_id" -> formatKeyAsId(key))
       val update = $set("content" -> List(inputDbo))
 
       mongoCollection.update(query, update, false, false, WriteConcern.Safe)
