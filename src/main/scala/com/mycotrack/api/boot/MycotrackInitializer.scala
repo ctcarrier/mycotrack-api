@@ -42,10 +42,10 @@ object MycotrackInitializer extends App with Logging {
     case _ => MongoConnection("localhost")(mongoDbName)
   }
   val projectDao = new ProjectDao {
-    val mongoCollection = db(cultureCollection)
+    val mongoCollection = db(projectCollection)
   }
   val speciesDao = new SpeciesDao {
-    val mongoCollection = db(cultureCollection)
+    val mongoCollection = db(speciesCollection)
   }
   val cultureDao = new CultureDao {
     val mongoCollection = db(cultureCollection)
@@ -53,7 +53,7 @@ object MycotrackInitializer extends App with Logging {
   }
   val aggregationDao = new AggregationDao(db(projectCollection))
   val userDao = new UserDao {
-    val mongoCollection = db(cultureCollection)
+    val mongoCollection = db(userCollection)
   }
 
   // ///////////// INDEXES for collections go here (include all lookup fields)

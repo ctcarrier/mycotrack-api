@@ -19,12 +19,13 @@ require([
   "modules/views/aggregation",
   "modules/views/base",
   "modules/views/species",
+  "modules/models/user",
 
   //plugins
   "use!bootstrapdatepicker"
 ],
 
-function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Context, Navbar, Project, Species, Culture, GeneralAggregation, Aggregation, BaseView, SpeciesView) {
+function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Context, Navbar, Project, Species, Culture, GeneralAggregation, Aggregation, BaseView, SpeciesView, User) {
 
     var context = new Context.Model();
 
@@ -32,6 +33,7 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
   // Defining the application router, you can attach sub routers here.
   var Router = Backbone.Router.extend({
     initialize: function() {
+        namespace.app.user = new User.Model();
         context.main = new Backbone.LayoutManager({
                 template: "base"
         });
@@ -110,6 +112,14 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
           context.on('auth:required', function(eventName){
             console.log('Login necessary!');
           });
+
+          namespace.app.on('login:submit', function(eventName){
+            namespace.app.user.fetch({success: function(){
+                                      $("#loginanchor").detach();
+
+                                    }});
+
+        });
 
         context.main.render(function(el) {
                 $("#main").html(el);

@@ -84,7 +84,7 @@ trait CultureEndpoint extends Directives with LiftJsonSupport with Logging {
               resource => ctx =>
                   withErrorHandling(ctx) {
                     withSuccessCallback(ctx) {
-                      service.updateCulture(resourceId, resource)
+                      service.update[Culture, CultureWrapper](resourceId, resource)
                     }
                   }
             }
@@ -93,7 +93,7 @@ trait CultureEndpoint extends Directives with LiftJsonSupport with Logging {
           resource => ctx =>
             withErrorHandling(ctx) {
               withSuccessCallback(ctx, Created) {
-                service.createCulture(resource.copy(userUrl = user.id))
+                service.create[CultureWrapper](resource.copy(userUrl = user.id))
               }
             }
         } ~

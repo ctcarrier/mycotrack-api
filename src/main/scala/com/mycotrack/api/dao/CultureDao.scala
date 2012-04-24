@@ -21,29 +21,29 @@ trait CultureDao extends ICultureDao {
   val mongoCollection: MongoCollection
   val speciesService: ISpeciesDao
 
-  def createCulture(cultureWrapper: CultureWrapper) = {
-    Future {
-      val dbo = grater[CultureWrapper].asDBObject(cultureWrapper.copy(_id = Some(nextRandomId)))
-      mongoCollection += dbo
-      Some(cultureWrapper.copy(_id = dbo.getAs[String]("_id"))) // TODO grater was not working here. If this were an actor you would just do a "self.channel" as before.
-    }
-  }
+//  def createCulture(cultureWrapper: CultureWrapper) = {
+//    Future {
+//      val dbo = grater[CultureWrapper].asDBObject(cultureWrapper.copy(_id = Some(nextRandomId)))
+//      mongoCollection += dbo
+//      Some(cultureWrapper.copy(_id = dbo.getAs[String]("_id"))) // TODO grater was not working here. If this were an actor you would just do a "self.channel" as before.
+//    }
+//  }
 
-  def updateCulture(key: String, model: Culture) = {
-    Future {
-      val inputDbo = grater[Culture].asDBObject(model)
-      val query = MongoDBObject("_id" -> formatKeyAsId(key))
-      val update = $set("content" -> List(inputDbo))
-
-      mongoCollection.update(query, update, false, false, WriteConcern.Safe)
-      mongoCollection.findOne(query).map(f => grater[CultureWrapper].asObject(f))
-    }
-  }
+//  def updateCulture(key: String, model: Culture) = {
+//    Future {
+//      val inputDbo = grater[Culture].asDBObject(model)
+//      val query = MongoDBObject("_id" -> formatKeyAsId(key))
+//      val update = $set("content" -> List(inputDbo))
+//
+//      mongoCollection.update(query, update, false, false, WriteConcern.Safe)
+//      mongoCollection.findOne(query).map(f => grater[CultureWrapper].asObject(f))
+//    }
+//  }
 
   def search(searchObj: MongoDBObject) = Future {
     val listRes = mongoCollection.find(searchObj).map(f => {
       val pw = grater[CultureWrapper].asObject(f)
-      val speciesObj: Option[Species] = speciesService.get(pw.content.head.speciesUrl.get).get
+      val speciesObj: Option[SpeciesWrapper] = speciesService.get[SpeciesWrapper](pw.content.head.speciesUrl.get).get
       pw.content.head.copy(id = pw._id, species = speciesObj.map(f => f.content.head))
     }).toList
 

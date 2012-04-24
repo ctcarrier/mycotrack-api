@@ -107,7 +107,7 @@ trait ProjectEndpoint extends Directives with LiftJsonSupport with Logging {
                 resource => ctx =>
                     withErrorHandling(ctx) {
                       withSuccessCallback(ctx) {
-                        service.updateProject(resourceId, resource)
+                        service.update[Project, ProjectWrapper](resourceId, resource)
                       }
                     }
 
@@ -117,7 +117,7 @@ trait ProjectEndpoint extends Directives with LiftJsonSupport with Logging {
             resource => ctx =>
               withErrorHandling(ctx) {
                 withSuccessCallback(ctx, Created) {
-                  service.createProject(resource.copy(userUrl = user.id))
+                  service.create[ProjectWrapper](resource.copy(userUrl = user.id))
                 }
               }
 

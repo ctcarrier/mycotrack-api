@@ -1,14 +1,16 @@
 package com.mycotrack.api.dao
 
-import _root_.com.mongodb.casbah.Imports._
+import com.mongodb.casbah.Imports._
 import akka.dispatch.Future
 import org.bson.types.ObjectId
 import com.mycotrack.api.model._
 import com.mycotrack.api.mongo.RandomId
 import com.novus.salat._
 import com.novus.salat.global._
+import scala.reflect.Manifest
+import cc.spray.utils.Logging
 
-trait MycotrackDao[T <: CaseClass, W <: CaseClass] {
+trait MycotrackDao[T <: CaseClass, W <: CaseClass] extends Logging {
   val mongoCollection: MongoCollection
 
   def urlPrefix: String
@@ -22,10 +24,40 @@ trait MycotrackDao[T <: CaseClass, W <: CaseClass] {
   def getByKey(key: String): Future[Option[T]] = {
     get(formatKeyAsId(key))
   }
-  def get[T <: CaseClass : Manifest](id: String): Future[Option[T]] = {
+  def get[TT <: W](id: String)(implicit man: Manifest[TT]): Future[Option[TT]] = {
     Future {
       val dbo = mongoCollection.findOneByID(id)
-      dbo.map(f => grater[T].asObject(f))
+      dbo.map(f => {
+        log.info(f.toString)
+        grater[TT].asObject(f)
+      })
+    }
+  }
+
+  def create[TT <: W](wrapper: TT)(implicit man: Manifest[TT]): Future[Option[TT]] = {
+    Future {
+      val dbo = grater[TT].asDBObject(wrapper)
+      val builder = MongoDBObject.newBuilder
+      builder ++= dbo.toList
+      builder += ("_id" -> Some(nextRandomId))
+      val toSave = builder.result
+      mongoCollection += toSave
+      Some(grater[TT].asObject(toSave))
+    }
+  }
+
+  def update[TT <: T, WW <: W](key: String, model: TT)(implicit man: Manifest[TT], manW: Manifest[WW]): Future[Option[WW]] = {
+    Future {
+      val inputDbo = grater[TT].asDBObject(model)
+      val query = MongoDBObject("_id" -> formatKeyAsId(key))
+      val update = $set("content" -> List(inputDbo))
+
+      mongoCollection.update(query, update, false, false, WriteConcern.Safe)
+
+      val dbo = mongoCollection.findOne(query)
+      val result = dbo.map(f => grater[WW].asObject(f))
+
+      result
     }
   }
 
@@ -33,18 +65,14 @@ trait MycotrackDao[T <: CaseClass, W <: CaseClass] {
 }
 
 trait IProjectDao extends MycotrackDao[Project, ProjectWrapper] {
-  def createProject(modelWrapper: ProjectWrapper): Future[Option[ProjectWrapper]]
-  def updateProject(key: String, model: Project): Future[Option[ProjectWrapper]]
   def getChildren(root: Project): Future[Option[List[Project]]]
 }
 
 trait ISpeciesDao extends MycotrackDao[Species, SpeciesWrapper] {
-  def createSpecies(speciesWrapper: SpeciesWrapper): Future[Option[SpeciesWrapper]]
-  def updateSpecies(key: String, model: Species): Future[Option[SpeciesWrapper]]
 }
 
 trait ICultureDao extends MycotrackDao[Culture, CultureWrapper] {
-  def createCulture(cultureWrapper: CultureWrapper): Future[Option[CultureWrapper]]
-  def updateCulture(key: String, model: Culture): Future[Option[CultureWrapper]]
+}
 
+trait UserService extends MycotrackDao[User, UserWrapper] {
 }

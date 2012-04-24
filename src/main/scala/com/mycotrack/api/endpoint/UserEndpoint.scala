@@ -83,7 +83,7 @@ trait UserEndpoint extends Directives with LiftJsonSupport with Logging {
               resource => ctx =>
                   withErrorHandling(ctx) {
                     withSuccessCallback(ctx) {
-                      service.update(resourceId, resource)
+                      service.update[User, UserWrapper](resourceId, resource)
                     }
                   }
             }
@@ -92,13 +92,12 @@ trait UserEndpoint extends Directives with LiftJsonSupport with Logging {
           resource => ctx =>
             withErrorHandling(ctx) {
               withSuccessCallback(ctx, Created) {
-                service.create(resource)
+                service.create[UserWrapper](resource)
               }
             }
         } ~
         searchUser {
-          ctx =>
-            ctx.complete("")
+          _.complete(user)
         }
     }
     }

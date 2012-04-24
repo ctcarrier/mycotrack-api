@@ -21,24 +21,24 @@ trait SpeciesDao extends ISpeciesDao with Logging {
   val mongoCollection: MongoCollection
   def urlPrefix = "/species/"
 
-  def createSpecies(speciesWrapper: SpeciesWrapper) = {
-    Future {
-      val dbo = grater[SpeciesWrapper].asDBObject(speciesWrapper.copy(_id = Some(nextRandomId)))
-      mongoCollection += dbo
-      Some(speciesWrapper.copy(_id = dbo.getAs[String]("_id"))) // TODO grater was not working here. If this were an actor you would just do a "self.channel" as before.
-    }
-  }
+//  def createSpecies(speciesWrapper: SpeciesWrapper) = {
+//    Future {
+//      val dbo = grater[SpeciesWrapper].asDBObject(speciesWrapper.copy(_id = Some(nextRandomId)))
+//      mongoCollection += dbo
+//      Some(speciesWrapper.copy(_id = dbo.getAs[String]("_id"))) // TODO grater was not working here. If this were an actor you would just do a "self.channel" as before.
+//    }
+//  }
 
-  def updateSpecies(key: String, model: Species) = {
-    Future {
-      val inputDbo = grater[Species].asDBObject(model)
-      val query = MongoDBObject("_id" -> formatKeyAsId(key))
-      val update = $set("content" -> List(inputDbo))
-
-      mongoCollection.update(query, update, false, false, WriteConcern.Safe)
-      mongoCollection.findOne(query).map(f => grater[SpeciesWrapper].asObject(f))
-    }
-  }
+//  def updateSpecies(key: String, model: Species) = {
+//    Future {
+//      val inputDbo = grater[Species].asDBObject(model)
+//      val query = MongoDBObject("_id" -> formatKeyAsId(key))
+//      val update = $set("content" -> List(inputDbo))
+//
+//      mongoCollection.update(query, update, false, false, WriteConcern.Safe)
+//      mongoCollection.findOne(query).map(f => grater[SpeciesWrapper].asObject(f))
+//    }
+//  }
 
   def search(searchObj: MongoDBObject) = Future {
     val listRes = mongoCollection.find(searchObj).map(f => {

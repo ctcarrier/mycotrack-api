@@ -81,7 +81,7 @@ trait SpeciesEndpoint extends Directives with LiftJsonSupport with Logging {
                 try {
                   withErrorHandling(ctx) {
                     withSuccessCallback(ctx) {
-                      service.updateSpecies(resourceId, resource)
+                      service.update[Species, SpeciesWrapper](resourceId, resource)
                     }
                   }
                 }
@@ -98,7 +98,7 @@ trait SpeciesEndpoint extends Directives with LiftJsonSupport with Logging {
             val resourceWrapper = SpeciesWrapper(None, 1, now, now, List(resource))
             withErrorHandling(ctx) {
               withSuccessCallback(ctx, Created) {
-                service.createSpecies(resourceWrapper)
+                service.create[SpeciesWrapper](resourceWrapper)
               }
             }
         } ~

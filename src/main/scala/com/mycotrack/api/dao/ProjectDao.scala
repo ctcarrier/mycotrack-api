@@ -9,41 +9,35 @@ import com.mycotrack.api._
 import model._
 import mongo.RandomId
 import org.bson.types.ObjectId
+import cc.spray.utils.Logging
 
 /**
  * @author chris carrier
  */
 
-trait ProjectDao extends IProjectDao {
+trait ProjectDao extends IProjectDao with Logging {
 
   val mongoCollection: MongoCollection
   def urlPrefix = "/projects/"
 
-  def createProject(modelWrapper: ProjectWrapper) = {
-    Future {
-      val dbo = grater[ProjectWrapper].asDBObject(modelWrapper.copy(_id = Some(nextRandomId)))
-      mongoCollection += dbo
-      Some(modelWrapper.copy(_id = dbo.getAs[String]("_id")))
-    }
-  }
-
-  def updateProject(key: String, model: Project) = {
-    Future {
-      val inputDbo = grater[Project].asDBObject(model)
-      val query = MongoDBObject("_id" -> formatKeyAsId(key))
-      val update = $set("content" -> List(inputDbo))
-
-      mongoCollection.update(query, update, false, false, WriteConcern.Safe)
-
-      val dbo = mongoCollection.findOne(query)
-      val result = dbo.map(f => grater[ProjectWrapper].asObject(f))
-
-      result
-    }
-  }
+//  def updateProject(key: String, model: Project) = {
+//    Future {
+//      val inputDbo = grater[Project].asDBObject(model)
+//      val query = MongoDBObject("_id" -> formatKeyAsId(key))
+//      val update = $set("content" -> List(inputDbo))
+//
+//      mongoCollection.update(query, update, false, false, WriteConcern.Safe)
+//
+//      val dbo = mongoCollection.findOne(query)
+//      val result = dbo.map(f => grater[ProjectWrapper].asObject(f))
+//
+//      result
+//    }
+//  }
 
   def search(searchObj: MongoDBObject) = Future {
     val listRes = mongoCollection.find(searchObj).map(f => {
+      log.info(f.toString);
       val pw = grater[ProjectWrapper].asObject(f)
       pw.content.head.copy(id = pw._id)
     }).toList

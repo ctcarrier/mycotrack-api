@@ -66,6 +66,7 @@ function(namespace, $, _, Backbone) {
 
     login: function() {
         console.log("Should login with: " + JSON.stringify(this.model));
+        namespace.app.trigger('login:submit');
     },
 
     serialize: function() {
