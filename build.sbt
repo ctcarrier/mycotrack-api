@@ -60,16 +60,14 @@ libraryDependencies ++= Seq(
 )
 
 resolvers ++= Seq(
-  "Akka Repository" at "http://akka.io/repository",
+  "Akka Repository" at "http://repo.typesafe.com/typesafe/releases",
   "Sonatype OSS" at "http://oss.sonatype.org/content/repositories/releases/",
   "Sonatype OSS Snapshots" at "http://oss.sonatype.org/content/repositories/snapshots/",
   "Web plugin repo" at "http://siasia.github.com/maven2",
   "Akka Repo" at "http://akka.io/repository",
   "repo.novus rels" at "http://repo.novus.com/releases/",
   "repo.novus snaps" at "http://repo.novus.com/snapshots/",
-  "Twitter4j repo" at "http://twitter4j.org/maven2",
-  "Spray repo" at "http://repo.spray.cc",
-  "Local Maven Repository" at "file://"+Path.userHome+"/.m2/repository"
+  "Spray repo" at "http://repo.spray.cc"
 )
 
 testOptions in Test += Tests.Setup( loader => {
