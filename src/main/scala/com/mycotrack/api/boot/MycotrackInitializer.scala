@@ -15,7 +15,7 @@ import _root_.com.mycotrack.api.dao._
 import akka.event.slf4j.Logging
 import com.mycotrack.api.model.{NestedObject, Project}
 import cc.spray.{SprayCanRootService, HttpService, RootService}
-import cc.spray.can.HttpServer
+import cc.spray.can.{ServerConfig, HttpServer}
 
 /**
  * @author chris_carrier
@@ -26,6 +26,9 @@ object MycotrackInitializer extends App with Logging {
   log.info("Running Initializer")
 
   val akkaConfig = akka.config.Config.config
+
+  val host = "0.0.0.0"
+  val port = Option(System.getenv("PORT")).getOrElse("8080").toInt
 
   val mongoUrl = akkaConfig.getString("mongodb.url", "localhost")
   val mongoDbName = akkaConfig.getString("mongodb.database", "mycotrack")
@@ -72,7 +75,7 @@ object MycotrackInitializer extends App with Logging {
   val aggregationService = actorOf(new HttpService(aggregationModule.restService))
   val userService = actorOf(new HttpService(userModule.restService))
   val rootService = actorOf(new SprayCanRootService(projectService, speciesService, cultureService, webAppService, aggregationService, userService))
-  val sprayCanServer = actorOf(new HttpServer())
+  val sprayCanServer = actorOf(new HttpServer(new ServerConfig(host = host, port = port)))
 
   // Start all actors that need supervision, including the root service actor.
   Supervisor(
