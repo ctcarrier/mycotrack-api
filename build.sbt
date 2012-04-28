@@ -1,5 +1,7 @@
 import AssemblyKeys._
 
+import com.typesafe.startscript.StartScriptPlugin
+
 organization := "mycotrack"
 
 name := "mycotrack-api"
@@ -11,6 +13,8 @@ scalaVersion := "2.9.1"
 seq(assemblySettings: _*)
 
 seq(Revolver.settings: _*)
+
+seq(StartScriptPlugin.startScriptForClassesSettings: _*)
 
 javaOptions in Revolver.RE += "-Dakka.mode=dev"
 
@@ -56,7 +60,6 @@ libraryDependencies ++= Seq(
 )
 
 resolvers ++= Seq(
-  ScalaToolsSnapshots,
   "Akka Repository" at "http://akka.io/repository",
   "Sonatype OSS" at "http://oss.sonatype.org/content/repositories/releases/",
   "Sonatype OSS Snapshots" at "http://oss.sonatype.org/content/repositories/snapshots/",
