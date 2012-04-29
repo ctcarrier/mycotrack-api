@@ -16,6 +16,8 @@ import akka.event.slf4j.Logging
 import com.mycotrack.api.model.{NestedObject, Project}
 import cc.spray.{SprayCanRootService, HttpService, RootService}
 import cc.spray.can.{ServerConfig, HttpServer}
+import util.Properties
+import com.mycotrack.api.mongo.MongoSetting
 
 /**
  * @author chris_carrier
@@ -38,12 +40,10 @@ object MycotrackInitializer extends App with Logging {
   val cultureCollection = akkaConfig.getString("mycotrack.culture.collection", "cultures")
   val userCollection = akkaConfig.getString("mycotrack.user.collection", "users")
 
-  val urlList = mongoUrl.split(",").toList.map(new ServerAddress(_))
-  val db = urlList match {
-    case List(s) => MongoConnection(s)(mongoDbName)
-    case s: List[String] => MongoConnection(s)(mongoDbName)
-    case _ => MongoConnection("localhost")(mongoDbName)
-  }
+//  val urlList = mongoUrl.split(",").toList.map(new ServerAddress(_))
+
+  val MongoSetting(db) = Properties.envOrNone("MONGOHQ_URL")
+
   val projectDao = new ProjectDao {
     val mongoCollection = db(projectCollection)
   }
