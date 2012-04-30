@@ -106,9 +106,9 @@ trait SpeciesEndpoint extends Directives with LiftJsonSupport with Logging {
           (commonName, scientificName) => ctx =>
             withErrorHandling(ctx) {
               service.search(SpeciesSearchParams(scientificName, commonName)).onComplete(f => {
-                log.info("Completing species call")
                 f.result.get match {
                     case Some(content) => {
+                      log.info("Completing species call")
                       val res: List[Species] = content
                       ctx.complete(res)
                     }

@@ -80,6 +80,7 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
 
         context.newProjectView = new BaseView.NewProject();
         context.newCultureView = new BaseView.NewCulture();
+        context.newUserView = new BaseView.NewUser();
 
         context.cultureView = new Mycotrack.Views.CultureList({
             context: context
@@ -134,6 +135,7 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
       "species_list": "speciesLayout",
       "new_project": "newProject",
       "new_culture": "newCulture",
+      "new_user": "newUser",
       "login": "login"
     },
 
@@ -236,6 +238,16 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
         context.newCultureView.render();
       });
     },
+
+    newUser: function(hash) {
+          var route = this;
+          var newUser = new User.Model({});
+
+          context.newUserView.model = newUser;
+          context.main.view("#contentAnchor", context.newUserView);
+          context.newUserView.render();
+
+        },
 
     cultureLayout: function(hash) {
       var route = this;

@@ -53,6 +53,7 @@ trait UserEndpoint extends Directives with LiftJsonSupport with Logging {
       f.result.get match {
         case Some(cl: List[User]) => ctx.complete(statusCode, cl)
         case Some(c: User) => ctx.complete(statusCode, c)
+        case Some(uw: UserWrapper) => ctx.complete(statusCode, uw.content.head.copy(id = uw._id))
         case None => ctx.fail(StatusCodes.NotFound, ErrorResponse(1l, ctx.request.path, List(NOT_FOUND_MESSAGE)))
       }
     })
@@ -88,6 +89,10 @@ trait UserEndpoint extends Directives with LiftJsonSupport with Logging {
                   }
             }
       } ~
+        searchUser {
+          _.complete(user)
+        }
+      }~
         postUser {
           resource => ctx =>
             withErrorHandling(ctx) {
@@ -95,11 +100,8 @@ trait UserEndpoint extends Directives with LiftJsonSupport with Logging {
                 service.create[UserWrapper](resource)
               }
             }
-        } ~
-        searchUser {
-          _.complete(user)
         }
-    }
+
     }
   }
 

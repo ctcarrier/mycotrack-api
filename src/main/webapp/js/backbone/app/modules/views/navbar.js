@@ -24,7 +24,8 @@ function(namespace, $, _, Backbone) {
         "click #menu_home": "navHome",
         "click #menu_projects": "navProjects",
         "click #menu_species": "navSpecies",
-        "click #new_culture": "newCulture"
+        "click #new_culture": "newCulture",
+        "click #new_user": "newUser"
     },
 
     navHome: function(e) {
@@ -52,6 +53,11 @@ function(namespace, $, _, Backbone) {
     newCulture: function(e) {
         e.preventDefault();
         namespace.app.router.navigate("/new_culture", true);
+    },
+
+    newUser: function(e) {
+        e.preventDefault();
+        namespace.app.router.navigate("/new_user", true);
     }
   });
 

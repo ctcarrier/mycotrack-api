@@ -17,7 +17,7 @@ import com.mycotrack.api.model.{NestedObject, Project}
 import cc.spray.{SprayCanRootService, HttpService, RootService}
 import cc.spray.can.{ServerConfig, HttpServer}
 import util.Properties
-import com.mycotrack.api.mongo.MongoSetting
+import com.mycotrack.api.mongo.MongoSettings
 
 /**
  * @author chris_carrier
@@ -42,7 +42,7 @@ object MycotrackInitializer extends App with Logging {
 
 //  val urlList = mongoUrl.split(",").toList.map(new ServerAddress(_))
 
-  val MongoSetting(db) = Properties.envOrNone("MONGOHQ_URL")
+  val MongoSettings(db) = Properties.envOrNone("MONGOHQ_URL")
 
   val projectDao = new ProjectDao {
     val mongoCollection = db(projectCollection)
