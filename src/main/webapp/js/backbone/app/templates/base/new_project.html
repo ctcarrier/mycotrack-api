@@ -1,17 +1,5 @@
 <div class="span4 offset2">
     <form id="idForm">
-            <div class="control-group">
-                    <label class="control-label" for="name">name</label>
-                    <div class="controls">
-                            <input id="name" type="text" class="input-xlarge" >
-                    </div>
-            </div>
-            <div class="control-group">
-                    <label class="control-label" for="description">description</label>
-                    <div class="controls">
-                            <input id="description" type="text" class="input-xlarge" >
-                    </div>
-            </div>
             <select id="cultureUrl">
                 {{debug}}
                 <option name="">Cultures...</option>
@@ -36,6 +24,12 @@
                 <option name="filterbag">filter patch bag</option>
                 <option name="tub">tub</option>
             </select>
+        <div class="control-group">
+            <label class="control-label" for="description">Notes</label>
+            <div class="controls">
+                <input id="description" type="text" class="input-xlarge" >
+            </div>
+        </div>
             <div class="input-append date" id="dp1" data-date="12-02-2012" data-date-format="dd-mm-yyyy">
                 <input id="startDate" class="span2" size="16" type="text" value="12-02-2012">
                 <span class="add-on"><i class="icon-th"></i></span>

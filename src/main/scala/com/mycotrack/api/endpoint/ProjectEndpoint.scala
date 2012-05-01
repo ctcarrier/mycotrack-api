@@ -95,7 +95,7 @@ trait ProjectEndpoint extends Directives with LiftJsonSupport with Logging {
                   ctx =>
                       withErrorHandling(ctx) {
                         withSuccessCallback(ctx) {
-                          service.getByKey(resourceId)
+                          service.getByKey(resourceId, user.id)
                         }
                       }
                     }
@@ -126,7 +126,7 @@ trait ProjectEndpoint extends Directives with LiftJsonSupport with Logging {
           indirectGetProjects {
             (name, description) => ctx =>
               withErrorHandling(ctx) {
-                service.search(ProjectSearchParams(name, description)).onComplete(f => {
+                service.search(ProjectSearchParams(name, description, user.id)).onComplete(f => {
                   f.result.get match {
                     case Some(content) => {
                       val res: List[Project] = content

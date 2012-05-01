@@ -5,7 +5,6 @@ import com.novus.salat.annotations.Ignore
 import java.util.Date
 
 case class Project(@Ignore id: Option[String],
-                   name: String,
                    description: String,
                    cultureUrl: Option[String],
                    userUrl: Option[String],
