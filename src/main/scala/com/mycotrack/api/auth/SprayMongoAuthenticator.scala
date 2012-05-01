@@ -13,6 +13,8 @@ import akka.event.EventHandler
 import akka.dispatch.Future
 import com.mycotrack.api.model.{UserWrapper, User}
 import utils.Logging
+import com.mycotrack.api.mongo.MongoSettings
+import scala.util.Properties
 
 /**
  * @author chris_carrier
@@ -48,8 +50,9 @@ object FromMongoUserPassAuthenticator extends UserPassAuthenticator[User] with L
     Future {
       userPass.flatMap {
         case (user, pass) => {
-          val db = MongoConnection()("mycotrack")("users")
-          val userResult = db.findOne(MongoDBObject("content.email" -> user) ++ ("content.password" -> pass))
+          val MongoSettings(db) = Properties.envOrNone("MONGOHQ_URL")
+          val userColl = db("users")
+          val userResult = userColl.findOne(MongoDBObject("content.email" -> user) ++ ("content.password" -> pass))
           userResult.map(grater[UserWrapper].asObject(_))
         }
         case _ => None
