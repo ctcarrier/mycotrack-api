@@ -5,7 +5,7 @@ import com.novus.salat.annotations.Ignore
 import java.util.Date
 
 case class Project(@Ignore id: Option[String],
-                   description: String,
+                   description: Option[String],
                    cultureUrl: Option[String],
                    userUrl: Option[String],
                    enabled: Boolean,
@@ -13,7 +13,8 @@ case class Project(@Ignore id: Option[String],
                    container: Option[String],
                    startDate: Option[Date],
                    parent: Option[ObjectId] = None,
-                   @Ignore timestamp: Option[Date] = Some(new Date()))
+                   @Ignore timestamp: Option[Date] = Some(new Date()),
+                    count: Option[Long])
 object Project {
   implicit def projToProjWrapper(project: Project): ProjectWrapper = {
     val now = new Date

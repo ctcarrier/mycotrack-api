@@ -181,17 +181,16 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
 
       context.on('project:selected', function(eventName){
 
-        context.selectedProjectView.model = context.get('selectedProject');
-        context.selectedProjectView.model.set('cultureList', cultures.toJSON());
-        context.main.view("#detail", context.selectedProjectView);
-        console.log('Should refresh with: ' + JSON.stringify(context.selectedProjectView.model));
+        var selectedProject = context.get('selectedProject');
+        var selectedProjectCulture = new Culture.Model({id: selectedProject.get('cultureUrl')});
 
-        //ModelBinding.bind(context.selectedProjectView);
-        $.when(context.selectedProjectView.render()).then(function(){
-           ModelBinding.bind(context.selectedProjectView);
-           console.log("DATEPICKING");
-           $("#dp1").datepicker();
-        });
+        context.selectedProjectView.project = selectedProject;
+        context.selectedProjectView.culture = selectedProjectCulture;
+        selectedProjectCulture.fetch({success: function(){
+            context.main.view("#detail", context.selectedProjectView);
+            console.log('Should refresh with: ' + JSON.stringify(context.selectedProjectView.model));
+            context.selectedProjectView.render();
+        }});
       });
     },
 
@@ -309,7 +308,7 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
         beforeSend: function (xhr) {
             if (context.currentUser.get('email')) {
                 console.log("Before sending!");
-                var authString = context.currentUser.get('email') + ":" + context.currentUser.get('email');
+                var authString = context.currentUser.get('email') + ":" + context.currentUser.get('password');
                  var encodedAuthString = "Basic " + Base64.encode(authString);
 
                  console.log("Authorizing with: " + authString + "with encoded: " + encodedAuthString);

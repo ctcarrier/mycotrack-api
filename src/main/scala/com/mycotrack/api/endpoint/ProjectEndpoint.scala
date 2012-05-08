@@ -127,6 +127,7 @@ trait ProjectEndpoint extends Directives with LiftJsonSupport with Logging {
             (name, description) => ctx =>
               withErrorHandling(ctx) {
                 service.search(ProjectSearchParams(name, description, user.id)).onComplete(f => {
+                  log.info("User: " + user.toString)
                   f.result.get match {
                     case Some(content) => {
                       val res: List[Project] = content

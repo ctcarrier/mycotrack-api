@@ -100,7 +100,7 @@ trait CultureEndpoint extends Directives with LiftJsonSupport with Logging {
         searchCultures {
           (name) => ctx =>
             withErrorHandling(ctx) {
-              service.search(CultureSearchParams(name)).onComplete(f => {
+              service.search(CultureSearchParams(name, user.id)).onComplete(f => {
                 f.result.get match {
                     case Some(content) => {
                       val res: List[Culture] = content

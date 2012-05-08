@@ -51,7 +51,7 @@ function(namespace, $, _, Backbone, ModelBinding, Context) {
 
     serialize: function() {
         console.log('Serializing: ' + JSON.stringify(this.model.toJSON()));
-      return this.model.toJSON();
+      return ({project: this.options.project.toJSON(), culture: this.options.culture.toJSON()});
     }
   });
 

@@ -76,6 +76,8 @@ trait IProjectDao extends MycotrackDao[Project, ProjectWrapper] {
 }
 
 trait ISpeciesDao extends MycotrackDao[Species, SpeciesWrapper] {
+
+  def getProjectsBySpecies(userUrl: Option[String]): Option[Map[String, List[Project]]];
 }
 
 trait ICultureDao extends MycotrackDao[Culture, CultureWrapper] {

@@ -4,7 +4,7 @@
                 {{debug}}
                 <option name="">Cultures...</option>
                 {{#each cultureList}}
-                   <option name="{{this.id}}">{{this.name}}</option>
+                   <option value="{{this.id}}">{{this.name}}</option>
                 {{/each}}
             </select>
             <select id="substrate">
@@ -28,6 +28,12 @@
             <label class="control-label" for="description">Notes</label>
             <div class="controls">
                 <input id="description" type="text" class="input-xlarge" >
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label" for="count">Count</label>
+            <div class="controls">
+                <input value="1" id="count" type="text" class="input-large" >
             </div>
         </div>
             <div class="input-append date" id="dp1" data-date="12-02-2012" data-date-format="dd-mm-yyyy">

@@ -50,6 +50,7 @@ object FromMongoUserPassAuthenticator extends UserPassAuthenticator[User] with L
     Future {
       userPass.flatMap {
         case (user, pass) => {
+          log.info("Autenticating: " + user + " " + pass)
           val MongoSettings(db) = Properties.envOrNone("MONGOHQ_URL")
           val userColl = db("users")
           val userResult = userColl.findOne(MongoDBObject("content.email" -> user) ++ ("content.password" -> pass))

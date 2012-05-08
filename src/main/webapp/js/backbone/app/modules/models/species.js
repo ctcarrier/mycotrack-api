@@ -18,7 +18,7 @@ function(namespace, $, _, Backbone) {
 
   // Example extendings
   Species.Model = Backbone.Model.extend({
-        urlRoot: '/species',
+        urlRoot: '/',
 
         parse: function(response) {
             var content = response;

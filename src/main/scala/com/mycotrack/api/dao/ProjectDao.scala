@@ -20,21 +20,6 @@ trait ProjectDao extends IProjectDao with Logging {
   val mongoCollection: MongoCollection
   def urlPrefix = "/projects/"
 
-//  def updateProject(key: String, model: Project) = {
-//    Future {
-//      val inputDbo = grater[Project].asDBObject(model)
-//      val query = MongoDBObject("_id" -> formatKeyAsId(key))
-//      val update = $set("content" -> List(inputDbo))
-//
-//      mongoCollection.update(query, update, false, false, WriteConcern.Safe)
-//
-//      val dbo = mongoCollection.findOne(query)
-//      val result = dbo.map(f => grater[ProjectWrapper].asObject(f))
-//
-//      result
-//    }
-//  }
-
   def search(searchObj: MongoDBObject) = Future {
     val listRes = mongoCollection.find(searchObj).map(f => {
       log.info(f.toString);

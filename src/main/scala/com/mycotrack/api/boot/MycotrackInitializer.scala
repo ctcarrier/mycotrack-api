@@ -49,6 +49,7 @@ object MycotrackInitializer extends App with Logging {
   }
   val speciesDao = new SpeciesDao {
     val mongoCollection = db(speciesCollection)
+    val projCollection = db(projectCollection)
   }
   val cultureDao = new CultureDao {
     val mongoCollection = db(cultureCollection)

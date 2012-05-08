@@ -16,6 +16,30 @@ import net.liftweb.json._
  * @version 10/18/11
  */
 
+trait UnrestrictedLiftJsonSupport {
+
+  /**
+   * The `Formats` to use for (de)serialization.
+   */
+  implicit def liftJsonFormats: Formats
+
+  implicit def liftJsonUnmarshaller[A :Manifest] = new SimpleUnmarshaller[A] {
+    val canUnmarshalFrom = ContentTypeRange(`application/json`) :: Nil
+    def unmarshal(content: HttpContent) = protect {
+      val jsonSource = DefaultUnmarshallers.StringUnmarshaller(content).right.get
+      parse(jsonSource).extract[A]
+    }
+  }
+
+  implicit def liftJsonMarshaller[A <: AnyRef] = new SimpleMarshaller[A] {
+    val canMarshalTo = ContentType(`application/json`) :: Nil
+    def marshal(value: A, contentType: ContentType) = {
+      val jsonSource = write(value)
+      DefaultMarshallers.StringMarshaller.marshal(jsonSource, contentType)
+    }
+  }
+}
+
 class ObjectIdSerializer extends Serializer[ObjectId] {
   private val ObjectIdClass = classOf[ObjectId]
 

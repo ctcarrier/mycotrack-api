@@ -1,7 +1,6 @@
 package com.mycotrack.api.endpoint
 
 import com.mycotrack.api.auth.FromMongoUserPassAuthenticator
-import com.mycotrack.api.json.{ObjectIdSerializer}
 import org.bson.types.ObjectId
 import akka.event.EventHandler
 import cc.spray.http._
@@ -20,8 +19,9 @@ import cc.spray._
 import akka.dispatch.Future
 import cc.spray.authentication._
 import utils.Logging
+import com.mycotrack.api.json.{UnrestrictedLiftJsonSupport, ObjectIdSerializer}
 
-trait SpeciesEndpoint extends Directives with LiftJsonSupport with Logging {
+trait SpeciesEndpoint extends Directives with UnrestrictedLiftJsonSupport with Logging {
   implicit val liftJsonFormats = DefaultFormats + new ObjectIdSerializer
 
   final val NOT_FOUND_MESSAGE = "resource.notFound"
@@ -57,6 +57,7 @@ trait SpeciesEndpoint extends Directives with LiftJsonSupport with Logging {
   //directive compositions
   val objectIdPathMatch = path("^[a-zA-Z0-9]+$".r)
   val getSpecies = get
+  val getProjectsBySpecies = path("all" / "projects") & get
   val putSpecies = content(as[Species]) & put
   val postSpecies = path("") & content(as[Species]) & post
   val searchSpecies = path("") & parameters('commonName ?, 'scientificName ?) & get
@@ -91,6 +92,16 @@ trait SpeciesEndpoint extends Directives with LiftJsonSupport with Logging {
                   }
                 }
             }
+      } ~
+      getProjectsBySpecies {
+        authenticate(httpMongo(realm = "mycotrack", authenticator = FromMongoUserPassAuthenticator)) {user =>
+          completeWith {
+            log.info("Got species project request")
+            val result = service.getProjectsBySpecies(user.id).get
+            log.info("Result is: " + result)
+            result
+          }
+        }
       } ~
         postSpecies {
           resource => ctx =>

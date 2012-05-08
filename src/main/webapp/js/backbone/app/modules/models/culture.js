@@ -18,7 +18,7 @@ function(namespace, $, _, Backbone) {
 
   // Example extendings
   Culture.Model = Backbone.Model.extend({
-        urlRoot: '/cultures',
+        urlRoot: '/',
 
         parse: function(response) {
             var content = response;
