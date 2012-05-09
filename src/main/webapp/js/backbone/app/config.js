@@ -19,6 +19,8 @@ require.config({
     bootstrapdropdown: "../assets/js/plugins/bootstrap-dropdown",
     bootstrapdatepicker: "../assets/js/plugins/bootstrap-datepicker",
     base64: "../assets/js/libs/base64",
+    gx: "../assets/js/libs/GX",
+    modaldialog: "../assets/js/libs/Backbone.ModalDialog",
 
     // Shim Plugin
     use: "../assets/js/plugins/use"
@@ -57,6 +59,12 @@ require.config({
     },
     bootstrapdatepicker: {
         deps: ["jquery"]
+    },
+    gx: {
+        deps: ["jquery"]
+    },
+    modaldialog: {
+        deps: ["use!backbone"]
     }
   }
 });

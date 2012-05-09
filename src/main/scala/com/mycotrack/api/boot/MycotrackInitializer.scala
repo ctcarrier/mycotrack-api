@@ -18,6 +18,7 @@ import cc.spray.{SprayCanRootService, HttpService, RootService}
 import cc.spray.can.{ServerConfig, HttpServer}
 import util.Properties
 import com.mycotrack.api.mongo.MongoSettings
+import com.mycotrack.api.spray.MycotrackServiceLogic
 
 /**
  * @author chris_carrier
@@ -69,12 +70,12 @@ object MycotrackInitializer extends App with Logging {
   val userModule = new UserEndpoint {val service = userDao}
   val webAppModule = new WebAppEndpoint {}
 
-  val projectService = actorOf(new HttpService(projectModule.restService))
-  val speciesService = actorOf(new HttpService(speciesModule.restService))
-  val cultureService = actorOf(new HttpService(cultureModule.restService))
-  val webAppService = actorOf(new HttpService(webAppModule.restService))
-  val aggregationService = actorOf(new HttpService(aggregationModule.restService))
-  val userService = actorOf(new HttpService(userModule.restService))
+  val projectService = actorOf(new HttpService(projectModule.restService) with MycotrackServiceLogic)
+  val speciesService = actorOf(new HttpService(speciesModule.restService) with MycotrackServiceLogic)
+  val cultureService = actorOf(new HttpService(cultureModule.restService) with MycotrackServiceLogic)
+  val webAppService = actorOf(new HttpService(webAppModule.restService) with MycotrackServiceLogic)
+  val aggregationService = actorOf(new HttpService(aggregationModule.restService) with MycotrackServiceLogic)
+  val userService = actorOf(new HttpService(userModule.restService) with MycotrackServiceLogic)
   val rootService = actorOf(new SprayCanRootService(projectService, speciesService, cultureService, webAppService, aggregationService, userService))
   val sprayCanServer = actorOf(new HttpServer(new ServerConfig(host = host, port = port)))
 

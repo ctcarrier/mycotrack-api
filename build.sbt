@@ -16,11 +16,11 @@ seq(Revolver.settings: _*)
 
 seq(StartScriptPlugin.startScriptForClassesSettings: _*)
 
-javaOptions in Revolver.RE += "-Dakka.mode=dev"
+javaOptions in Revolver.reStart += "-Dakka.mode=dev"
 
-javaOptions in Revolver.RE += "-Xdebug"
+javaOptions in Revolver.reStart += "-Xdebug"
 
-javaOptions in Revolver.RE += "-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005"
+javaOptions in Revolver.reStart += "-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005"
 
 unmanagedResourceDirectories in Compile <+=
     (baseDirectory) { _ / "src" / "main" / "webapp" }
@@ -40,7 +40,7 @@ libraryDependencies ++= Seq(
   //SPRAY
   "cc.spray" % "spray-base" % "0.9.0-RC4" % "compile" withSources(),
   "cc.spray" % "spray-server" % "0.9.0-RC4" % "compile" withSources(),
-  "cc.spray" % "spray-can" % "0.9.2" % "compile" withSources(),
+  "cc.spray" % "spray-can" % "0.9.3" % "compile" withSources(),
   //AKKA
   "se.scalablesolutions.akka" % "akka-actor" % "1.3.1",
   "se.scalablesolutions.akka" % "akka-http" % "1.3.1",

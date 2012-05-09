@@ -42,7 +42,7 @@ function($, _, Backbone, Handlebars) {
           var JST = window.JST = window.JST || {};
 
           if (JST[path]) {
-            return done(Handlebars.template(JST[path]));
+            return done(Handlebars.compile(JST[path]));
           }
 
           $.get(path, function(contents) {
@@ -71,7 +71,7 @@ function($, _, Backbone, Handlebars) {
 
       // Fetch it asynchronously if not available from JST 
       $.get(path, function(contents) {
-        var tmpl = _.template(contents);
+        var tmpl = Handlebars.compile(contents);
 
         // Set the global JST cache and return the template
         done(JST[path] = tmpl);

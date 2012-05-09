@@ -275,6 +275,15 @@ td { vertical-align: top; }
   color: #FE57A1;
 }
 
+div.modal-header {
+    text-align:left; padding:10px 23px; background-color:#e7f294;
+    -moz-box-shadow: inset 0 0 2px 1px #A1B41D;
+    -webkit-box-shadow: inset 0 0 2px 1px #A1B41D;
+    box-shadow: inset 0 0 2px 1px #A1B41D;
+    -webkit-border-top-left-radius: 10px; -webkit-border-top-right-radius: 10px;
+    -moz-border-top-left-radius: 10px; -moz-border-top-right-radius: 10px;
+    border-top-left-radius: 10px; border-top-right-radius: 10px;
+}
 
 /* ==|== media queries ======================================================
    PLACEHOLDER Media Queries for Responsive Design.

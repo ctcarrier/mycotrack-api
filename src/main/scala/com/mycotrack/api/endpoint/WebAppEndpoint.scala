@@ -9,7 +9,7 @@ import cc.spray.utils.Logging
  */
 
 
-class WebAppEndpoint extends Directives with Logging {
+trait WebAppEndpoint extends Directives with Logging {
 
   log.info("Starting web ap endpoint.")
 

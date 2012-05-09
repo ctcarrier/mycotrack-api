@@ -20,12 +20,14 @@ require([
   "modules/views/base",
   "modules/views/species",
   "modules/models/user",
+  "modules/views/login",
 
   //plugins
-  "use!bootstrapdatepicker"
+  "use!bootstrapdatepicker",
+  "use!gx"
 ],
 
-function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Context, Navbar, Project, Species, Culture, GeneralAggregation, Aggregation, BaseView, SpeciesView, User) {
+function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Context, Navbar, Project, Species, Culture, GeneralAggregation, Aggregation, BaseView, SpeciesView, User, Login) {
 
     var context = new Context.Model();
 
@@ -40,7 +42,7 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
 
         context.loginForm = new Navbar.Views.LoginForm({
             context: context,
-            model: context.currentUser
+            model: namespace.app.user
         });
 
         context.navBarView = new Navbar.Views.Navbar({
@@ -115,10 +117,18 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
           });
 
           namespace.app.on('login:submit', function(eventName){
-            namespace.app.user.fetch({success: function(){
-                                      $("#loginanchor").detach();
-
-                                    }});
+            namespace.app.user.fetch({
+                success: function(){
+                    $("#loginanchor").detach();
+                },
+                error: function(){
+                    var loginModal = new Login.View({
+                        context: context,
+                        model: namespace.app.user
+                    });
+                    loginModal.render();
+                }
+            });
 
         });
 
@@ -306,9 +316,9 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
 
     $.ajaxSetup({
         beforeSend: function (xhr) {
-            if (context.currentUser.get('email')) {
+            if (namespace.app.user.get('email')) {
                 console.log("Before sending!");
-                var authString = context.currentUser.get('email') + ":" + context.currentUser.get('password');
+                var authString = namespace.app.user.get('email') + ":" + namespace.app.user.get('password');
                  var encodedAuthString = "Basic " + Base64.encode(authString);
 
                  console.log("Authorizing with: " + authString + "with encoded: " + encodedAuthString);
