@@ -47,8 +47,9 @@ trait SpeciesEndpoint extends Directives with UnrestrictedLiftJsonSupport with L
   def withSuccessCallback(ctx: RequestContext, statusCode: StatusCode = OK)(f: Future[_]): Future[_] = {
     f.onComplete(f => {
       f.result.get match {
-        case Some(SpeciesWrapper(oid, version, created, updated, content)) => ctx.complete(HttpResponse(statusCode, SuccessResponse[Species](version, ctx.request.path, 1, None, content.map(x => x.copy(id = oid))).toHttpContent))
+        case Some(SpeciesWrapper(oid, version, dateCreated, lastUpdated, content)) => ctx.complete(statusCode, content.map(x => x.copy(id = oid)).head)
         case Some(c: Species) => ctx.complete(c)
+        case Some(c: List[Species]) => ctx.complete(c)
         case None => ctx.fail(StatusCodes.NotFound, write(ErrorResponse(1l, ctx.request.path, List(NOT_FOUND_MESSAGE))))
       }
     })
@@ -72,7 +73,7 @@ trait SpeciesEndpoint extends Directives with UnrestrictedLiftJsonSupport with L
             ctx =>
                 withErrorHandling(ctx) {
                   withSuccessCallback(ctx) {
-                    service.getByKey(resourceId)
+                    service.get[SpeciesWrapper](service.formatKeyAsId(resourceId))
                   }
                 }
               

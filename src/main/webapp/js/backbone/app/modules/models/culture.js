@@ -20,6 +20,10 @@ function(namespace, $, _, Backbone) {
   Culture.Model = Backbone.Model.extend({
         urlRoot: '/',
 
+        url: function() {
+          return this.id;
+        },
+
         parse: function(response) {
             var content = response;
             return content;

@@ -20,6 +20,16 @@ function(namespace, $, _, Backbone) {
    Login.View = ModalView.extend({
     template: "/js/backbone/app/templates/login_modal.html",
 
+    events: {
+        "click #loginbutton": "login"
+    },
+
+    login: function() {
+        this.hideModal();
+        console.log("Should login with: " + JSON.stringify(this.model));
+        namespace.app.trigger('login:submit');
+    },
+
     serialize: function() {
       return this.model.toJSON();
     },
@@ -29,7 +39,6 @@ function(namespace, $, _, Backbone) {
         namespace.fetchTemplate("/js/backbone/app/templates/login_modal.html", function(tmpl){
             $(view.el).html( tmpl(view.serialize()));
             view.showModal({
-                targetContainer: $("#contentAnchor"),
                 closeImageUrl: "/js/backbone/assets/img/close-modal.png",
                 closeImageHoverUrl: "/js/backbone/assets/img/close-modal-hover.png"
             });

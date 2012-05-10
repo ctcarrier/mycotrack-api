@@ -27,17 +27,16 @@ trait MycotrackDao[T <: CaseClass, W <: CaseClass] extends Logging {
   def getByKey(key: String, userId: Option[String]): Future[Option[T]] = {
     get(formatKeyAsId(key), userId)
   }
-  def get[TT <: W](id: String, userId: Option[String])(implicit man: Manifest[TT]): Future[Option[TT]] = {
+  def get[TT <: W](id: String, userId: Option[String] = None)(implicit man: Manifest[TT]): Future[Option[TT]] = {
     Future {
       val builder = MongoDBObject.newBuilder
       builder += ("_id" -> id)
       userId.foreach(builder += "content.userUrl" -> _)
 
       val dbo = mongoCollection.findOne(builder.result.asDBObject)
-      dbo.map(f => {
-        log.info(f.toString)
-        grater[TT].asObject(f)
-      })
+      val result = dbo.map(f => grater[TT].asObject(f))
+
+      result
     }
   }
 

@@ -31,7 +31,7 @@ trait MycotrackServiceLogic extends HttpServiceLogic with LiftJsonSupport {
   //  like ZubValidationRejection in case you want and add them here.
   val customRejectionHandler: PartialFunction[List[Rejection], HttpResponse] = {
     case AuthenticationFailedRejection(realm) :: _ => HttpResponse(BadRequest, AUTHENTICATION_ERROR_RESPONSE)
-    case AuthenticationRequiredRejection(scheme, realm, params) :: _ =>  HttpResponse(BadRequest, Nil, AUTHENTICATION_ERROR_RESPONSE)
+    case AuthenticationRequiredRejection(scheme, realm, params) :: _ =>  HttpResponse(BadRequest, `WWW-Authenticate`(HttpChallenge(scheme, realm, params)) :: Nil, AUTHENTICATION_ERROR_RESPONSE)
   }
 
   override val rejectionHandler: RejectionHandler = customRejectionHandler orElse RejectionHandler.Default

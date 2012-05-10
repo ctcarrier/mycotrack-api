@@ -95,7 +95,7 @@ trait ProjectEndpoint extends Directives with LiftJsonSupport with Logging {
                   ctx =>
                       withErrorHandling(ctx) {
                         withSuccessCallback(ctx) {
-                          service.getByKey(resourceId, user.id)
+                          service.get[ProjectWrapper](service.formatKeyAsId(resourceId), user.id)
                         }
                       }
                     }

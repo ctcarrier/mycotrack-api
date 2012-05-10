@@ -48,7 +48,7 @@ trait CultureEndpoint extends Directives with LiftJsonSupport with Logging {
   def withSuccessCallback(ctx: RequestContext, statusCode: StatusCode = OK)(f: Future[_]): Future[_] = {
     f.onComplete(f => {
       f.result.get match {
-        case Some(CultureWrapper(oid, version, created, updated, content)) => ctx.complete(HttpResponse(statusCode, SuccessResponse[Culture](version, ctx.request.path, 1, None, content.map(x => x.copy(id = oid))).toHttpContent))
+        case Some(CultureWrapper(oid, version, dateCreated, lastUpdated, content)) => ctx.complete(statusCode, content.map(x => x.copy(id = oid)).head)
         case Some(c: Culture) => ctx.complete(c)
         case Some(c: List[Culture]) => ctx.complete(c)
         case x => {
@@ -76,7 +76,7 @@ trait CultureEndpoint extends Directives with LiftJsonSupport with Logging {
             ctx =>
                 withErrorHandling(ctx) {
                   withSuccessCallback(ctx) {
-                    service.getByKey(resourceId)
+                    service.get[CultureWrapper](service.formatKeyAsId(resourceId), user.id)
                   }
                 }
           } ~

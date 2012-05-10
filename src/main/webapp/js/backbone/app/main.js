@@ -127,6 +127,7 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
                         model: namespace.app.user
                     });
                     loginModal.render();
+                    ModelBinding.bind(loginModal);
                 }
             });
 
@@ -192,10 +193,13 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
       context.on('project:selected', function(eventName){
 
         var selectedProject = context.get('selectedProject');
-        var selectedProjectCulture = new Culture.Model({id: selectedProject.get('cultureUrl')});
+        var selectedProjectCulture = new Culture.Model({});
+        selectedProjectCulture.id = selectedProject.get('cultureUrl');
 
-        context.selectedProjectView.project = selectedProject;
-        context.selectedProjectView.culture = selectedProjectCulture;
+        context.selectedProjectView.options.project = selectedProject;
+        context.selectedProjectView.options.culture = selectedProjectCulture;
+//        console.log(selectedProject );
+//        console.log(selectedProjectCulture );
         selectedProjectCulture.fetch({success: function(){
             context.main.view("#detail", context.selectedProjectView);
             console.log('Should refresh with: ' + JSON.stringify(context.selectedProjectView.model));
