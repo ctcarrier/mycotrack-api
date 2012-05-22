@@ -18,10 +18,13 @@ function(namespace, $, _, Backbone) {
 
   // Example extendings
   Culture.Model = Backbone.Model.extend({
-        urlRoot: '/',
+        urlRoot: '/cultures',
 
         url: function() {
-          return this.id;
+            if (!this.isNew()){
+                return this.id;
+            }
+          return this.urlRoot;
         },
 
         parse: function(response) {

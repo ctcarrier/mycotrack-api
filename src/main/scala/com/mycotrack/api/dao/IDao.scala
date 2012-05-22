@@ -66,20 +66,21 @@ trait MycotrackDao[T <: CaseClass, W <: CaseClass] extends Logging {
       result
     }
   }
-
-  def search(searchObj: MongoDBObject): Future[Option[List[T]]]
 }
 
 trait IProjectDao extends MycotrackDao[Project, ProjectWrapper] {
+  def search(searchObj: MongoDBObject): Future[Option[List[Project]]]
   def getChildren(root: Project): Future[Option[List[Project]]]
 }
 
 trait ISpeciesDao extends MycotrackDao[Species, SpeciesWrapper] {
-
+  def search(searchObj: MongoDBObject): Future[Option[List[Species]]]
   def getProjectsBySpecies(userUrl: Option[String]): Option[Map[String, List[Project]]];
 }
 
 trait ICultureDao extends MycotrackDao[Culture, CultureWrapper] {
+  def search(searchObj: MongoDBObject, includeProjects: Option[Boolean]): Future[Option[List[Culture]]]
+  def getProjectsByCulture(userUrl: Option[String]): Option[List[Culture]];
 }
 
 trait UserService extends MycotrackDao[User, UserWrapper] {

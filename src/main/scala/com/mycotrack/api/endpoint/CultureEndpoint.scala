@@ -63,7 +63,8 @@ trait CultureEndpoint extends Directives with LiftJsonSupport with Logging {
   val objectIdPathMatch = path("^[a-zA-Z0-9]+$".r)
   val putCulture = content(as[Culture]) & put
   val postCulture = path("") & content(as[Culture]) & post
-  val searchCultures = path("") & parameters('name ?) & get
+  val searchCultures = path("") & parameters('name ?, 'includeProjects.as[Boolean]?) & get
+  val getProjectsByCulture = path("all" / "projects") & get
 
   val restService = {
     // Debugging: /ping -> pong
@@ -97,10 +98,18 @@ trait CultureEndpoint extends Directives with LiftJsonSupport with Logging {
               }
             }
         } ~
+        getProjectsByCulture {
+            completeWith {
+              log.info("Got culture project request")
+              val result = service.getProjectsByCulture(user.id).get
+              log.info("Result is: " + result)
+              result
+            }
+        } ~
         searchCultures {
-          (name) => ctx =>
+          (name, includeProjects) => ctx =>
             withErrorHandling(ctx) {
-              service.search(CultureSearchParams(name, user.id)).onComplete(f => {
+              service.search(CultureSearchParams(name, user.id), includeProjects).onComplete(f => {
                 f.result.get match {
                     case Some(content) => {
                       val res: List[Culture] = content

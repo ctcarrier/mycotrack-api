@@ -141,7 +141,8 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
 
     routes: {
       "": "index",
-      "bb_mt": "mtlayout",
+      "project_list": "mtlayout",
+      "project_list/:id": "mtlayout",
       "culture_list": "cultureLayout",
       "species_list": "speciesLayout",
       "new_project": "newProject",
@@ -170,18 +171,24 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
 
     },
 
-    mtlayout: function(hash) {
+    mtlayout: function(id) {
+        if (id){
+            alert(id);
+        }
       var route = this;
       var projects = new Project.Collection();
       var cultures = new Culture.Collection();
 
-      cultures.fetch({success: function(){
-        projects.fetch({ success: function(){
+      cultures.fetch({
+        data: {
+            includeProjects: "true"
+        },
+        success: function(){
             projects.trigger('projects:fetch');
-        }});
-      }});
+        }
+      });
 
-      context.projectView.collection = projects;
+      context.projectView.collection = cultures;
 
       context.main.view("#contentAnchor", context.projectBaseView);
 

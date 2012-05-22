@@ -30,7 +30,7 @@ object Species {
   }
 }
 
-case class Culture(@Ignore id: Option[String], name: String, speciesUrl: Option[String], userUrl: Option[String], species: Option[Species])
+case class Culture(@Ignore id: Option[String], name: String, speciesUrl: Option[String], userUrl: Option[String], species: Option[Species] = None, projects: Option[List[Project]] = None)
 object Culture {
   implicit def culture2CultureWrapper(culture: Culture): CultureWrapper = {
     val now = new Date

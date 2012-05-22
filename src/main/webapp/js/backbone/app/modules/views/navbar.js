@@ -37,7 +37,7 @@ function(namespace, $, _, Backbone) {
     navProjects: function(e) {
         console.log(namespace.app);
         e.preventDefault();
-        namespace.app.router.navigate("/bb_mt", true);
+        namespace.app.router.navigate("/project_list", true);
     },
 
     navSpecies: function(e) {
