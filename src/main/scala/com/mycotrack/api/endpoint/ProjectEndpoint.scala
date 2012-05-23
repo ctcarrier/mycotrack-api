@@ -85,7 +85,7 @@ trait ProjectEndpoint extends Directives with LiftJsonSupport with Logging {
       }
     } ~
       // Service implementation.
-      pathPrefix("projects") {
+      pathPrefix("api" / "projects") {
         authenticate(httpMongo(realm = "mycotrack", authenticator = FromMongoUserPassAuthenticator)) { user =>
         objectIdPathMatch {
           resourceId =>

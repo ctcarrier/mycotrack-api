@@ -18,11 +18,11 @@ function(namespace, $, _, Backbone) {
 
   // Example extendings
   Culture.Model = Backbone.Model.extend({
-        urlRoot: '/cultures',
+        urlRoot: '/api/cultures',
 
         url: function() {
             if (!this.isNew()){
-                return this.id;
+                return '/api' + this.id;
             }
           return this.urlRoot;
         },
@@ -34,7 +34,7 @@ function(namespace, $, _, Backbone) {
     });
 
   Culture.Collection = Backbone.Collection.extend({
-        url: '/cultures',
+        url: '/api/cultures',
 
         model: Culture.Model
    });

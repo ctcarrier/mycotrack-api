@@ -63,7 +63,7 @@ trait AggregationEndpoint extends Directives with LiftJsonSupport with Logging {
   val restService = {
     // Debugging: /ping -> pong
     // Service implementation.
-    path("aggregations") {
+    path("api" / "aggregations") {
         get {
           ctx => {
             log.info("Got agg request")

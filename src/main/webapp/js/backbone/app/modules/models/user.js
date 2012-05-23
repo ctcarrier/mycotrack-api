@@ -18,11 +18,11 @@ function(namespace, $, _, Backbone) {
 
   // Example extendings
   User.Model = Backbone.Model.extend({
-        urlRoot: '/users'
+        urlRoot: '/api/users'
     });
 
   User.Collection = Backbone.Collection.extend({
-        url: '/users',
+        url: '/api/users',
 
         model: User.Model
    });

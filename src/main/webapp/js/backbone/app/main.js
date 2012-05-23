@@ -141,8 +141,8 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
 
     routes: {
       "": "index",
-      "project_list": "mtlayout",
-      "project_list/:id": "mtlayout",
+      "projects": "mtlayout",
+      "projects/:id": "mtlayout",
       "culture_list": "cultureLayout",
       "species_list": "speciesLayout",
       "new_project": "newProject",
@@ -173,7 +173,7 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
 
     mtlayout: function(id) {
         if (id){
-            alert(id);
+            console.log("ID = " + id);
         }
       var route = this;
       var projects = new Project.Collection();

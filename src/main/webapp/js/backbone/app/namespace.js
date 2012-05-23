@@ -27,8 +27,8 @@ function($, _, Backbone, Handlebars) {
 
     Backbone.LayoutManager.configure({
         paths: {
-          layout: "js/backbone/app/templates/layouts/",
-          template: "js/backbone/app/templates/"
+          layout: "/js/backbone/app/templates/layouts/",
+          template: "/js/backbone/app/templates/"
         },
 
         render: function(template, context) {

@@ -8,11 +8,12 @@ define([
   "modelbinding",
 
   // Modules
-  "modules/mt-context"
+  "modules/mt-context",
+  "modules/models/project"
   // Plugins
 ],
 
-function(namespace, $, _, Backbone, ModelBinding, Context) {
+function(namespace, $, _, Backbone, ModelBinding, Context, Project) {
 
   // Create a new module
   var Mycotrack = namespace.module();
@@ -72,9 +73,16 @@ function(namespace, $, _, Backbone, ModelBinding, Context) {
     },
 
     clicked: function(e){
-        this.options.context.set('selectedProject', this.model);
-        this.options.context.set('selectedProjectView', this);
-        this.options.context.trigger('project:selected');
+        var view = this;
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        namespace.app.router.navigate(e.target.pathname, false);
+        var sp = new Project.Model({id: e.target.pathname});
+        sp.fetch({success: function(){
+           view.options.context.set('selectedProject', sp);
+           view.options.context.set('selectedProjectView', view);
+           view.options.context.trigger('project:selected');
+        }});
     }
   });
 

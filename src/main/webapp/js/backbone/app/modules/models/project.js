@@ -18,7 +18,14 @@ function(namespace, $, _, Backbone) {
 
   // Example extendings
   Project.Model = Backbone.Model.extend({
-        urlRoot: '/projects',
+        urlRoot: '/api/projects',
+
+        url: function() {
+            if (!this.isNew()){
+                return '/api' + this.id;
+            }
+          return this.urlRoot;
+        },
 
         parse: function(response) {
             var content = response;
@@ -27,7 +34,7 @@ function(namespace, $, _, Backbone) {
     });
 
   Project.Collection = Backbone.Collection.extend({
-        url: '/projects',
+        url: '/api/projects',
 
         model: Project.Model
    });

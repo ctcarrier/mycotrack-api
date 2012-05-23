@@ -69,7 +69,7 @@ trait CultureEndpoint extends Directives with LiftJsonSupport with Logging {
   val restService = {
     // Debugging: /ping -> pong
     // Service implementation.
-    pathPrefix("cultures") {
+    pathPrefix("api" / "cultures") {
       authenticate(httpMongo(realm = "mycotrack", authenticator = FromMongoUserPassAuthenticator)) { user =>
       objectIdPathMatch {
         resourceId =>

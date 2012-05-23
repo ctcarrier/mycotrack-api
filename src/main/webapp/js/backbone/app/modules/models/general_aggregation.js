@@ -18,7 +18,7 @@ function(namespace, $, _, Backbone) {
 
   // Example extendings
   GeneralAggregation.Model = Backbone.Model.extend({
-        urlRoot: '/aggregations',
+        urlRoot: '/api/aggregations',
 
         parse: function(response) {
             var content = response;

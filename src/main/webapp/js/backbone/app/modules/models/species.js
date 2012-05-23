@@ -27,7 +27,7 @@ function(namespace, $, _, Backbone) {
     });
 
   Species.Collection = Backbone.Collection.extend({
-        url: '/species',
+        url: '/api/species',
 
         model: Species.Model
    });

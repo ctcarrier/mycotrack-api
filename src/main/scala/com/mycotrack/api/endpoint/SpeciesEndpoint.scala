@@ -66,7 +66,7 @@ trait SpeciesEndpoint extends Directives with UnrestrictedLiftJsonSupport with L
   val restService = {
     // Debugging: /ping -> pong
     // Service implementation.
-    pathPrefix("species") {
+    pathPrefix("api" / "species") {
       objectIdPathMatch {
         resourceId =>
           getSpecies {
