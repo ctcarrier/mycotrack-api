@@ -163,7 +163,7 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
 
         generalAggregation.on('change', function(eventName){
             console.log('Rendering general agg');
-            context.homeView.render();
+            context.main.render();
         });
     },
 
@@ -265,7 +265,11 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
 
           context.newUserView.model = newUser;
           context.main.view("#contentAnchor", context.newUserView);
-          context.newUserView.render();
+          $.when(context.main.render()).then(function() {
+            console.log("validating");
+            console.log($('#mtnav'));
+            $('#newUserForm').h5Validate();
+          });
 
         },
 

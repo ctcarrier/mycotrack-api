@@ -1,3 +1,7 @@
+.ui-state-error {
+	background-color:#BB1100;
+	color:white;
+}
 
 .loginform {
     margin-bottom:  0;

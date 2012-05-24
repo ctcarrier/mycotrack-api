@@ -21,6 +21,8 @@ require.config({
     base64: "../assets/js/libs/base64",
     gx: "../assets/js/libs/GX",
     modaldialog: "../assets/js/libs/Backbone.ModalDialog",
+    jqueryvalidate: "../assets/js/libs/jquery.validate",
+    h5validate: "../assets/js/libs/jquery.h5validate",
 
     // Shim Plugin
     use: "../assets/js/plugins/use"
@@ -65,6 +67,9 @@ require.config({
     },
     modaldialog: {
         deps: ["use!backbone"]
+    },
+    jqueryvalidate: {
+        deps: ["jquery"]
     }
   }
 });

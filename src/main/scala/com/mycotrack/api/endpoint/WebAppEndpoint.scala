@@ -13,7 +13,7 @@ trait WebAppEndpoint extends Directives with Logging {
 
   log.info("Starting web ap endpoint.")
 
-  val appPath =  path("") | path("bb_mt") | path("speciesList") | path("cultureList") | path("projects")
+  val appPath =  path("") | path("bb_mt") | path("speciesList") | path("cultureList") | path("projects") | path("new_user")
 
   val restService = {
     appPath {
