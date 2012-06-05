@@ -24,7 +24,8 @@ require([
 
   //plugins
   "use!bootstrapdatepicker",
-  "use!gx"
+  "use!gx",
+  "use!h5validate"
 ],
 
 function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Context, Navbar, Project, Species, Culture, GeneralAggregation, Aggregation, BaseView, SpeciesView, User, Login) {
@@ -155,15 +156,22 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
         var route = this;
 
         var generalAggregation = new GeneralAggregation.Model();
-        generalAggregation.fetch();
+
+        generalAggregation.fetch({
+            success: function(){
+                namespace.app.trigger('generalagg:fetch');
+            }
+        });
 
         context.generalAggregationView.model=generalAggregation;
-
         context.main.view("#contentAnchor", context.homeView);
 
-        generalAggregation.on('change', function(eventName){
+        namespace.app.on('generalagg:fetch', function(eventName){
             console.log('Rendering general agg');
-            context.main.render();
+            context.main.render(function(el) {
+                $("#main").html(el);
+                ModelBinding.bind(context.loginForm);
+            });
         });
     },
 
@@ -265,7 +273,7 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
 
           context.newUserView.model = newUser;
           context.main.view("#contentAnchor", context.newUserView);
-          $.when(context.main.render()).then(function() {
+          $.when(context.newUserView.render()).then(function() {
             console.log("validating");
             console.log($('#mtnav'));
             $('#newUserForm').h5Validate();

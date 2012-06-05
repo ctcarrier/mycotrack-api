@@ -21,6 +21,7 @@ import cc.spray._
 import akka.dispatch.Future
 import caching._
 import caching.LruCache._
+import directives.Remaining
 import utils.Logging
 
 /**
@@ -58,7 +59,11 @@ trait ProjectEndpoint extends Directives with LiftJsonSupport with Logging {
   def withSuccessCallback(ctx: RequestContext, statusCode: StatusCode = OK)(f: Future[_]): Future[_] = {
     f.onComplete(f => {
       f.result.get match {
-        case Some(ProjectWrapper(oid, version, dateCreated, lastUpdated, content)) => ctx.complete(statusCode, content.map(x => x.copy(id = oid, timestamp = Some(new java.util.Date()))).head)
+        case Some(ProjectWrapper(oid, version, dateCreated, lastUpdated, content, oevents)) => {
+          val res = content.head.copy(id = oid, events = oevents, timestamp = Some(new java.util.Date()))
+          //log.debug("Project returned at endpoint: " + oevents.get)
+          ctx.complete(statusCode, res)
+        }
         case Some(c: Project) => ctx.complete(c)
         case None => ctx.fail(StatusCodes.NotFound, ErrorResponse(1l, ctx.request.path, List(NOT_FOUND_MESSAGE)))
       }
@@ -66,10 +71,11 @@ trait ProjectEndpoint extends Directives with LiftJsonSupport with Logging {
   }
 
   //directive compositions
-  val objectIdPathMatch = path("^[a-zA-Z0-9]+$".r)
+  val objectIdPathMatch = path("[^/]+".r)
   //val directGetProject = authenticate(httpMongo(realm = "mycotrack")) & get
   val directGetProject = get
   val putProject = content(as[Project]) & put
+  val putEvent = path("[^/]+".r / "events" / Remaining) & put
   val postProject = path("") & content(as[Project]) & post
   val indirectGetProjects = path("") & parameters('name ?, 'description ?) & get
 
@@ -89,6 +95,7 @@ trait ProjectEndpoint extends Directives with LiftJsonSupport with Logging {
         authenticate(httpMongo(realm = "mycotrack", authenticator = FromMongoUserPassAuthenticator)) { user =>
         objectIdPathMatch {
           resourceId =>
+            log.info("REsourceId: " + resourceId)
               cacheResults(projectCache) {
                 respondWithHeader(CustomHeader("TEST", "Awesome")){
                 directGetProject {
@@ -113,6 +120,17 @@ trait ProjectEndpoint extends Directives with LiftJsonSupport with Logging {
 
               }
         } ~
+          putEvent {
+            (resourceId, eventName) => ctx =>
+              withErrorHandling(ctx) {
+                withSuccessCallback(ctx) {
+                  Future {
+                    log.info("Putting event " + eventName)
+                    service.addEvent(resourceId, eventName)
+                  }
+              }
+              }
+          } ~
           postProject {
             resource => ctx =>
               withErrorHandling(ctx) {

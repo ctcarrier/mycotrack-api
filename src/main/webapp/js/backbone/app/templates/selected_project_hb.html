@@ -1,17 +1,28 @@
-<span class="span2">
-    <h3>General</h3>
-    <ul>
-        <li>Name: {{project.name}}</li>
-        <li>Notes: {{project.description}}</li>
-        <li>Culture: {{project.cultureUrl}}</li>
-        <li>Substrate: {{project.substrate}}</li>
-        <li>Container: {{project.container}}</li>
-        <li>Date Started: {{project.startDate}}</li>
-    </ul>
+<span class="row">
+    <span class="span2">
+        <h3>General</h3>
+        <ul>
+            <li>Name: {{project.name}}</li>
+            <li>Notes: {{project.description}}</li>
+            <li>Culture: {{project.cultureUrl}}</li>
+            <li>Substrate: {{project.substrate}}</li>
+            <li>Container: {{project.container}}</li>
+            <li>Date Started: {{project.startDate}}</li>
+        </ul>
+    </span>
+    <span class="span2">
+        <h3>Culture Info</h3>
+        <ul>
+            <li>Name: {{culture.name}}</li>
+        </ul>
+    </span>
 </span>
-<span class="span2">
-    <h3>Culture Info</h3>
-    <ul>
-        <li>Name: {{culture.name}}</li>
-    </ul>
+<span class="row">
+    <span class="span4">
+        <h3>Events</h3>
+        {{#each project.events}}
+            {{debug}}
+            {{name}} - {{dateCreated}}
+        {{/each}}
+    </span>
 </span>

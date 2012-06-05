@@ -14,11 +14,12 @@ case class Project(@Ignore id: Option[String],
                    startDate: Option[Date],
                    parent: Option[ObjectId] = None,
                    @Ignore timestamp: Option[Date] = Some(new Date()),
-                    count: Option[Long])
+                    count: Option[Long],
+                    events: List[Event] = List.empty)
 object Project {
   implicit def projToProjWrapper(project: Project): ProjectWrapper = {
     val now = new Date
-    ProjectWrapper(project.id, 1, now, now, List(project))
+    ProjectWrapper(project.id, 1, now, now, List(project), project.events)
   }
 }
 
@@ -45,3 +46,5 @@ object User {
     UserWrapper(user.id, 1, now, now, List(user))
   }
 }
+
+case class Event(name: String, dateCreated: Date)

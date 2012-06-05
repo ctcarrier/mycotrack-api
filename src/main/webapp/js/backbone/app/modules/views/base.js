@@ -5,12 +5,11 @@ define([
   "jquery",
   "use!underscore",
   "use!backbone",
-  "modelbinding",
+  "modelbinding"
 
   // Modules
 
   // Plugins
-  "h5validate"
 ],
 
 function(namespace, $, _, Backbone, ModelBinding) {

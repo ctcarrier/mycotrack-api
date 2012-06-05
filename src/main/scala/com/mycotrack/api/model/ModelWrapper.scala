@@ -7,12 +7,13 @@ case class ProjectWrapper(_id: Option[String],
                           version: Long,
                           dateCreated: Date,
                           lastUpdated: Date,
-                          content: List[Project])
+                          content: List[Project],
+                          events: List[Event] = List.empty)
 
 object ProjectWrapper {
 
   implicit def projectWrapper2Project(wrapper: ProjectWrapper): Project = {
-    wrapper.content.head.copy(id = wrapper._id)
+    wrapper.content.head.copy(id = wrapper._id, events = wrapper.events)
   }
 }
 

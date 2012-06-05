@@ -36,6 +36,7 @@ trait MycotrackDao[T <: CaseClass, W <: CaseClass] extends Logging {
       val dbo = mongoCollection.findOne(builder.result.asDBObject)
       val result = dbo.map(f => grater[TT].asObject(f))
 
+      log.debug("GET results at DAO: " + result.toString)
       result
     }
   }
@@ -71,6 +72,7 @@ trait MycotrackDao[T <: CaseClass, W <: CaseClass] extends Logging {
 trait IProjectDao extends MycotrackDao[Project, ProjectWrapper] {
   def search(searchObj: MongoDBObject): Future[Option[List[Project]]]
   def getChildren(root: Project): Future[Option[List[Project]]]
+  def addEvent(projectId: String, eventName: String): Option[Project]
 }
 
 trait ISpeciesDao extends MycotrackDao[Species, SpeciesWrapper] {
@@ -84,4 +86,8 @@ trait ICultureDao extends MycotrackDao[Culture, CultureWrapper] {
 }
 
 trait UserService extends MycotrackDao[User, UserWrapper] {
+}
+
+trait EventService {
+  def search(): Future[Option[List[Event]]]
 }

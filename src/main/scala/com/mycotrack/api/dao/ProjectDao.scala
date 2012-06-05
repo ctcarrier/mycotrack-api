@@ -10,6 +10,7 @@ import model._
 import mongo.RandomId
 import org.bson.types.ObjectId
 import cc.spray.utils.Logging
+import java.util.Date
 
 /**
  * @author chris carrier
@@ -23,8 +24,8 @@ trait ProjectDao extends IProjectDao with Logging {
   def search(searchObj: MongoDBObject) = Future {
     val listRes = mongoCollection.find(searchObj).map(f => {
       log.info(f.toString);
-      val pw = grater[ProjectWrapper].asObject(f)
-      pw.content.head.copy(id = pw._id)
+      val pw: Project = grater[ProjectWrapper].asObject(f)
+      pw
     }).toList
 
     val res = listRes match {
@@ -42,6 +43,17 @@ trait ProjectDao extends IProjectDao with Logging {
       case l: List[Project] if (!l.isEmpty) => Some(l)
       case _ => None
     }
+  }
+
+  def addEvent(projectId: String, eventName: String): Option[Project] = {
+    log.info("adding event in DAO with" + projectId + " and " + eventName)
+    val eventDbo = grater[Event].asDBObject(Event(eventName, new Date()))
+    val find = MongoDBObject("_id" -> formatKeyAsId(projectId))
+    val update = $addToSet("events" -> eventDbo)
+    mongoCollection.findAndModify(find, null, null, false, update, true, false).map(f => {
+      val pw: Project = grater[ProjectWrapper].asObject(f)
+      pw
+    })
   }
 }
 

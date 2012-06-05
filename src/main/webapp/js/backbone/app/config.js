@@ -68,7 +68,7 @@ require.config({
     modaldialog: {
         deps: ["use!backbone"]
     },
-    jqueryvalidate: {
+    h5validate: {
         deps: ["jquery"]
     }
   }
