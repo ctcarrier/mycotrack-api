@@ -82,6 +82,7 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
         });
 
         context.newProjectView = new BaseView.NewProject();
+        context.spawnProjectView = new BaseView.SpawnProject();
         context.newCultureView = new BaseView.NewCulture();
         context.newUserView = new BaseView.NewUser();
 
@@ -134,6 +135,10 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
 
         });
 
+        namespace.app.on('event:created', function(eventName){
+
+        });
+
         context.main.render(function(el) {
                 $("#main").html(el);
                 ModelBinding.bind(context.loginForm);
@@ -147,6 +152,7 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
       "culture_list": "cultureLayout",
       "species_list": "speciesLayout",
       "new_project": "newProject",
+      "spawn_project": "spawnProject",
       "new_culture": "newCulture",
       "new_user": "newUser",
       "login": "login"
@@ -205,7 +211,7 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
             context.projectBaseView.render();
         });
 
-      context.on('project:selected', function(eventName){
+      namespace.app.on('project:selected', function(eventName){
 
         var selectedProject = context.get('selectedProject');
         var selectedProjectCulture = new Culture.Model({});
@@ -226,6 +232,9 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
     newProject: function(hash) {
       var route = this;
       var newProject = new Project.Model({});
+      if (namespace.app.parentProject){
+        newProject.set('parent', namespace.app.parentProject.id);
+      }
       var cultures = new Culture.Collection();
 
       cultures.fetch({success: function(){
@@ -245,6 +254,21 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
         $("#dp1").datepicker();
       });
     },
+
+    spawnProject: function() {
+          var route = this;
+          var newProject = new Project.Model({});
+          newProject.set('parent', namespace.app.parentProject.id);
+
+          context.main.view("#contentAnchor", context.spawnProjectView);
+
+          context.spawnProjectView.model = newProject;
+
+          context.spawnProjectView.render();
+          ModelBinding.bind(context.spawnProjectView);
+          console.log("DATEPICKING");
+          $("#dp1").datepicker();
+        },
 
     newCulture: function(hash) {
       var route = this;

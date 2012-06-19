@@ -75,7 +75,7 @@ trait ProjectEndpoint extends Directives with LiftJsonSupport with Logging {
   //val directGetProject = authenticate(httpMongo(realm = "mycotrack")) & get
   val directGetProject = get
   val putProject = content(as[Project]) & put
-  val putEvent = path("[^/]+".r / "events" / Remaining) & put
+  val postEvent = path("[^/]+".r / "events" / Remaining) & post
   val postProject = path("") & content(as[Project]) & post
   val indirectGetProjects = path("") & parameters('name ?, 'description ?) & get
 
@@ -96,7 +96,6 @@ trait ProjectEndpoint extends Directives with LiftJsonSupport with Logging {
         objectIdPathMatch {
           resourceId =>
             log.info("REsourceId: " + resourceId)
-              cacheResults(projectCache) {
                 respondWithHeader(CustomHeader("TEST", "Awesome")){
                 directGetProject {
                   ctx =>
@@ -106,10 +105,7 @@ trait ProjectEndpoint extends Directives with LiftJsonSupport with Logging {
                         }
                       }
                     }
-                }
-
-
-            } ~
+                } ~
               putProject {
                 resource => ctx =>
                     withErrorHandling(ctx) {
@@ -120,12 +116,12 @@ trait ProjectEndpoint extends Directives with LiftJsonSupport with Logging {
 
               }
         } ~
-          putEvent {
+          postEvent {
             (resourceId, eventName) => ctx =>
               withErrorHandling(ctx) {
                 withSuccessCallback(ctx) {
                   Future {
-                    log.info("Putting event " + eventName)
+                    log.info("Posting event " + eventName)
                     service.addEvent(resourceId, eventName)
                   }
               }

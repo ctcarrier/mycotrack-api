@@ -25,6 +25,11 @@ function($, _, Backbone, Handlebars) {
       }
     });
 
+    Handlebars.registerHelper("currentDate", function() {
+      var d = new Date();
+      return d.getMonth() + "-" + d.getDay() + "-" + d.getYear();
+    });
+
     Backbone.LayoutManager.configure({
         paths: {
           layout: "/js/backbone/app/templates/layouts/",

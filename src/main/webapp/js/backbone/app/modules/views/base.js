@@ -44,9 +44,13 @@ function(namespace, $, _, Backbone, ModelBinding) {
         var view = this;
         ModelBinding.bind(this);
         this.model.set('enabled', true);
+        if (namespace.app.parentProject){
+            this.model.set('parent', namespace.app.parentProject.id);
+            namespace.app.parentProject = null;
+        }
         console.log('Saving new: ' + JSON.stringify(this.model));
         this.model.save({}, {success: function(model, response){
-            namespace.app.router.navigate("/bb_mt", true);
+            namespace.app.router.navigate("/projects", true);
         }});
 
     },
@@ -55,6 +59,33 @@ function(namespace, $, _, Backbone, ModelBinding) {
       return this.model.toJSON();
     }
   });
+
+  BaseView.SpawnProject = Backbone.View.extend({
+      template: "base/spawn_project",
+
+      events: {
+          "click #project-submit": "saveSelected"
+      },
+
+      saveSelected: function() {
+          var view = this;
+          ModelBinding.bind(this);
+          this.model.set('enabled', true);
+          if (namespace.app.parentProject){
+              this.model.set('parent', namespace.app.parentProject.id);
+              namespace.app.parentProject = null;
+          }
+          console.log('Saving new: ' + JSON.stringify(this.model));
+          this.model.save({}, {success: function(model, response){
+              namespace.app.router.navigate("/projects", true);
+          }});
+
+      },
+
+      serialize: function() {
+        return this.model.toJSON();
+      }
+    });
 
   BaseView.NewCulture = Backbone.View.extend({
     template: "base/new_culture",

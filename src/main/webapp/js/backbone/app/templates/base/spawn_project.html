@@ -1,13 +1,7 @@
 {{parent}}
 <div class="span4 offset2">
     <form id="idForm">
-            <select id="cultureUrl">
-                {{debug}}
-                <option name="">Cultures...</option>
-                {{#each cultureList}}
-                   <option value="{{this.id}}">{{this.name}}</option>
-                {{/each}}
-            </select>
+            {{cultureUrl}}
             <select id="substrate">
                 <option name="">Substrate...</option>
                 <option name="rye">rye</option>

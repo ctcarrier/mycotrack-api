@@ -12,7 +12,7 @@ case class Project(@Ignore id: Option[String],
                    substrate: Option[String],
                    container: Option[String],
                    startDate: Option[Date],
-                   parent: Option[ObjectId] = None,
+                   parent: Option[String] = None,
                    @Ignore timestamp: Option[Date] = Some(new Date()),
                     count: Option[Long],
                     events: List[Event] = List.empty)

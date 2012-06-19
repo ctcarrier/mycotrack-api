@@ -38,16 +38,55 @@ function(namespace, $, _, Backbone, ModelBinding, Context, Project) {
     template: "selected_project_hb",
 
     events: {
-        "click #project-submit": "saveSelected"
+        "click #project-submit": "saveSelected",
+        "click #shakeButton": "shakeEvent",
+        "click #contaminateButton": "contaminateEvent",
+        "click #pinningButton": "pinningEvent",
+        "click #colonizedButton": "colonizedEvent",
+        "click #spawnButton": "spawnEvent"
     },
 
     saveSelected: function() {
         var view = this;
         console.log('Saving selected');
-        this.model.save({}, {success: function(model, response){
+        this.options.project.save({}, {success: function(model, response){
             view.options.context.trigger('project:save');
         }});
         
+    },
+
+    spawnEvent: function() {
+        namespace.app.parentProject = this.options.project;
+        namespace.app.router.navigate("/spawn_projectqq", true);
+    },
+
+    shakeEvent: function() {
+        this.postEvent("shake");
+    },
+
+    pinningEvent: function() {
+        this.postEvent("pinning");
+    },
+
+    contaminateEvent: function() {
+        this.postEvent("contaminate");
+    },
+
+    colonizedEvent: function() {
+        this.postEvent("colonized");
+    },
+
+    postEvent: function(eventName) {
+        var view = this;
+        var eventUrl = this.options.project.url() + "/events/" + eventName;
+        console.log('Putting event ' + eventUrl);
+
+        $.post(eventUrl, function(data) {
+            view.options.context.get('selectedProject').fetch({success: function(){
+                  namespace.app.trigger('project:selected');
+               }});
+        });
+
     },
 
     serialize: function() {
@@ -81,7 +120,7 @@ function(namespace, $, _, Backbone, ModelBinding, Context, Project) {
         sp.fetch({success: function(){
            view.options.context.set('selectedProject', sp);
            view.options.context.set('selectedProjectView', view);
-           view.options.context.trigger('project:selected');
+           namespace.app.trigger('project:selected');
         }});
     }
   });

@@ -1,3 +1,4 @@
+<a href="{{project.parent}}">{{project.parent}}</a>
 <span class="row">
     <span class="span2">
         <h3>General</h3>
@@ -17,12 +18,22 @@
         </ul>
     </span>
 </span>
-<span class="row">
+<div class="row">
+    <button id="spawnButton">SPAWN!</button>
+</div>
+<div class="row">
+    <button id="shakeButton">Shake</button>
+    <button id="contaminationButton">Contamination</button>
+    <button id="pinningButton">Pinning</button>
+    <button id="colonizedButton">Colonized</button>
+</div>
+<div class="row">
     <span class="span4">
         <h3>Events</h3>
+        <ul>
         {{#each project.events}}
-            {{debug}}
-            {{name}} - {{dateCreated}}
+            <li>{{name}} - {{dateCreated}}</li>
         {{/each}}
+        </ul>
     </span>
-</span>
+</div>
