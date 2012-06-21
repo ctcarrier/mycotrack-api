@@ -5,14 +5,15 @@ define([
   "jquery",
   "use!underscore",
   "use!backbone",
-  "modelbinding"
+  "modelbinding",
 
   // Modules
+  "modules/models/user"
 
   // Plugins
 ],
 
-function(namespace, $, _, Backbone, ModelBinding) {
+function(namespace, $, _, Backbone, ModelBinding, User) {
 
   // Create a new module
   var BaseView = namespace.module();
@@ -118,10 +119,22 @@ function(namespace, $, _, Backbone, ModelBinding) {
 
       saveSelected: function() {
           var view = this;
-          ModelBinding.bind(this);
+          var newEmail = $('#newUserEmail')[0].value;
+          var newPass = $('#newUserPassword')[0].value;
+
+          this.model = new User.Model({
+            email: newEmail,
+            password: newPass
+          });
           console.log('Saving new: ' + JSON.stringify(this.model));
           this.model.save({}, {success: function(model, response){
-              namespace.app.router.navigate("/bb_mt", true);
+              namespace.app.router.navigate("/", true);
+              namespace.app.user.set({
+                email: newEmail,
+                password: newPass
+              });
+              $("#loginanchor").detach();
+              namespace.app.trigger('login:submit');
           }});
 
       },

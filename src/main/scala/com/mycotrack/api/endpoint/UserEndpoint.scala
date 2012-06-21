@@ -61,6 +61,8 @@ trait UserEndpoint extends Directives with LiftJsonSupport with Logging {
 
   //directive compositions
   val objectIdPathMatch = path("^[a-zA-Z0-9]+$".r)
+  val mtAuth = authenticate(httpMongo(realm = "mycotrack", authenticator = FromMongoUserPassAuthenticator))
+
   val putUser = content(as[User]) & put
   val postUser = path("") & content(as[User]) & post
   val searchUser = (path("") & get)
@@ -69,9 +71,9 @@ trait UserEndpoint extends Directives with LiftJsonSupport with Logging {
     // Debugging: /ping -> pong
     // Service implementation.
     pathPrefix("api" / "users") {
-      authenticate(httpMongo(realm = "mycotrack", authenticator = FromMongoUserPassAuthenticator)) { user =>
       objectIdPathMatch {
         resourceId =>
+          mtAuth { user =>
           get {
             ctx =>
                 withErrorHandling(ctx) {
@@ -88,10 +90,12 @@ trait UserEndpoint extends Directives with LiftJsonSupport with Logging {
                     }
                   }
             }
+          }
       } ~
         searchUser {
+          mtAuth { user =>
           _.complete(user)
-        }
+          }
       }~
         postUser {
           resource => ctx =>
