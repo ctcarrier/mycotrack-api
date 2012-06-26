@@ -14,6 +14,8 @@ require.config({
     backbone: "../assets/js/libs/backbone",
     backboneforms: "../assets/js/libs/backbone-forms",
     modelbinding: "../assets/js/libs/backbone.modelbinding",
+    modelbinder: "../assets/js/libs/Backbone.ModelBinder",
+    collectionbinder: "../assets/js/libs/Backbone.CollectionBinder",
     handlebars: "../assets/js/libs/handlebars-1.0.0.beta.6",
     layoutmanager: "../assets/js/plugins/backbone.layoutmanager",
     bootstrapdropdown: "../assets/js/plugins/bootstrap-dropdown",
@@ -23,6 +25,7 @@ require.config({
     modaldialog: "../assets/js/libs/Backbone.ModalDialog",
     jqueryvalidate: "../assets/js/libs/jquery.validate",
     h5validate: "../assets/js/libs/jquery.h5validate",
+    jquerycookies: "../assets/js/plugins/jquery.cookies.2.2.0",
 
     // Shim Plugin
     use: "../assets/js/plugins/use"
@@ -56,6 +59,14 @@ require.config({
         deps: ["use!backbone", "use!underscore"],
         attach: "ModelBinding"
     },
+    modelbinder: {
+        deps: ["use!backbone", "jquery"],
+        attach: "ModelBinder"
+    },
+    collectionbinder: {
+        deps: ["use!backbone", "jquery"],
+        attach: "CollectionBinder"
+    },
     bootstrapdropdown: {
         deps: ["jquery"]
     },
@@ -69,6 +80,9 @@ require.config({
         deps: ["use!backbone"]
     },
     h5validate: {
+        deps: ["jquery"]
+    },
+    jquerycookies: {
         deps: ["jquery"]
     }
   }

@@ -25,7 +25,8 @@ require([
   //plugins
   "use!bootstrapdatepicker",
   "use!gx",
-  "use!h5validate"
+  "use!h5validate",
+  "use!jquerycookies"
 ],
 
 function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Context, Navbar, Project, Species, Culture, GeneralAggregation, Aggregation, BaseView, SpeciesView, User, Login) {
@@ -36,7 +37,12 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
   // Defining the application router, you can attach sub routers here.
   var Router = Backbone.Router.extend({
     initialize: function() {
-        namespace.app.user = new User.Model();
+        //alert($.cookies.test());
+        var userCookie = $.cookies.get('mt_sess') == null ? false : true;
+        var userHash = $.cookies.get('mt_sess') == null ? {} : $.cookies.get('mt_sess');
+        console.log("Need cookies: " + JSON.stringify(userHash));
+//        console.log("Need cookies");
+        namespace.app.user = new User.Model(userHash);
         context.main = new Backbone.LayoutManager({
                 template: "base"
         });
@@ -47,11 +53,11 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
         });
 
         context.navBarView = new Navbar.Views.Navbar({
-            context: context,
-            views: {
-                "#loginanchor": context.loginForm
-            }
+            context: context
         });
+        if (!userCookie) {
+            context.navBarView.view("#loginanchor", context.loginForm);
+        }
 
         context.generalAggregationView = new Aggregation.Views.GeneralAggregation({
             context: context
@@ -122,6 +128,11 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
             namespace.app.user.fetch({
                 success: function(){
                     $("#loginanchor").detach();
+
+                    var expiration = new Date();
+                    expiration.setDate(expiration.getDate() + 7);
+                    $.cookies.set('mt_sess', namespace.app.user.toJSON(), {path : '/'});
+
                 },
                 error: function(){
                     var loginModal = new Login.View({
@@ -134,15 +145,17 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
             });
 
         });
-
-        namespace.app.on('event:created', function(eventName){
-
-        });
+        if (userCookie){
+            namespace.app.trigger("login:submit");
+        }
 
         context.main.render(function(el) {
-                $("#main").html(el);
-                ModelBinding.bind(context.loginForm);
-            });
+            console.log('Rendering main');
+            $("#main").html(el);
+            ModelBinding.bind(context.loginForm);
+        });
+
+        console.log("Finished init");
     },
 
     routes: {
@@ -159,6 +172,7 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
     },
 
     index: function() {
+        console.log("Starting route function");
         var route = this;
 
         var generalAggregation = new GeneralAggregation.Model();
@@ -169,15 +183,13 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
             }
         });
 
+        console.log('Rendering general agg1');
         context.generalAggregationView.model=generalAggregation;
-        context.main.view("#contentAnchor", context.homeView);
-
+        console.log('Rendering general agg2');
         namespace.app.on('generalagg:fetch', function(eventName){
-            console.log('Rendering general agg');
-            context.main.render(function(el) {
-                $("#main").html(el);
-                ModelBinding.bind(context.loginForm);
-            });
+            console.log('Rendering general agg3');
+            context.main.view("#contentAnchor", context.homeView);
+            context.homeView.render();
         });
     },
 
@@ -247,9 +259,8 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
         context.newProjectView.model = newProject;
         context.newProjectView.model.set('cultureList', cultures.toJSON());
 
-        //ModelBinding.bind(selectedProjectView);
+        context.newProjectView.bind();
         context.newProjectView.render();
-        ModelBinding.bind(context.newProjectView);
         console.log("DATEPICKING");
         $("#dp1").datepicker();
       });

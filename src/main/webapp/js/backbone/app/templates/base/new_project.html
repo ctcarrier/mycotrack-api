@@ -1,14 +1,14 @@
 {{parent}}
 <div class="span4 offset2">
     <form id="idForm">
-            <select id="cultureUrl">
+            <select id="cultureUrl" name="cultureUrl">
                 {{debug}}
                 <option name="">Cultures...</option>
                 {{#each cultureList}}
                    <option value="{{this.id}}">{{this.name}}</option>
                 {{/each}}
             </select>
-            <select id="substrate">
+            <select id="substrate" name="substrate">
                 <option name="">Substrate...</option>
                 <option name="rye">rye</option>
                 <option name="sorghum">sorghum</option>
@@ -18,7 +18,7 @@
                 <option name="woodchips">wood chips</option>
                 <option name="straw">straw</option>
             </select>
-            <select id="container">
+            <select id="container" name="container">
                 <option name="">Container...</option>
                 <option name="quart">mason jar(quart)</option>
                 <option name="halfpint">mason jar(half-pint)</option>
@@ -30,17 +30,17 @@
         <div class="control-group">
             <label class="control-label" for="description">Notes</label>
             <div class="controls">
-                <input id="description" type="text" class="input-xlarge" >
+                <input id="description" name="description" type="text" class="input-xlarge" >
             </div>
         </div>
         <div class="control-group">
             <label class="control-label" for="count">Count</label>
             <div class="controls">
-                <input value="1" id="count" type="text" class="input-large" >
+                <input value="1" id="count" name="count" type="text" class="input-large" >
             </div>
         </div>
             <div class="input-append date" id="dp1" data-date="{{currentDate}}" data-date-format="mm-dd-yyyy">
-                <input id="startDate" class="span2" size="16" type="text" value="{{currentDate}}">
+                <input id="startDate" name="startDate" class="span2" size="16" type="text" value="{{currentDate}}">
                 <span class="add-on"><i class="icon-th"></i></span>
             </div>
             <div class="">

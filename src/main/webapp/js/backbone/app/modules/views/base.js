@@ -6,6 +6,7 @@ define([
   "use!underscore",
   "use!backbone",
   "modelbinding",
+  "modelbinder",
 
   // Modules
   "modules/models/user"
@@ -13,7 +14,7 @@ define([
   // Plugins
 ],
 
-function(namespace, $, _, Backbone, ModelBinding, User) {
+function(namespace, $, _, Backbone, ModelBinding, ModelBinder, User) {
 
   // Create a new module
   var BaseView = namespace.module();
@@ -37,13 +38,22 @@ function(namespace, $, _, Backbone, ModelBinding, User) {
   BaseView.NewProject = Backbone.View.extend({
     template: "base/new_project",
 
+    _modelBinder: undefined,
+
+    initialize:function () {
+        this._modelBinder = new Backbone.ModelBinder();
+    },
+
+    bind: function() {
+        this._modelBinder.bind(this.model, this.el);
+    },
+
     events: {
         "click #project-submit": "saveSelected"
     },
 
     saveSelected: function() {
         var view = this;
-        ModelBinding.bind(this);
         this.model.set('enabled', true);
         if (namespace.app.parentProject){
             this.model.set('parent', namespace.app.parentProject.id);
@@ -51,6 +61,7 @@ function(namespace, $, _, Backbone, ModelBinding, User) {
         }
         console.log('Saving new: ' + JSON.stringify(this.model));
         this.model.save({}, {success: function(model, response){
+            this._modelBinder.unbind();
             namespace.app.router.navigate("/projects", true);
         }});
 

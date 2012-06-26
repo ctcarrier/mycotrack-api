@@ -6,6 +6,7 @@ define([
   "use!underscore",
   "use!backbone",
   "modelbinding",
+  "use!modelbinder",
 
   // Modules
   "modules/mt-context",
@@ -13,7 +14,7 @@ define([
   // Plugins
 ],
 
-function(namespace, $, _, Backbone, ModelBinding, Context, Project) {
+function(namespace, $, _, Backbone, ModelBinding, ModelBinder, Context, Project) {
 
   // Create a new module
   var Mycotrack = namespace.module();
@@ -57,7 +58,7 @@ function(namespace, $, _, Backbone, ModelBinding, Context, Project) {
 
     spawnEvent: function() {
         namespace.app.parentProject = this.options.project;
-        namespace.app.router.navigate("/spawn_projectqq", true);
+        namespace.app.router.navigate("/sparojectqqjhv", true);
     },
 
     shakeEvent: function() {

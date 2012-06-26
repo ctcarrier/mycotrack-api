@@ -66,6 +66,10 @@ function(namespace, $, _, Backbone) {
     tagName: "form",
     className: "form-inline loginform",
 
+    initialize: function() {
+        console.log("initializing login view");
+    },
+
     events: {
         "click #loginbutton": "login"
     },
