@@ -11,8 +11,10 @@
                 <div class="nav-collapse">
                     <ul class="nav">
                         <li id="menu_home"><a href="/">Home</a></li>
-                        <li id="menu_projects"><a href="/projects">Project</a></li>
-                        <li id="menu_cultures"><a href="/culture_list">Cultures</a></li>
+                        {{#if loggedIn}}
+                            <li id="menu_projects"><a href="/projects">Project</a></li>
+                            <li id="menu_cultures"><a href="/culture_list">Cultures</a></li>
+                        {{/if}}
                         <li id="menu_species"><a href="/species_list">Species</a></li>
                     </ul>
                     <ul class="nav pull-right">
@@ -27,7 +29,7 @@
                                 <li><a href="new_culture#" id="new_culture">New Culture</a></li>
                                 <li class="divider"></li>
                                 <li><a href="#new_user" id="new_user">Sign Up!</a></li>
-                                <li><a href="bb_mt#">Log Out</a></li>
+                                <li><a href="bb_mt#" id="log_out">Log Out</a></li>
                             </ul>
                         </li>
                     </ul>

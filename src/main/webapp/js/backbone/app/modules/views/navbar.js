@@ -19,13 +19,21 @@ function(namespace, $, _, Backbone) {
    Navbar.Views.Navbar = Backbone.View.extend({
     template: "navbar",
 
+    model: {},
+
     events: {
         "click #new_project": "newProject",
         "click #menu_home": "navHome",
         "click #menu_projects": "navProjects",
         "click #menu_species": "navSpecies",
         "click #new_culture": "newCulture",
-        "click #new_user": "newUser"
+        "click #new_user": "newUser",
+        "click #log_out": "logOut"
+    },
+
+    serialize: function() {
+        console.log("Serializing in navbar: " + JSON.stringify(this.options.userState));
+      return this.options.userState;
     },
 
     navHome: function(e) {
@@ -58,6 +66,12 @@ function(namespace, $, _, Backbone) {
     newUser: function(e) {
         e.preventDefault();
         namespace.app.router.navigate("/new_user", true);
+    },
+
+    logOut: function(e) {
+        e.preventDefault();
+        namespace.app.trigger("user:logOut");
+        namespace.app.router.navigate("/", true);
     }
   });
 

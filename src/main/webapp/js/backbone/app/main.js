@@ -43,6 +43,7 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
         console.log("Need cookies: " + JSON.stringify(userHash));
 //        console.log("Need cookies");
         namespace.app.user = new User.Model(userHash);
+        namespace.app.userState = {};
         context.main = new Backbone.LayoutManager({
                 template: "base"
         });
@@ -53,10 +54,11 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
         });
 
         context.navBarView = new Navbar.Views.Navbar({
-            context: context
+            context: context,
+            userState: namespace.app.userState
         });
         if (!userCookie) {
-            context.navBarView.view("#loginanchor", context.loginForm);
+            context.navBarView.views = {"#loginanchor": context.loginForm};
         }
 
         context.generalAggregationView = new Aggregation.Views.GeneralAggregation({
@@ -127,23 +129,29 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
           namespace.app.on('login:submit', function(eventName){
             namespace.app.user.fetch({
                 success: function(){
-                    $("#loginanchor").detach();
-
                     var expiration = new Date();
                     expiration.setDate(expiration.getDate() + 7);
                     $.cookies.set('mt_sess', namespace.app.user.toJSON(), {path : '/'});
+                    namespace.app.userState.loggedIn = true;
 
+                    context.loginForm.removeView();
+                    context.navBarView.render();
                 },
                 error: function(){
-                    var loginModal = new Login.View({
-                        context: context,
-                        model: namespace.app.user
-                    });
-                    loginModal.render();
-                    ModelBinding.bind(loginModal);
+                    namespace.app.userState.loggedIn = false;
+                    
+                    context.navBarViewinsertView("#loginanchor", context.loginForm);
+                    context.navBarView.render();
                 }
             });
 
+        });
+        namespace.app.on('user:logOut', function(eventName){
+            console.log("Logging out");
+            $.cookies.del('mt_sess', {path : '/'});
+            namespace.app.userState.loggedIn = false;
+            context.navBarView.insertView("#loginanchor", context.loginForm);
+            context.navBarView.render();
         });
         if (userCookie){
             namespace.app.trigger("login:submit");
@@ -188,7 +196,7 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
         console.log('Rendering general agg2');
         namespace.app.on('generalagg:fetch', function(eventName){
             console.log('Rendering general agg3');
-            context.main.view("#contentAnchor", context.homeView);
+            context.main.setView("#contentAnchor", context.homeView);
             context.homeView.render();
         });
     },
@@ -216,7 +224,7 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
 
       context.projectView.collection = cultures;
 
-      context.main.view("#contentAnchor", context.projectBaseView);
+      context.main.setView("#contentAnchor", context.projectBaseView);
 
       projects.on('projects:fetch', function(eventName){
             console.log('Rendering project view');
@@ -234,7 +242,7 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
 //        console.log(selectedProject );
 //        console.log(selectedProjectCulture );
         selectedProjectCulture.fetch({success: function(){
-            context.main.view("#detail", context.selectedProjectView);
+            context.main.setView("#detail", context.selectedProjectView);
             console.log('Should refresh with: ' + JSON.stringify(context.selectedProjectView.model));
             context.selectedProjectView.render();
         }});
@@ -253,7 +261,7 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
         cultures.trigger('cultures:fetch');
       }});
 
-      context.main.view("#contentAnchor", context.newProjectView);
+      context.main.setView("#contentAnchor", context.newProjectView);
       cultures.on('cultures:fetch', function(eventName){
 
         context.newProjectView.model = newProject;
@@ -271,7 +279,7 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
           var newProject = new Project.Model({});
           newProject.set('parent', namespace.app.parentProject.id);
 
-          context.main.view("#contentAnchor", context.spawnProjectView);
+          context.main.setView("#contentAnchor", context.spawnProjectView);
 
           context.spawnProjectView.model = newProject;
 
@@ -291,7 +299,7 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
         species.trigger('species:fetch');
       }});
 
-      context.main.view("#contentAnchor", context.newCultureView);
+      context.main.insertView("#contentAnchor", context.newCultureView);
       species.on('species:fetch', function(eventName){
 
         context.newCultureView.model = newCulture;
@@ -307,7 +315,7 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
           var newUser = new User.Model({});
 
           context.newUserView.model = newUser;
-          context.main.view("#contentAnchor", context.newUserView);
+          context.main.setView("#contentAnchor", context.newUserView);
           $.when(context.newUserView.render()).then(function() {
             console.log("validating");
             console.log($('#mtnav'));
@@ -326,7 +334,7 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
 
       context.cultureView.collection = cultures;
 
-      context.main.view("#contentAnchor", context.cultureBaseView);
+      context.main.setView("#contentAnchor", context.cultureBaseView);
 
       cultures.on('cultures:fetch', function(eventName){
             console.log('Rendering culture view');
@@ -349,7 +357,7 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
 
       context.speciesView.collection = species;
 
-      context.main.view("#contentAnchor", context.speciesBaseView);
+      context.main.setView("#contentAnchor", context.speciesBaseView);
 
       species.on('species:fetch', function(eventName){
             console.log('Rendering species view');
@@ -365,13 +373,6 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
   // Inside this function, kick-off all initialization, everything up to this
   // point should be definitions.
   jQuery(function($) {
-    // Define your master router on the application namespace and trigger all
-    // navigation from this instance.
-    app.router = new Router();
-
-    // Trigger the initial route and enable HTML5 History API support
-    Backbone.history.start({ pushState: true });
-
     $.ajaxSetup({
         beforeSend: function (xhr) {
             if (namespace.app.user.get('email')) {
@@ -398,6 +399,13 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
             }
         }
       });
+
+      // Define your master router on the application namespace and trigger all
+    // navigation from this instance.
+      app.router = new Router();
+
+      // Trigger the initial route and enable HTML5 History API support
+      Backbone.history.start({ pushState: true });
   });
 
   // All navigation that is relative should be passed through the navigate
