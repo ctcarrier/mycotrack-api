@@ -58,7 +58,7 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
             userState: namespace.app.userState
         });
         if (!userCookie) {
-            context.navBarView.views = {"#loginanchor": context.loginForm};
+            context.navBarView.insertView("#loginanchor", context.loginForm);
         }
 
         context.generalAggregationView = new Aggregation.Views.GeneralAggregation({
