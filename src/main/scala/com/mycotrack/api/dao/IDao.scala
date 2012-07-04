@@ -27,6 +27,9 @@ trait MycotrackDao[T <: CaseClass, W <: CaseClass] extends Logging {
   def getByKey(key: String, userId: Option[String]): Future[Option[T]] = {
     get(formatKeyAsId(key), userId)
   }
+  def getSometing(id: String, userId: Option[String])(implicit man: Manifest[W]): Future[Option[W]] = {
+    get[W](id, userId)
+  }
   def get[TT <: W](id: String, userId: Option[String] = None)(implicit man: Manifest[TT]): Future[Option[TT]] = {
     Future {
       val builder = MongoDBObject.newBuilder

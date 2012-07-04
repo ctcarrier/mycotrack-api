@@ -139,7 +139,7 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
                 },
                 error: function(){
                     namespace.app.userState.loggedIn = false;
-                    
+
                     context.navBarViewinsertView("#loginanchor", context.loginForm);
                     context.navBarView.render();
                 }

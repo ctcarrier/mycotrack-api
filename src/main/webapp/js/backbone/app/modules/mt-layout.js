@@ -139,7 +139,7 @@ function(namespace, $, _, Backbone, ModelBinding, ModelBinder, Context, Project)
 
     render: function(manage) {
         // Have LayoutManager manage this View and call render.
-        var view = manage(this);
+        var view = this;
         var ctx = this.options.context;
 
 //        if (!namespace.app.initialized) {
@@ -153,13 +153,13 @@ function(namespace, $, _, Backbone, ModelBinding, ModelBinder, Context, Project)
                 model: model,
                 context: ctx
               });
-              view.insert(projectView);
+              view.insertView(projectView);
             });
 //        }
 
         // You still must return this view to render, works identical to
         // existing functionality.
-        return view.render();
+        return manage(view).render();
       }
 
   });
