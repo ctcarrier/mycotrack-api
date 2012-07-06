@@ -45,6 +45,9 @@ function(namespace, $, _, Backbone, ModelBinding, ModelBinder, User) {
     },
 
     bind: function() {
+        console.log("binding");
+        console.log(this.model);
+        console.log(this.el);
         this._modelBinder.bind(this.model, this.el);
     },
 
@@ -61,7 +64,7 @@ function(namespace, $, _, Backbone, ModelBinding, ModelBinder, User) {
         }
         console.log('Saving new: ' + JSON.stringify(this.model));
         this.model.save({}, {success: function(model, response){
-            this._modelBinder.unbind();
+            view._modelBinder.unbind();
             namespace.app.router.navigate("/projects", true);
         }});
 

@@ -27,7 +27,9 @@ function($, _, Backbone, Handlebars) {
 
     Handlebars.registerHelper("currentDate", function() {
       var d = new Date();
-      return d.getMonth() + "-" + d.getDay() + "-" + d.getYear();
+      var resp = d.getMonth() + "-" + d.getDay() + "-" + d.getFullYear();
+       console.log("Current date: " + resp);
+      return resp;
     });
 
     Backbone.LayoutManager.configure({

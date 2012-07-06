@@ -44,9 +44,6 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
 //        console.log("Need cookies");
         namespace.app.user = new User.Model(userHash);
         namespace.app.userState = {};
-        context.main = new Backbone.LayoutManager({
-                template: "base"
-        });
 
         context.loginForm = new Navbar.Views.LoginForm({
             context: context,
@@ -61,57 +58,18 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
             context.navBarView.insertView("#loginanchor", context.loginForm);
         }
 
-        context.generalAggregationView = new Aggregation.Views.GeneralAggregation({
-            context: context
-        });
-
-        context.homeView = new BaseView.Home({
-            views: {
-                "#aggregationDetail": context.generalAggregationView
-            }
-        });
-
-        context.speciesView = new SpeciesView.List();
-
-        context.speciesBaseView = new BaseView.Species({
-            views: {
-                "#detail": context.speciesView
-            }
-        });
-
-        context.projectView = new Mycotrack.Views.ProjectList({
-            context: context
-          });
-
-        context.projectBaseView = new BaseView.Project({
-            views: {
-                "#projectList": context.projectView
-            }
-        });
-
-        context.newProjectView = new BaseView.NewProject();
-        context.spawnProjectView = new BaseView.SpawnProject();
-        context.newCultureView = new BaseView.NewCulture();
-        context.newUserView = new BaseView.NewUser();
-
-        context.cultureView = new Mycotrack.Views.CultureList({
-            context: context
-          });
-
-        context.cultureBaseView = new BaseView.Culture({
-            views: {
-                "#cultureList": context.cultureView
-            }
-        });
-
         context.selectedProjectView = new Mycotrack.Views.SelectedProjectView({context: context});
 
         context.main = new Backbone.LayoutManager({
-            template: "base",
-            views: {
-                "#mtnav": context.navBarView
-            }
+            template: "base"
           });
+
+      context.nav = new Backbone.LayoutManager({
+              template: "nav",
+              views: {
+                  "#navContentAnchor": context.navBarView
+              }
+      });
 
         context.on('project:save', function(eventName){
             console.log('Refreshing project view');
@@ -140,12 +98,30 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
                 error: function(){
                     namespace.app.userState.loggedIn = false;
 
-                    context.navBarViewinsertView("#loginanchor", context.loginForm);
+                    context.insertView("#loginanchor", context.loginForm);
                     context.navBarView.render();
                 }
             });
 
         });
+
+        namespace.app.on('project:selected', function(eventName){
+
+            var selectedProject = context.get('selectedProject');
+            var selectedProjectCulture = new Culture.Model({});
+            selectedProjectCulture.id = selectedProject.get('cultureUrl');
+
+            context.selectedProjectView.options.project = selectedProject;
+            context.selectedProjectView.options.culture = selectedProjectCulture;
+    //        console.log(selectedProject );
+    //        console.log(selectedProjectCulture );
+            selectedProjectCulture.fetch({success: function(){
+                context.main.setView("#detail", context.selectedProjectView);
+                console.log('Should refresh with: ' + JSON.stringify(context.selectedProjectView.model));
+                context.selectedProjectView.render();
+            }});
+          });
+
         namespace.app.on('user:logOut', function(eventName){
             console.log("Logging out");
             $.cookies.del('mt_sess', {path : '/'});
@@ -157,11 +133,12 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
             namespace.app.trigger("login:submit");
         }
 
-        context.main.render(function(el) {
-            console.log('Rendering main');
-            $("#main").html(el);
+        context.nav.render(function(el) {
+            console.log('Rendering nav');
+            $("#mtnav").html(el);
             ModelBinding.bind(context.loginForm);
         });
+        $("#main").html(context.main.el);
 
         console.log("Finished init");
     },
@@ -184,21 +161,35 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
         var route = this;
 
         var generalAggregation = new GeneralAggregation.Model();
+        var generalAggregationView = new Aggregation.Views.GeneralAggregation({
+            context: context,
+            model: generalAggregation
+        });
+
+        var homeView = new BaseView.Home({
+            views: {
+                "#aggregationDetail": generalAggregationView
+            }
+        });
+
+        context.main.setView("#contentAnchor", homeView);
+
+        generalAggregation.on('generalagg:fetch', function(eventName){
+            console.log('Rendering general agg3');
+            console.log(homeView);
+//            $("#main").html(context.main.el);
+            context.main.render();
+        });
 
         generalAggregation.fetch({
             success: function(){
-                namespace.app.trigger('generalagg:fetch');
+                console.log('Triggering agg');
+                generalAggregation.trigger('generalagg:fetch');
             }
         });
 
         console.log('Rendering general agg1');
-        context.generalAggregationView.model=generalAggregation;
         console.log('Rendering general agg2');
-        namespace.app.on('generalagg:fetch', function(eventName){
-            console.log('Rendering general agg3');
-            context.main.setView("#contentAnchor", context.homeView);
-            context.homeView.render();
-        });
     },
 
     login: function() {
@@ -213,40 +204,35 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
       var projects = new Project.Collection();
       var cultures = new Culture.Collection();
 
+      projects.on('projects:fetch', function(eventName){
+          console.log('Rendering project view');
+          context.main.render();
+          console.log(context.main.el);
+      });
+
+      var projectView = new Mycotrack.Views.ProjectList({
+          context: context,
+          collection: cultures
+        });
+
+      var projectBaseView = new BaseView.Project({
+          views: {
+              "#projectList": projectView
+          }
+      });
+
+      context.main.setView("#contentAnchor", projectBaseView);
+
       cultures.fetch({
         data: {
             includeProjects: "true"
         },
         success: function(){
+            console.log('Triggering project fetch');
             projects.trigger('projects:fetch');
         }
       });
 
-      context.projectView.collection = cultures;
-
-      context.main.setView("#contentAnchor", context.projectBaseView);
-
-      projects.on('projects:fetch', function(eventName){
-            console.log('Rendering project view');
-            context.projectBaseView.render();
-        });
-
-      namespace.app.on('project:selected', function(eventName){
-
-        var selectedProject = context.get('selectedProject');
-        var selectedProjectCulture = new Culture.Model({});
-        selectedProjectCulture.id = selectedProject.get('cultureUrl');
-
-        context.selectedProjectView.options.project = selectedProject;
-        context.selectedProjectView.options.culture = selectedProjectCulture;
-//        console.log(selectedProject );
-//        console.log(selectedProjectCulture );
-        selectedProjectCulture.fetch({success: function(){
-            context.main.setView("#detail", context.selectedProjectView);
-            console.log('Should refresh with: ' + JSON.stringify(context.selectedProjectView.model));
-            context.selectedProjectView.render();
-        }});
-      });
     },
 
     newProject: function(hash) {
@@ -261,16 +247,19 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
         cultures.trigger('cultures:fetch');
       }});
 
-      context.main.setView("#contentAnchor", context.newProjectView);
       cultures.on('cultures:fetch', function(eventName){
 
-        context.newProjectView.model = newProject;
-        context.newProjectView.model.set('cultureList', cultures.toJSON());
+        var newProjectView = new BaseView.NewProject({
+            model: newProject
+        });
+        context.main.setView("#contentAnchor", newProjectView);
+        newProjectView.model.set('cultureList', cultures.toJSON());
 
-        context.newProjectView.bind();
-        context.newProjectView.render();
-        console.log("DATEPICKING");
-        $("#dp1").datepicker();
+        $.when(newProjectView.render()).then(function() {
+            newProjectView.bind();
+            console.log("DATEPICKING");
+            $("#dp1").datepicker();
+        });
       });
     },
 
@@ -279,11 +268,12 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
           var newProject = new Project.Model({});
           newProject.set('parent', namespace.app.parentProject.id);
 
-          context.main.setView("#contentAnchor", context.spawnProjectView);
+        var spawnProjectView = new BaseView.SpawnProject({
+            model: newProject
+        });
+          context.main.setView("#contentAnchor", spawnProjectView);
 
-          context.spawnProjectView.model = newProject;
-
-          context.spawnProjectView.render();
+          spawnProjectView.render();
           ModelBinding.bind(context.spawnProjectView);
           console.log("DATEPICKING");
           $("#dp1").datepicker();
@@ -299,14 +289,16 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
         species.trigger('species:fetch');
       }});
 
-      context.main.insertView("#contentAnchor", context.newCultureView);
       species.on('species:fetch', function(eventName){
 
-        context.newCultureView.model = newCulture;
-        context.newCultureView.model.set('speciesList', species.toJSON());
+        var newCultureView = new BaseView.NewCulture({
+            model: newCulture
+        });
+        newCultureView.model.set('speciesList', species.toJSON());
+        context.main.setView("#contentAnchor", newCultureView);
 
         //ModelBinding.bind(selectedProjectView);
-        context.newCultureView.render();
+        newCultureView.render();
       });
     },
 
@@ -314,9 +306,11 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
           var route = this;
           var newUser = new User.Model({});
 
-          context.newUserView.model = newUser;
-          context.main.setView("#contentAnchor", context.newUserView);
-          $.when(context.newUserView.render()).then(function() {
+          var newUserView = new BaseView.NewUser({
+            model: newUser
+          });
+          context.main.setView("#contentAnchor", newUserView);
+          $.when(newUserView.render()).then(function() {
             console.log("validating");
             console.log($('#mtnav'));
             $('#newUserForm').h5Validate();
@@ -332,13 +326,21 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
         cultures.trigger('cultures:fetch');
       }});
 
-      context.cultureView.collection = cultures;
+        var cultureView = new Mycotrack.Views.CultureList({
+            context: context,
+            collection: cultures
+          });
 
-      context.main.setView("#contentAnchor", context.cultureBaseView);
+        var cultureBaseView = new BaseView.Culture({
+            views: {
+                "#cultureList": cultureView
+            }
+        });
+      context.main.setView("#contentAnchor", cultureBaseView);
 
       cultures.on('cultures:fetch', function(eventName){
             console.log('Rendering culture view');
-            context.cultureBaseView.render();
+            cultureBaseView.render();
         });
 
       context.on('culture:selected', function(eventName){
@@ -355,13 +357,20 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
         species.trigger('species:fetch');
       }});
 
-      context.speciesView.collection = species;
+        var speciesView = new SpeciesView.List({
+            collection: species
+        });
 
-      context.main.setView("#contentAnchor", context.speciesBaseView);
+        var speciesBaseView = new BaseView.Species({
+            views: {
+                "#detail": speciesView
+            }
+        });
+      context.main.setView("#contentAnchor", speciesBaseView);
 
       species.on('species:fetch', function(eventName){
             console.log('Rendering species view');
-            context.speciesBaseView.render();
+            speciesBaseView.render();
         });
     }
   });
