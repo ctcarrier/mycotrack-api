@@ -23,13 +23,14 @@ import caching._
 import caching.LruCache._
 import directives.Remaining
 import utils.Logging
+import java.text.SimpleDateFormat
 
 /**
  * @author chris carrier
  */
 
 trait ProjectEndpoint extends Directives with LiftJsonSupport with Logging {
-  implicit val liftJsonFormats = DefaultFormats + new ObjectIdSerializer
+  implicit val liftJsonFormats = DefaultFormats.lossless + new ObjectIdSerializer
 
   final val NOT_FOUND_MESSAGE = "resource.notFound"
   final val INTERNAL_ERROR_MESSAGE = "error"

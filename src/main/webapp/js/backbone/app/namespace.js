@@ -7,7 +7,8 @@ define([
 
   //Plugins
   "use!layoutmanager",
-  "use!bootstrapdropdown"
+  "use!bootstrapdropdown",
+  "use!datejs"
 ],
 
 function($, _, Backbone, Handlebars) {
@@ -30,6 +31,18 @@ function($, _, Backbone, Handlebars) {
       var resp = d.getMonth() + "-" + d.getDay() + "-" + d.getFullYear();
        console.log("Current date: " + resp);
       return resp;
+    });
+
+    Handlebars.registerHelper("formatDate", function(date, format) {
+      if (!date || !format){
+        console.log("Not enough params");
+      }
+
+      var res = date.toString(format);
+
+      console.log("Formatted date: " + res);
+
+      return res;
     });
 
     Backbone.LayoutManager.configure({

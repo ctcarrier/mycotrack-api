@@ -26,6 +26,7 @@ require.config({
     jqueryvalidate: "../assets/js/libs/jquery.validate",
     h5validate: "../assets/js/libs/jquery.h5validate",
     jquerycookies: "../assets/js/plugins/jquery.cookies.2.2.0",
+    datejs: "../assets/js/plugins/date-en-US",
 
     // Shim Plugin
     use: "../assets/js/plugins/use"
@@ -83,6 +84,9 @@ require.config({
         deps: ["jquery"]
     },
     jquerycookies: {
+        deps: ["jquery"]
+    },
+    datejs: {
         deps: ["jquery"]
     }
   }

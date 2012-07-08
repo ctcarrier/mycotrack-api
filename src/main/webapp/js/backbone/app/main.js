@@ -45,6 +45,31 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
         namespace.app.user = new User.Model(userHash);
         namespace.app.userState = {};
 
+        namespace.app.intConverter = function(direction, value){
+            if (!value){
+                return value;
+            }
+           if (direction == Backbone.ModelBinder.Constants.ModelToView){
+                return value.toString();
+           }
+           else {
+                return parseInt(value);
+           }
+        }
+
+        namespace.app.dateConverter = function(direction, value){
+            console.log(value);
+            if (!value){
+                return value;
+            }
+           if (direction == Backbone.ModelBinder.Constants.ModelToView){
+                return value.getMonth() + "-" + value.getDay() + "-" + value.getFullYear();
+           }
+           else {
+                return new Date(value);
+           }
+        }
+
         context.loginForm = new Navbar.Views.LoginForm({
             context: context,
             model: namespace.app.user
@@ -57,8 +82,6 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
         if (!userCookie) {
             context.navBarView.insertView("#loginanchor", context.loginForm);
         }
-
-        context.selectedProjectView = new Mycotrack.Views.SelectedProjectView({context: context});
 
         context.main = new Backbone.LayoutManager({
             template: "base"
@@ -111,14 +134,15 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
             var selectedProjectCulture = new Culture.Model({});
             selectedProjectCulture.id = selectedProject.get('cultureUrl');
 
-            context.selectedProjectView.options.project = selectedProject;
-            context.selectedProjectView.options.culture = selectedProjectCulture;
+            var selectedProjectView = new Mycotrack.Views.SelectedProjectView({context: context});
+            selectedProjectView.options.project = selectedProject;
+            selectedProjectView.options.culture = selectedProjectCulture;
     //        console.log(selectedProject );
     //        console.log(selectedProjectCulture );
             selectedProjectCulture.fetch({success: function(){
-                context.main.setView("#detail", context.selectedProjectView);
-                console.log('Should refresh with: ' + JSON.stringify(context.selectedProjectView.model));
-                context.selectedProjectView.render();
+                context.main.setView("#detail", selectedProjectView);
+//                console.log('Should refresh with: ' + JSON.stringify(selectedProjectView.model));
+                selectedProjectView.render();
             }});
           });
 
@@ -237,7 +261,10 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
 
     newProject: function(hash) {
       var route = this;
-      var newProject = new Project.Model({});
+      var newProject = new Project.Model({
+        count: 1,
+        startDate: new Date()
+      });
       if (namespace.app.parentProject){
         newProject.set('parent', namespace.app.parentProject.id);
       }
