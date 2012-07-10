@@ -5,7 +5,6 @@ define([
   "jquery",
   "use!underscore",
   "use!backbone",
-  "modelbinding",
   "modelbinder",
 
   // Modules
@@ -14,7 +13,7 @@ define([
   // Plugins
 ],
 
-function(namespace, $, _, Backbone, ModelBinding, ModelBinder, User) {
+function(namespace, $, _, Backbone, ModelBinder, User) {
 
   // Create a new module
   var BaseView = namespace.module();
@@ -51,6 +50,8 @@ function(namespace, $, _, Backbone, ModelBinding, ModelBinder, User) {
         var bindings = Backbone.ModelBinder.createDefaultBindings(this.el, 'name');
         bindings['count'].converter = namespace.app.intConverter;
         bindings['startDate'].converter = namespace.app.dateConverter;
+        console.log("Binding:");
+        console.log(bindings);
         this._modelBinder.bind(this.model, this.el, bindings);
     },
 
@@ -85,15 +86,28 @@ function(namespace, $, _, Backbone, ModelBinding, ModelBinder, User) {
           "click #project-submit": "saveSelected"
       },
 
+      _modelBinder: undefined,
+
+      initialize:function () {
+          this._modelBinder = new Backbone.ModelBinder();
+      },
+
+      bind:function() {
+            var bindings = Backbone.ModelBinder.createDefaultBindings(this.el, 'name');
+          bindings['count'].converter = namespace.app.intConverter;
+          bindings['startDate'].converter = namespace.app.dateConverter;
+          this._modelBinder.bind(this.model, this.el, bindings);
+      },
+
       saveSelected: function() {
           var view = this;
-          ModelBinding.bind(this);
           this.model.set('enabled', true);
           if (namespace.app.parentProject){
               this.model.set('parent', namespace.app.parentProject.id);
+              namespace.app.parentProject.set('enabled', false);
+              namespace.app.parentProject.save();
               namespace.app.parentProject = null;
           }
-          console.log('Saving new: ' + JSON.stringify(this.model));
           this.model.save({}, {success: function(model, response){
               namespace.app.router.navigate("/projects", true);
           }});
@@ -115,7 +129,6 @@ function(namespace, $, _, Backbone, ModelBinding, ModelBinder, User) {
     saveSelected: function() {
         var view = this;
         ModelBinding.bind(this);
-        console.log('Saving new: ' + JSON.stringify(this.model));
         this.model.save({}, {success: function(model, response){
             namespace.app.router.navigate("/cultureList", true);
         }});
@@ -143,7 +156,6 @@ function(namespace, $, _, Backbone, ModelBinding, ModelBinder, User) {
             email: newEmail,
             password: newPass
           });
-          console.log('Saving new: ' + JSON.stringify(this.model));
           this.model.save({}, {success: function(model, response){
               namespace.app.router.navigate("/", true);
               namespace.app.user.set({

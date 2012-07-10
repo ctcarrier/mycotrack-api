@@ -5,7 +5,6 @@ require([
   "jquery",
   "use!underscore",
   "use!backbone",
-  "modelbinding",
   "use!base64",
 
   // Modules
@@ -26,10 +25,11 @@ require([
   "use!bootstrapdatepicker",
   "use!gx",
   "use!h5validate",
-  "use!jquerycookies"
+  "use!jquerycookies",
+  "use!datejs"
 ],
 
-function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Context, Navbar, Project, Species, Culture, GeneralAggregation, Aggregation, BaseView, SpeciesView, User, Login) {
+function(namespace, jQuery, _, Backbone, Base64, Mycotrack, Context, Navbar, Project, Species, Culture, GeneralAggregation, Aggregation, BaseView, SpeciesView, User, Login) {
 
     var context = new Context.Model();
 
@@ -46,6 +46,7 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
         namespace.app.userState = {};
 
         namespace.app.intConverter = function(direction, value){
+            console.log("Running int converter");
             if (!value){
                 return value;
             }
@@ -58,15 +59,16 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
         }
 
         namespace.app.dateConverter = function(direction, value){
-            console.log(value);
+            console.log("Running date converter");
             if (!value){
                 return value;
             }
            if (direction == Backbone.ModelBinder.Constants.ModelToView){
-                return value.getMonth() + "-" + value.getDay() + "-" + value.getFullYear();
+                return value.toString("MM-dd-yyyy");
            }
            else {
-                return new Date(value);
+                var res = Date.parseExact(value, "M-d-yyyy");
+                return res;
            }
         }
 
@@ -77,6 +79,7 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
 
         context.navBarView = new Navbar.Views.Navbar({
             context: context,
+            model: namespace.app.user,
             userState: namespace.app.userState
         });
         if (!userCookie) {
@@ -158,9 +161,7 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
         }
 
         context.nav.render(function(el) {
-            console.log('Rendering nav');
             $("#mtnav").html(el);
-            ModelBinding.bind(context.loginForm);
         });
         $("#main").html(context.main.el);
 
@@ -283,16 +284,18 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
         newProjectView.model.set('cultureList', cultures.toJSON());
 
         $.when(newProjectView.render()).then(function() {
-            newProjectView.bind();
-            console.log("DATEPICKING");
             $("#dp1").datepicker();
+            newProjectView.bind();
         });
       });
     },
 
     spawnProject: function() {
           var route = this;
-          var newProject = new Project.Model({});
+          var newProject = new Project.Model({
+            count: 1,
+            startDate: new Date()
+          });
           newProject.set('parent', namespace.app.parentProject.id);
 
         var spawnProjectView = new BaseView.SpawnProject({
@@ -300,8 +303,10 @@ function(namespace, jQuery, _, Backbone, ModelBinding, Base64, Mycotrack, Contex
         });
           context.main.setView("#contentAnchor", spawnProjectView);
 
-          spawnProjectView.render();
-          ModelBinding.bind(context.spawnProjectView);
+          spawnProjectView.render(function(){
+                spawnProjectView.bind();
+          });
+
           console.log("DATEPICKING");
           $("#dp1").datepicker();
         },

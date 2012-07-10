@@ -5,7 +5,6 @@ define([
   "jquery",
   "use!underscore",
   "use!backbone",
-  "modelbinding",
   "use!modelbinder",
 
   // Modules
@@ -14,7 +13,7 @@ define([
   // Plugins
 ],
 
-function(namespace, $, _, Backbone, ModelBinding, ModelBinder, Context, Project) {
+function(namespace, $, _, Backbone, ModelBinder, Context, Project) {
 
   // Create a new module
   var Mycotrack = namespace.module();
@@ -58,7 +57,7 @@ function(namespace, $, _, Backbone, ModelBinding, ModelBinder, Context, Project)
 
     spawnEvent: function() {
         namespace.app.parentProject = this.options.project;
-        namespace.app.router.navigate("/sparojectqqjhv", true);
+        namespace.app.router.navigate("/spawn_project", true);
     },
 
     shakeEvent: function() {

@@ -31,7 +31,7 @@
         <h3>Events</h3>
         <ul>
         {{#each project.events}}
-            <li>{{name}} - {{dateCreated}}</li>
+            <li>{{name}} - {{{formatDate dateCreated "MM-dd-yyyy"}}}</li>
         {{/each}}
         </ul>
     </span>

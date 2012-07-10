@@ -5,7 +5,6 @@ define([
   "jquery",
   "use!underscore",
   "use!backbone",
-  "modelbinding",
 
   // Modules
   "modules/mt-context"

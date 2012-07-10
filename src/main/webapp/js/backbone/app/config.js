@@ -13,7 +13,6 @@ require.config({
     underscore: "../assets/js/libs/underscore",
     backbone: "../assets/js/libs/backbone",
     backboneforms: "../assets/js/libs/backbone-forms",
-    modelbinding: "../assets/js/libs/backbone.modelbinding",
     modelbinder: "../assets/js/libs/Backbone.ModelBinder",
     collectionbinder: "../assets/js/libs/Backbone.CollectionBinder",
     handlebars: "../assets/js/libs/handlebars-1.0.0.beta.6",
@@ -55,10 +54,6 @@ require.config({
     },
      handlebars: {
         attach: "Handlebars"
-    },
-    modelbinding: {
-        deps: ["use!backbone", "use!underscore"],
-        attach: "ModelBinding"
     },
     modelbinder: {
         deps: ["use!backbone", "jquery"],

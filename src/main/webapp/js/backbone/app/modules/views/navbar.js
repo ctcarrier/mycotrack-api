@@ -31,6 +31,13 @@ function(namespace, $, _, Backbone) {
         "click #log_out": "logOut"
     },
 
+    _modelBinder: undefined,
+
+      initialize:function () {
+          this._modelBinder = new Backbone.ModelBinder();
+          this._modelBinder.bind(this.model, this.el);
+      },
+
     serialize: function() {
         console.log("Serializing in navbar: " + JSON.stringify(this.options.userState));
       return this.options.userState;
