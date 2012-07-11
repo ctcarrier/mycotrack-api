@@ -26,6 +26,7 @@ require.config({
     h5validate: "../assets/js/libs/jquery.h5validate",
     jquerycookies: "../assets/js/plugins/jquery.cookies.2.2.0",
     datejs: "../assets/js/plugins/date-en-US",
+    collapsiblelists: "../assets/js/libs/CollapsibleLists",
 
     // Shim Plugin
     use: "../assets/js/plugins/use"

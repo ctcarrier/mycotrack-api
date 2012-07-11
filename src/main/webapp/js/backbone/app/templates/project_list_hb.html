@@ -1,4 +1,6 @@
-<h2>{{name}}</h2>
+{{name}}
+<ul class="collapsibleList">
 {{#each projects}}
-<a href='{{id}}'>{{id}}</a>
+<li><a href='{{id}}'>{{{prettyProductId id}}}</a></li>
 {{/each}}
+</ul>

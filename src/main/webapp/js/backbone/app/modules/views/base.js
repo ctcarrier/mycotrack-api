@@ -18,8 +18,15 @@ function(namespace, $, _, Backbone, ModelBinder, User) {
   // Create a new module
   var BaseView = namespace.module();
 
-   BaseView.Project = Backbone.View.extend({
-    template: "base/project_base"
+  BaseView.Project = Backbone.View.extend({
+    template: "base/project_base",
+
+    initialize: function(){
+//        namespace.app.on("projects:fetch", function() {
+//            console.log("Rendering project base view");
+//          this.render();
+//        }, this);
+    }
   });
 
   BaseView.Culture = Backbone.View.extend({
@@ -126,9 +133,18 @@ function(namespace, $, _, Backbone, ModelBinder, User) {
         "click #culture-submit": "saveSelected"
     },
 
+    _modelBinder: undefined,
+
+    initialize:function () {
+        this._modelBinder = new Backbone.ModelBinder();
+    },
+
+    bind: function() {
+        this._modelBinder.bind(this.model, this.el);
+    },
+
     saveSelected: function() {
         var view = this;
-        ModelBinding.bind(this);
         this.model.save({}, {success: function(model, response){
             namespace.app.router.navigate("/cultureList", true);
         }});

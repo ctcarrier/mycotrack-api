@@ -26,6 +26,7 @@ require([
   "use!gx",
   "use!h5validate",
   "use!jquerycookies",
+  "collapsiblelists",
   "use!datejs"
 ],
 
@@ -200,21 +201,14 @@ function(namespace, jQuery, _, Backbone, Base64, Mycotrack, Context, Navbar, Pro
         context.main.setView("#contentAnchor", homeView);
 
         generalAggregation.on('generalagg:fetch', function(eventName){
-            console.log('Rendering general agg3');
-            console.log(homeView);
-//            $("#main").html(context.main.el);
             context.main.render();
         });
 
         generalAggregation.fetch({
             success: function(){
-                console.log('Triggering agg');
                 generalAggregation.trigger('generalagg:fetch');
             }
         });
-
-        console.log('Rendering general agg1');
-        console.log('Rendering general agg2');
     },
 
     login: function() {
@@ -230,9 +224,9 @@ function(namespace, jQuery, _, Backbone, Base64, Mycotrack, Context, Navbar, Pro
       var cultures = new Culture.Collection();
 
       projects.on('projects:fetch', function(eventName){
-          console.log('Rendering project view');
-          context.main.render();
-          console.log(context.main.el);
+          context.main.render(function(el){
+            CollapsibleLists.applyTo(el);
+          });
       });
 
       var projectView = new Mycotrack.Views.ProjectList({
@@ -253,7 +247,6 @@ function(namespace, jQuery, _, Backbone, Base64, Mycotrack, Context, Navbar, Pro
             includeProjects: "true"
         },
         success: function(){
-            console.log('Triggering project fetch');
             projects.trigger('projects:fetch');
         }
       });
@@ -294,9 +287,13 @@ function(namespace, jQuery, _, Backbone, Base64, Mycotrack, Context, Navbar, Pro
           var route = this;
           var newProject = new Project.Model({
             count: 1,
-            startDate: new Date()
+            startDate: new Date(),
+            parent: namespace.app.parentProject.id,
+            cultureUrl: namespace.app.parentProject.get("cultureUrl")
           });
-          newProject.set('parent', namespace.app.parentProject.id);
+
+          console.log("newProject: ");
+          console.log(newProject);
 
         var spawnProjectView = new BaseView.SpawnProject({
             model: newProject
@@ -307,7 +304,6 @@ function(namespace, jQuery, _, Backbone, Base64, Mycotrack, Context, Navbar, Pro
                 spawnProjectView.bind();
           });
 
-          console.log("DATEPICKING");
           $("#dp1").datepicker();
         },
 
@@ -315,7 +311,6 @@ function(namespace, jQuery, _, Backbone, Base64, Mycotrack, Context, Navbar, Pro
       var route = this;
       var newCulture = new Culture.Model({});
       var species = new Species.Collection();
-      console.log('Rendering new culture');
 
       species.fetch({success: function(){
         species.trigger('species:fetch');
@@ -329,8 +324,9 @@ function(namespace, jQuery, _, Backbone, Base64, Mycotrack, Context, Navbar, Pro
         newCultureView.model.set('speciesList', species.toJSON());
         context.main.setView("#contentAnchor", newCultureView);
 
-        //ModelBinding.bind(selectedProjectView);
-        newCultureView.render();
+        newCultureView.render(function(el){
+            newCultureView.bind();
+        });
       });
     },
 

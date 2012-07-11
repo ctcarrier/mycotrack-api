@@ -46,6 +46,14 @@ function($, _, Backbone, Handlebars) {
       return res;
     });
 
+    Handlebars.registerHelper("prettyProductId", function(id) {
+      if (!id || id.indexOf("/projects/") == -1){
+        return "";
+      }
+
+      return id.replace("/projects/", "");
+    });
+
     Backbone.LayoutManager.configure({
         paths: {
           layout: "/js/backbone/app/templates/layouts/",

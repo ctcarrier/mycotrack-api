@@ -1,5 +1,5 @@
 <a href="{{project.parent}}">{{project.parent}}</a>
-<span class="row">
+<div class="row">
     <span class="span2">
         <h3>General</h3>
         <ul>
@@ -16,23 +16,23 @@
             <li><a href="{{culture.id}}">{{culture.name}}</a></li>
         </ul>
     </span>
-</span>
-<div class="row">
+</div>
+<div class="row span4">
     <button id="spawnButton">SPAWN!</button>
 </div>
 <div class="row">
-    <button id="shakeButton">Shake</button>
-    <button id="contaminationButton">Contamination</button>
-    <button id="pinningButton">Pinning</button>
-    <button id="colonizedButton">Colonized</button>
-</div>
-<div class="row">
+    <h3>Events</h3>
+    <span class="span1">
+        <button id="shakeButton">Shake</button>
+        <button id="contaminationButton">Contamination</button>
+        <button id="pinningButton">Pinning</button>
+        <button id="colonizedButton">Colonized</button>
+    </span>
     <span class="span4">
-        <h3>Events</h3>
         <ul>
-        {{#each project.events}}
+            {{#each project.events}}
             <li>{{name}} - {{{formatDate dateCreated "MM-dd-yyyy"}}}</li>
-        {{/each}}
+            {{/each}}
         </ul>
     </span>
 </div>

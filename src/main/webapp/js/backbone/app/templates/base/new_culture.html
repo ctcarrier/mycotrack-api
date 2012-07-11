@@ -1,14 +1,13 @@
 <div class="span4 offset2">
     <form id="idForm">
             <div class="control-group">
-                    <label class="control-label" for="name">name</label>
+                    <label class="control-label" for="nameInput">name</label>
                     <div class="controls">
-                            <input id="name" type="text" class="input-xlarge" >
+                            <input id="nameInput" name="name" type="text" class="input-xlarge" >
                     </div>
             </div>
-            <select id="speciesUrl">
+            <select name="speciesUrl">
                 <option name="">Species...</option>
-                {{debug}}
                 {{#each speciesList}}
                    <option value="{{this.id}}">{{this.commonName}}({{scientificName}})</option>
                 {{/each}}

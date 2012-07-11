@@ -31,6 +31,7 @@ trait CultureDao extends ICultureDao {
         //fetch list of projects by culture
         val projectBuilder = MongoDBObject.newBuilder
         cw._id.foreach(projectBuilder += "content.cultureUrl" -> _)
+        projectBuilder += ("content.enabled" -> true)
         val listRes = projCollection.find(projectBuilder.result.asDBObject).map(p => {
           val pw = grater[ProjectWrapper].asObject(p)
           pw.content.head.copy(id = pw._id)

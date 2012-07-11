@@ -9,8 +9,9 @@ define([
 
   // Modules
   "modules/mt-context",
-  "modules/models/project"
+  "modules/models/project",
   // Plugins
+  "collapsiblelists"
 ],
 
 function(namespace, $, _, Backbone, ModelBinder, Context, Project) {
@@ -133,7 +134,12 @@ function(namespace, $, _, Backbone, ModelBinder, Context, Project) {
     initialize: function(){
         console.log('Initializing projectListView');
         _.bindAll('render');
-
+//        namespace.app.on("projects:fetch", function() {
+//            console.log("Rendering list view");
+//          this.render(function(el){
+//            CollapsibleLists.applyTo(el);
+//          });
+//        }, this);
     },
 
     render: function(manage) {
