@@ -125,7 +125,7 @@ function(namespace, jQuery, _, Backbone, Base64, Mycotrack, Context, Navbar, Pro
                 error: function(){
                     namespace.app.userState.loggedIn = false;
 
-                    context.insertView("#loginanchor", context.loginForm);
+                    context.navBarView.insertView("#loginanchor", context.loginForm);
                     context.navBarView.render();
                 }
             });
