@@ -35,7 +35,10 @@ function(namespace, $, _, Backbone) {
 
       initialize:function () {
           this._modelBinder = new Backbone.ModelBinder();
-          this._modelBinder.bind(this.model, this.el);
+      },
+
+      bindForm: function() {
+            this._modelBinder.bind(this.model, this.el);
       },
 
     serialize: function() {
@@ -96,7 +99,7 @@ function(namespace, $, _, Backbone) {
     },
 
     login: function() {
-        console.log("Should login with: " + JSON.stringify(this.model));
+        console.log("Should login with: " + JSON.stringify(namespace.app.user));
         namespace.app.trigger('login:submit');
     },
 

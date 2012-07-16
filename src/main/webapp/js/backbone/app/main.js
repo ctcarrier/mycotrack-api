@@ -162,6 +162,7 @@ function(namespace, jQuery, _, Backbone, Base64, Mycotrack, Context, Navbar, Pro
         }
 
         context.nav.render(function(el) {
+            context.navBarView.bindForm();
             $("#mtnav").html(el);
         });
         $("#main").html(context.main.el);
