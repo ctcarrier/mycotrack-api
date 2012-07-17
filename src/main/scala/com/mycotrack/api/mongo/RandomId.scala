@@ -2,7 +2,7 @@ package com.mycotrack.api.mongo
 
 import java.io.{DataOutputStream, ByteArrayOutputStream}
 import org.apache.commons.codec.binary.Base64
-import cc.spray.utils.Logging
+import com.weiglewilczek.slf4s.Logging
 
 /**
  * @author chris_carrier
@@ -28,7 +28,7 @@ object RandomId extends Logging {
     //val sec = new java.security.SecureRandom
     //val sbuf = sec.generateSeed(4)
 
-    log.info("Using util.Random")
+    logger.info("Using util.Random")
 
     val sbuf = new Array[Byte](4)
     val rand = new java.util.Random

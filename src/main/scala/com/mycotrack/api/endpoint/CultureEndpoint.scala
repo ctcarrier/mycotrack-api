@@ -3,7 +3,6 @@ package com.mycotrack.api.endpoint
 import com.mycotrack.api.auth.FromMongoUserPassAuthenticator
 import com.mycotrack.api.json.{ObjectIdSerializer}
 import org.bson.types.ObjectId
-import akka.event.EventHandler
 import cc.spray.http._
 import cc.spray.typeconversion._
 import HttpHeaders._
@@ -19,9 +18,10 @@ import net.liftweb.json.{Formats, DefaultFormats}
 import cc.spray._
 import akka.dispatch.Future
 import cc.spray.authentication._
-import utils.Logging
+import com.weiglewilczek.slf4s.Logging
+import com.mycotrack.api.spray.MongoAuthSupport
 
-trait CultureEndpoint extends Directives with LiftJsonSupport with Logging {
+trait CultureEndpoint extends Directives with LiftJsonSupport with Logging with MongoAuthSupport {
   implicit val liftJsonFormats = DefaultFormats + new ObjectIdSerializer
 
   final val NOT_FOUND_MESSAGE = "resource.notFound"
@@ -33,26 +33,13 @@ trait CultureEndpoint extends Directives with LiftJsonSupport with Logging {
 
   val service: ICultureDao
 
-  def withErrorHandling(ctx: RequestContext)(f: Future[_]): Future[_] = {
-    f.onTimeout(f => {
-      ctx.fail(StatusCodes.InternalServerError, ErrorResponse(1, ctx.request.path, List("Internal error.")))
-      log.info("Timed out")
-    }).onException {
-      case e => {
-        EventHandler.info(this, "Excepted: " + e)
-        ctx.fail(StatusCodes.InternalServerError, ErrorResponse(1, ctx.request.path, List(e.getMessage)))
-      }
-    }
-  }
-
   def withSuccessCallback(ctx: RequestContext, statusCode: StatusCode = OK)(f: Future[_]): Future[_] = {
     f.onComplete(f => {
-      f.result.get match {
-        case Some(CultureWrapper(oid, version, dateCreated, lastUpdated, content)) => ctx.complete(statusCode, content.map(x => x.copy(id = oid)).head)
-        case Some(c: Culture) => ctx.complete(c)
-        case Some(c: List[Culture]) => ctx.complete(c)
-        case x => {
-          log.info("Received unexpected: %s" format(x.toString))
+      f match {
+        case Right(Some(CultureWrapper(oid, version, dateCreated, lastUpdated, content))) => ctx.complete(statusCode, content.map(x => x.copy(id = oid)).head)
+        case Right(Some(c: Culture)) => ctx.complete(c)
+        case Right(Some(c: List[Culture])) => ctx.complete(c)
+        case _ => {
           ctx.fail(StatusCodes.NotFound, ErrorResponse(1l, ctx.request.path, List(NOT_FOUND_MESSAGE)))
         }
       }
@@ -70,64 +57,52 @@ trait CultureEndpoint extends Directives with LiftJsonSupport with Logging {
     // Debugging: /ping -> pong
     // Service implementation.
     pathPrefix("api" / "cultures") {
-      authenticate(httpMongo(realm = "mycotrack", authenticator = FromMongoUserPassAuthenticator)) { user =>
+      authenticate(httpMongo()) { user =>
       objectIdPathMatch {
         resourceId =>
           get {
             ctx =>
-                withErrorHandling(ctx) {
                   withSuccessCallback(ctx) {
                     service.get[CultureWrapper](service.formatKeyAsId(resourceId), user.id)
                   }
-                }
+
           } ~
             putCulture {
               resource => ctx =>
-                  withErrorHandling(ctx) {
                     withSuccessCallback(ctx) {
                       service.update[Culture, CultureWrapper](resourceId, resource)
                     }
-                  }
+
             }
       } ~
         postCulture {
           resource => ctx =>
-            withErrorHandling(ctx) {
               withSuccessCallback(ctx, Created) {
                 service.create[CultureWrapper](resource.copy(userUrl = user.id))
               }
-            }
+
         } ~
         getProjectsByCulture {
             completeWith {
-              log.info("Got culture project request")
+              logger.info("Got culture project request")
               val result = service.getProjectsByCulture(user.id).get
-              log.info("Result is: " + result)
+              logger.info("Result is: " + result)
               result
             }
         } ~
         searchCultures {
           (name, includeProjects) => ctx =>
-            withErrorHandling(ctx) {
               service.search(CultureSearchParams(name, user.id), includeProjects).onComplete(f => {
-                f.result.get match {
-                    case Some(content) => {
+                f match {
+                    case Right(Some(content)) => {
                       val res: List[Culture] = content
                       ctx.complete(res)
                     }
-                    case None => ctx.fail(StatusCodes.NotFound, ErrorResponse(1, ctx.request.path, List(NOT_FOUND_MESSAGE)))
+                    case _ => ctx.fail(StatusCodes.NotFound, ErrorResponse(1, ctx.request.path, List(NOT_FOUND_MESSAGE)))
                   }
                 })
-            }
         }
       }
     }
   }
-
-  def httpMongo[U](realm: String = "Secured Resource",
-                   authenticator: UserPassAuthenticator[U] = FromMongoUserPassAuthenticator)
-  : BasicHttpAuthenticator[U] =
-    new BasicHttpAuthenticator[U](realm, authenticator)
-
-
 }

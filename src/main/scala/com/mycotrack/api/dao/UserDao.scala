@@ -9,6 +9,7 @@ import com.mycotrack.api._
 import model._
 import mongo.RandomId
 import org.bson.types.ObjectId
+import akka.actor.ActorSystem
 
 /**
  * @author chris carrier
@@ -16,6 +17,7 @@ import org.bson.types.ObjectId
 
 trait UserDao extends UserService {
 
+  implicit def actorSystem: ActorSystem
   val mongoCollection: MongoCollection
   def urlPrefix = "/users/"
 

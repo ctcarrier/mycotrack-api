@@ -8,10 +8,12 @@ import com.mycotrack.api.mongo.RandomId
 import com.novus.salat._
 import com.novus.salat.global._
 import scala.reflect.Manifest
-import cc.spray.utils.Logging
+import com.weiglewilczek.slf4s.Logging
+import akka.actor.ActorSystem
 
 trait MycotrackDao[T <: CaseClass, W <: CaseClass] extends Logging {
   val mongoCollection: MongoCollection
+  implicit def actorSystem: ActorSystem
 
   def urlPrefix: String
   def formatKeyAsId(s: String): String = {
@@ -39,7 +41,7 @@ trait MycotrackDao[T <: CaseClass, W <: CaseClass] extends Logging {
       val dbo = mongoCollection.findOne(builder.result.asDBObject)
       val result = dbo.map(f => grater[TT].asObject(f))
 
-      log.debug("GET results at DAO: " + result.toString)
+      logger.debug("GET results at DAO: " + result.toString)
       result
     }
   }

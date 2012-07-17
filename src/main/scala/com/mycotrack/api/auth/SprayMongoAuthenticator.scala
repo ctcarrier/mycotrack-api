@@ -9,12 +9,11 @@ import com.mongodb.casbah.commons.MongoDBObject
 import com.mongodb.casbah.commons.Imports._
 import com.novus.salat._
 import com.novus.salat.global._
-import akka.event.EventHandler
-import akka.dispatch.Future
 import com.mycotrack.api.model.{UserWrapper, User}
-import utils.Logging
+import com.weiglewilczek.slf4s.Logging
 import com.mycotrack.api.mongo.MongoSettings
 import scala.util.Properties
+import akka.dispatch.{ExecutionContext, Future}
 
 /**
  * @author chris_carrier
@@ -44,19 +43,23 @@ import scala.util.Properties
   def authenticate(credentials: Option[HttpCredentials], ctx: RequestContext): Option[U]
 }*/
 
-object FromMongoUserPassAuthenticator extends UserPassAuthenticator[User] with Logging {
-  def apply(userPass: Option[(String, String)]) = {
-    log.info("Mongo auth")
-    Future {
-      userPass.flatMap {
-        case (user, pass) => {
-          log.info("Autenticating: " + user + " " + pass)
-          val MongoSettings(db) = Properties.envOrNone("MONGOHQ_URL")
-          val userColl = db("users")
-          val userResult = userColl.findOne(MongoDBObject("content.email" -> user) ++ ("content.password" -> pass))
-          userResult.map(grater[UserWrapper].asObject(_))
+object FromMongoUserPassAuthenticator extends Logging {
+  def apply()(implicit executor: ExecutionContext): UserPassAuthenticator[User] = {
+    new UserPassAuthenticator[User] {
+      def apply(userPass: Option[(String, String)]) = {
+        logger.info("Mongo auth")
+        Future {
+          userPass.flatMap {
+            case (user, pass) => {
+              logger.info("Autenticating: " + user + " " + pass)
+              val MongoSettings(db) = Properties.envOrNone("MONGOHQ_URL")
+              val userColl = db("users")
+              val userResult = userColl.findOne(MongoDBObject("content.email" -> user) ++ ("content.password" -> pass))
+              userResult.map(grater[UserWrapper].asObject(_))
+            }
+            case _ => None
+          }
         }
-        case _ => None
       }
     }
   }

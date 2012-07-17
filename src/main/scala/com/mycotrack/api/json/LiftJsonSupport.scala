@@ -6,7 +6,6 @@ import http._
 import MediaTypes._
 
 import net.liftweb.json.Serialization._
-import akka.event.EventHandler
 import org.bson.types.ObjectId
 import net.liftweb.json.JsonAST.{JString, JValue}
 import net.liftweb.json._

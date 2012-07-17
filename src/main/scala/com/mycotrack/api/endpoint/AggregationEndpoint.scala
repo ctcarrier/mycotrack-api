@@ -3,7 +3,6 @@ package com.mycotrack.api.endpoint
 import com.mycotrack.api.auth.FromMongoUserPassAuthenticator
 import com.mycotrack.api.json.{ObjectIdSerializer}
 import org.bson.types.ObjectId
-import akka.event.EventHandler
 import cc.spray.http._
 import cc.spray.typeconversion._
 import HttpHeaders._
@@ -22,7 +21,7 @@ import cc.spray._
 import akka.dispatch.Future
 import caching._
 import caching.LruCache._
-import utils.Logging
+import com.weiglewilczek.slf4s.Logging
 
 trait AggregationEndpoint extends Directives with LiftJsonSupport with Logging {
   implicit val liftJsonFormats = DefaultFormats + new ObjectIdSerializer
@@ -39,23 +38,11 @@ trait AggregationEndpoint extends Directives with LiftJsonSupport with Logging {
   //directive compositions
   val objectIdPathMatch = path("^[a-f0-9]+$".r)
 
-  def withErrorHandling(ctx: RequestContext)(f: Future[_]): Future[_] = {
-    f.onTimeout(f => {
-      ctx.fail(StatusCodes.InternalServerError, ErrorResponse(1, ctx.request.path, List("Internal error.")))
-      log.info("Timed out")
-    }).onException {
-      case e => {
-        log.info("Excepted: " + e)
-        ctx.fail(StatusCodes.InternalServerError, ErrorResponse(1, ctx.request.path, List(e.getMessage)))
-      }
-    }
-  }
-
   def withSuccessCallback(ctx: RequestContext, statusCode: StatusCode = OK)(f: Future[_]): Future[_] = {
     f.onComplete(f => {
-      f.result.get match {
-        case agg: Some[General] => ctx.complete(agg.get)
-        case None => ctx.fail(StatusCodes.NotFound, ErrorResponse(1l, ctx.request.path, List(NOT_FOUND_MESSAGE)))
+      f match {
+        case Right(Some(agg: General)) => ctx.complete(agg)
+        case _ => ctx.fail(StatusCodes.NotFound, ErrorResponse(1l, ctx.request.path, List(NOT_FOUND_MESSAGE)))
       }
     })
   }
@@ -66,23 +53,13 @@ trait AggregationEndpoint extends Directives with LiftJsonSupport with Logging {
     path("api" / "aggregations") {
         get {
           ctx => {
-            log.info("Got agg request")
-            withErrorHandling(ctx){
+            logger.info("Got agg request")
               withSuccessCallback(ctx) {
-                log.info("Getting aggregation")
+                logger.info("Getting aggregation")
                   service.getGeneralAggregation
-
               }
-            }
           }
         }
     }
   }
-
-  def httpMongo[U](realm: String = "Secured Resource",
-                   authenticator: UserPassAuthenticator[U] = FromMongoUserPassAuthenticator)
-  : BasicHttpAuthenticator[U] =
-    new BasicHttpAuthenticator[U](realm, authenticator)
-
-
 }

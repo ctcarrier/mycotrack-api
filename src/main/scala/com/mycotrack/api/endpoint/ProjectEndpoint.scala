@@ -3,7 +3,6 @@ package com.mycotrack.api.endpoint
 import com.mycotrack.api.auth.FromMongoUserPassAuthenticator
 import com.mycotrack.api.json.{ObjectIdSerializer}
 import org.bson.types.ObjectId
-import akka.event.EventHandler
 import cc.spray.http._
 import cc.spray.typeconversion._
 import HttpHeaders._
@@ -22,14 +21,15 @@ import akka.dispatch.Future
 import caching._
 import caching.LruCache._
 import directives.Remaining
-import utils.Logging
+import com.weiglewilczek.slf4s.Logging
 import java.text.SimpleDateFormat
+import com.mycotrack.api.spray.MongoAuthSupport
 
 /**
  * @author chris carrier
  */
 
-trait ProjectEndpoint extends Directives with LiftJsonSupport with Logging {
+trait ProjectEndpoint extends Directives with LiftJsonSupport with Logging with MongoAuthSupport {
   implicit val liftJsonFormats = DefaultFormats.lossless + new ObjectIdSerializer
 
   final val NOT_FOUND_MESSAGE = "resource.notFound"
@@ -42,31 +42,18 @@ trait ProjectEndpoint extends Directives with LiftJsonSupport with Logging {
   //caches
   lazy val projectCache: Cache[Either[Set[Rejection], HttpResponse]] = LruCache(100)
 
-  EventHandler.info(this, "Starting actor.")
   val service: IProjectDao
-
-  def withErrorHandling(ctx: RequestContext)(f: Future[_]): Future[_] = {
-    f.onTimeout(f => {
-      ctx.fail(StatusCodes.InternalServerError, ErrorResponse(1, ctx.request.path, List("Internal error.")))
-      log.info("Timed out")
-    }).onException {
-      case e => {
-        log.info("Excepted: " + e)
-        ctx.fail(StatusCodes.InternalServerError, ErrorResponse(1, ctx.request.path, List(e.getMessage)))
-      }
-    }
-  }
 
   def withSuccessCallback(ctx: RequestContext, statusCode: StatusCode = OK)(f: Future[_]): Future[_] = {
     f.onComplete(f => {
-      f.result.get match {
-        case Some(ProjectWrapper(oid, version, dateCreated, lastUpdated, content, oevents)) => {
+      f match {
+        case Right(Some(ProjectWrapper(oid, version, dateCreated, lastUpdated, content, oevents))) => {
           val res = content.head.copy(id = oid, events = oevents, timestamp = Some(new java.util.Date()))
-          //log.debug("Project returned at endpoint: " + oevents.get)
+          //logger.debug("Project returned at endpoint: " + oevents.get)
           ctx.complete(statusCode, res)
         }
-        case Some(c: Project) => ctx.complete(c)
-        case None => ctx.fail(StatusCodes.NotFound, ErrorResponse(1l, ctx.request.path, List(NOT_FOUND_MESSAGE)))
+        case Right(Some(c: Project)) => ctx.complete(c)
+        case _ => ctx.fail(StatusCodes.NotFound, ErrorResponse(1l, ctx.request.path, List(NOT_FOUND_MESSAGE)))
       }
     })
   }
@@ -93,77 +80,57 @@ trait ProjectEndpoint extends Directives with LiftJsonSupport with Logging {
     } ~
       // Service implementation.
       pathPrefix("api" / "projects") {
-        authenticate(httpMongo(realm = "mycotrack", authenticator = FromMongoUserPassAuthenticator)) { user =>
+        authenticate(httpMongo()) { user =>
         objectIdPathMatch {
           resourceId =>
-            log.info("REsourceId: " + resourceId)
+            logger.info("REsourceId: " + resourceId)
                 respondWithHeader(CustomHeader("TEST", "Awesome")){
                 directGetProject {
                   ctx =>
-                      withErrorHandling(ctx) {
                         withSuccessCallback(ctx) {
                           service.get[ProjectWrapper](service.formatKeyAsId(resourceId), user.id)
                         }
-                      }
                     }
                 } ~
               putProject {
                 resource => ctx =>
-                    withErrorHandling(ctx) {
                       withSuccessCallback(ctx) {
                         service.update[Project, ProjectWrapper](resourceId, resource)
                       }
-                    }
-
               }
         } ~
           postEvent {
             (resourceId, eventName) => ctx =>
-              withErrorHandling(ctx) {
                 withSuccessCallback(ctx) {
                   Future {
-                    log.info("Posting event " + eventName)
+                    logger.info("Posting event " + eventName)
                     service.addEvent(resourceId, eventName)
                   }
-              }
               }
           } ~
           postProject {
             resource => ctx =>
-              withErrorHandling(ctx) {
                 withSuccessCallback(ctx, Created) {
                   service.create[ProjectWrapper](resource.copy(userUrl = user.id))
                 }
-              }
-
-
           } ~
           indirectGetProjects {
             (name, description) => ctx =>
-              withErrorHandling(ctx) {
                 service.search(ProjectSearchParams(name, description, user.id)).onComplete(f => {
-                  log.info("User: " + user.toString)
-                  f.result.get match {
-                    case Some(content) => {
+                  logger.info("User: " + user.toString)
+                  f match {
+                    case Right(Some(content)) => {
                       val res: List[Project] = content
                       ctx.complete(res)
                     }
-                    case None => ctx.fail(StatusCodes.NotFound, ErrorResponse(1, ctx.request.path, List(NOT_FOUND_MESSAGE)))
+                    case _ => ctx.fail(StatusCodes.NotFound, ErrorResponse(1, ctx.request.path, List(NOT_FOUND_MESSAGE)))
                   }
                 })
               }
-          }
         }
 
       }
 
 
   }
-
-  def httpMongo[U](realm: String = "Secured Resource",
-                   authenticator: UserPassAuthenticator[U] = FromMongoUserPassAuthenticator)
-  : BasicHttpAuthenticator[U] =
-    new BasicHttpAuthenticator[U](realm, authenticator)
-
-
 }

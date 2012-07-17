@@ -7,7 +7,8 @@ import com.novus.salat.global._
 import com.mongodb.casbah.commons.MongoDBObject
 import com.mycotrack.api._
 import model._
-import cc.spray.utils.Logging
+import com.weiglewilczek.slf4s.Logging
+import akka.actor.ActorSystem
 
 /*
  * User: gregg
@@ -16,6 +17,7 @@ import cc.spray.utils.Logging
  */
 trait EventDao extends EventService with Logging {
 
+  implicit def actorSystem: ActorSystem
   val mongoCollection: MongoCollection
 
   def urlPrefix = "/events/"

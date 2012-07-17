@@ -1,7 +1,7 @@
 package com.mycotrack.api.endpoint
 
 import cc.spray.Directives
-import cc.spray.utils.Logging
+import com.weiglewilczek.slf4s.Logging
 
 /**
  * @author chris_carrier
@@ -11,7 +11,7 @@ import cc.spray.utils.Logging
 
 trait WebAppEndpoint extends Directives with Logging {
 
-  log.info("Starting web ap endpoint.")
+  logger.info("Starting web ap endpoint.")
 
   val appPath =  path("") | path("bb_mt") | path("speciesList") | path("cultureList") | path("projects") | path("new_user")
 
@@ -28,7 +28,7 @@ trait WebAppEndpoint extends Directives with Logging {
     } ~
     pathPrefix("test") {
         cache {
-            log.info("test endpoint")
+            logger.info("test endpoint")
             //ctx.complete("OK")
             getFromResourceDirectory("test")
         }

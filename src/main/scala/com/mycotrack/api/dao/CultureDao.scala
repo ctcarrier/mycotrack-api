@@ -8,6 +8,7 @@ import com.mongodb.casbah.commons.MongoDBObject
 import com.mycotrack.api._
 import model._
 import mongo.RandomId
+import akka.actor.ActorSystem
 
 /*
  * User: gregg
@@ -18,6 +19,7 @@ trait CultureDao extends ICultureDao {
 
   def urlPrefix = "/cultures/"
 
+  implicit def actorSystem: ActorSystem
   val mongoCollection: MongoCollection
   val speciesService: ISpeciesDao
   val projCollection: MongoCollection

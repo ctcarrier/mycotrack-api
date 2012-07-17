@@ -9,8 +9,9 @@ import com.mycotrack.api._
 import model._
 import mongo.RandomId
 import org.bson.types.ObjectId
-import cc.spray.utils.Logging
+import com.weiglewilczek.slf4s.Logging
 import java.util.Date
+import akka.actor.ActorSystem
 
 /**
  * @author chris carrier
@@ -18,12 +19,13 @@ import java.util.Date
 
 trait ProjectDao extends IProjectDao with Logging {
 
+  implicit def actorSystem: ActorSystem
   val mongoCollection: MongoCollection
   def urlPrefix = "/projects/"
 
   def search(searchObj: MongoDBObject) = Future {
     val listRes = mongoCollection.find(searchObj).map(f => {
-      log.info(f.toString);
+      logger.info(f.toString);
       val pw: Project = grater[ProjectWrapper].asObject(f)
       pw
     }).toList
@@ -46,7 +48,7 @@ trait ProjectDao extends IProjectDao with Logging {
   }
 
   def addEvent(projectId: String, eventName: String): Option[Project] = {
-    log.info("adding event in DAO with" + projectId + " and " + eventName)
+    logger.info("adding event in DAO with" + projectId + " and " + eventName)
     val eventDbo = grater[Event].asDBObject(Event(eventName, new Date()))
     val find = MongoDBObject("_id" -> formatKeyAsId(projectId))
     val update = $addToSet("events" -> eventDbo)

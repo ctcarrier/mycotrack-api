@@ -1,24 +1,16 @@
 package com.mycotrack.api.boot
 
-import org.slf4j.LoggerFactory
-import akka.actor.Supervisor
-import akka.config.Supervision
-import Supervision._
-import cc.spray.connectors.Initializer
-import akka.actor.Actor._
-import cc.spray.HttpService._
-import com.mongodb.ServerAddress
-import com.mongodb.casbah.MongoConnection
-import com.mycotrack.api.endpoint._
-import com.mycotrack.api.model._
-import _root_.com.mycotrack.api.dao._
-import akka.event.slf4j.Logging
-import com.mycotrack.api.model.{NestedObject, Project}
+import cc.spray.io.IoWorker
 import cc.spray.{SprayCanRootService, HttpService, RootService}
-import cc.spray.can.{ServerConfig, HttpServer}
 import util.Properties
+import com.mycotrack.api.endpoint._
+import com.mycotrack.api.dao._
+import cc.spray.can.server.HttpServer
+import cc.spray.io.pipelines.MessageHandlerDispatch
+import akka.actor.{ActorSystem, Props}
+import com.weiglewilczek.slf4s.Logging
+import com.typesafe.config.ConfigFactory
 import com.mycotrack.api.mongo.MongoSettings
-import com.mycotrack.api.spray.MycotrackServiceLogic
 
 /**
  * @author chris_carrier
@@ -26,75 +18,125 @@ import com.mycotrack.api.spray.MycotrackServiceLogic
 
 object MycotrackInitializer extends App with Logging {
 
-  log.info("Running Initializer")
+  logger.info("Running Initializer")
 
-  val akkaConfig = akka.config.Config.config
+  val system = ActorSystem("taps")
+
+  val config = ConfigFactory.load()
 
   val host = "0.0.0.0"
   val port = Option(System.getenv("PORT")).getOrElse("8080").toInt
 
-  val mongoUrl = akkaConfig.getString("mongodb.url", "localhost")
-  val mongoDbName = akkaConfig.getString("mongodb.database", "mycotrack")
+  val mongoUrl = config.getString("mongodb.url")
+  val mongoDbName = config.getString("mongodb.database")
 
-  val projectCollection = akkaConfig.getString("mycotrack.project.collection", "projects")
-  val speciesCollection = akkaConfig.getString("mycotrack.species.collection", "species")
-  val cultureCollection = akkaConfig.getString("mycotrack.culture.collection", "cultures")
-  val userCollection = akkaConfig.getString("mycotrack.user.collection", "users")
+  val projectCollection = config.getString("mycotrack.project.collection")
+  val speciesCollection = config.getString("mycotrack.species.collection")
+  val cultureCollection = config.getString("mycotrack.culture.collection")
+  val userCollection = config.getString("mycotrack.user.collection")
 
 //  val urlList = mongoUrl.split(",").toList.map(new ServerAddress(_))
 
   val MongoSettings(db) = Properties.envOrNone("MONGOHQ_URL")
 
   val projectDao = new ProjectDao {
+    implicit def actorSystem = system
     val mongoCollection = db(projectCollection)
   }
   val speciesDao = new SpeciesDao {
+    implicit def actorSystem = system
     val mongoCollection = db(speciesCollection)
     val projCollection = db(projectCollection)
   }
   val cultureDao = new CultureDao {
+    implicit def actorSystem = system
     val mongoCollection = db(cultureCollection)
     val speciesService = speciesDao
     val projCollection = db(projectCollection)
   }
-  val aggregationDao = new AggregationDao(db(projectCollection))
+  val aggregationDao = new AggregationDao(db(projectCollection))(system) {
+    implicit def actorSystem = system
+  }
   val userDao = new UserDao {
+    implicit def actorSystem = system
     val mongoCollection = db(userCollection)
   }
 
   // ///////////// INDEXES for collections go here (include all lookup fields)
   //  configsCollection.ensureIndex(MongoDBObject("customerId" -> 1), "idx_customerId")
-  val projectModule = new ProjectEndpoint {val service = projectDao}
-  val cultureModule = new CultureEndpoint {val service = cultureDao}
-  val speciesModule = new SpeciesEndpoint {val service = speciesDao}
-  val aggregationModule = new AggregationEndpoint {val service = aggregationDao}
-  val userModule = new UserEndpoint {val service = userDao}
-  val webAppModule = new WebAppEndpoint {}
+  val projectModule = new ProjectEndpoint {
+    implicit def actorSystem = system
+    val service = projectDao
+  }
+  val cultureModule = new CultureEndpoint {
+    implicit def actorSystem = system
+    val service = cultureDao
+  }
+  val speciesModule = new SpeciesEndpoint {
+    implicit def actorSystem = system
+    val service = speciesDao
+  }
+  val aggregationModule = new AggregationEndpoint {
+    implicit def actorSystem = system
+    val service = aggregationDao
+  }
+  val userModule = new UserEndpoint {
+    implicit def actorSystem = system
+    val service = userDao
+  }
+  val webAppModule = new WebAppEndpoint {
+    implicit def actorSystem = system
+  }
 
-  val projectService = actorOf(new HttpService(projectModule.restService) with MycotrackServiceLogic)
-  val speciesService = actorOf(new HttpService(speciesModule.restService) with MycotrackServiceLogic)
-  val cultureService = actorOf(new HttpService(cultureModule.restService) with MycotrackServiceLogic)
-  val webAppService = actorOf(new HttpService(webAppModule.restService) with MycotrackServiceLogic)
-  val aggregationService = actorOf(new HttpService(aggregationModule.restService) with MycotrackServiceLogic)
-  val userService = actorOf(new HttpService(userModule.restService) with MycotrackServiceLogic)
-  val rootService = actorOf(new SprayCanRootService(projectService, speciesService, cultureService, webAppService, aggregationService, userService))
-  val sprayCanServer = actorOf(new HttpServer(new ServerConfig(host = host, port = port)))
-
-  // Start all actors that need supervision, including the root service actor.
-  Supervisor(
-    SupervisorConfig(
-      OneForOneStrategy(List(classOf[Exception]), 3, 100),
-      List(
-        Supervise(projectService, Permanent),
-        Supervise(speciesService, Permanent),
-      Supervise(cultureService, Permanent),
-      Supervise(aggregationService, Permanent),
-      Supervise(userService, Permanent),
-      Supervise(webAppService, Permanent),
-        Supervise(rootService, Permanent),
-        Supervise(sprayCanServer, Permanent)
-      )
-    )
+  val projectService = system.actorOf(
+    props = Props(new HttpService(projectModule.restService)),
+    name = "project-service"
   )
+  val speciesService = system.actorOf(
+    props = Props(new HttpService(speciesModule.restService)),
+    name = "species-service"
+  )
+  val cultureService = system.actorOf(
+    props = Props(new HttpService(cultureModule.restService)),
+    name = "culture-service"
+  )
+  val webAppService = system.actorOf(
+    props = Props(new HttpService(webAppModule.restService)),
+    name = "webApp-service"
+  )
+  val aggregationService = system.actorOf(
+    props = Props(new HttpService(aggregationModule.restService)),
+    name = "aggregation-service"
+  )
+  val userService = system.actorOf(
+    props = Props(new HttpService(userModule.restService)),
+    name = "user-service"
+  )
+
+  val rootService = system.actorOf(
+    props = Props(new SprayCanRootService(projectService, speciesService, cultureService, aggregationService, userService, webAppService)),
+    name = "root-service"
+  )
+
+  // every spray-can HttpServer (and HttpClient) needs an IoWorker for low-level network IO
+  // (but several servers and/or clients can share one)
+  val ioWorker = new IoWorker(system).start()
+
+  // create and start the spray-can HttpServer, telling it that we want requests to be
+  // handled by the root service actor
+  val sprayCanServer = system.actorOf(
+    Props(new HttpServer(ioWorker, MessageHandlerDispatch.SingletonHandler(rootService))),
+    name = "http-server"
+  )
+
+  // a running HttpServer can be bound, unbound and rebound
+  // initially to need to tell it where to bind to
+  sprayCanServer ! HttpServer.Bind(host, port)
+
+  // finally we drop the main thread but hook the shutdown of
+  // our IoWorker into the shutdown of the applications ActorSystem
+  system.registerOnTermination {
+    ioWorker.stop()
+  }
 }
 

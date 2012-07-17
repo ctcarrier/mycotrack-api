@@ -9,7 +9,8 @@ import com.mycotrack.api._
 import model._
 import mongo.RandomId
 import org.bson.types.ObjectId
-import cc.spray.utils.Logging
+import com.weiglewilczek.slf4s.Logging
+import akka.actor.ActorSystem
 
 /*
  * User: gregg
@@ -18,6 +19,7 @@ import cc.spray.utils.Logging
  */
 trait SpeciesDao extends ISpeciesDao with Logging {
 
+  implicit def actorSystem: ActorSystem
   val mongoCollection: MongoCollection
   val projCollection: MongoCollection
   def urlPrefix = "/species/"
@@ -42,7 +44,7 @@ trait SpeciesDao extends ISpeciesDao with Logging {
     userUrl.foreach(builder += "content.userUrl" -> _)
 
     val listRes = projCollection.find(builder.result.asDBObject).map(f => {
-      log.info(f.toString);
+      logger.info(f.toString);
       val pw = grater[ProjectWrapper].asObject(f)
       pw.content.head.copy(id = pw._id)
     }).toList

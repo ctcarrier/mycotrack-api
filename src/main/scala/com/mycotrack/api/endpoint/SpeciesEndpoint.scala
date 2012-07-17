@@ -2,7 +2,6 @@ package com.mycotrack.api.endpoint
 
 import com.mycotrack.api.auth.FromMongoUserPassAuthenticator
 import org.bson.types.ObjectId
-import akka.event.EventHandler
 import cc.spray.http._
 import cc.spray.typeconversion._
 import HttpHeaders._
@@ -18,10 +17,11 @@ import net.liftweb.json.{Formats, DefaultFormats}
 import cc.spray._
 import akka.dispatch.Future
 import cc.spray.authentication._
-import utils.Logging
+import com.weiglewilczek.slf4s.Logging
 import com.mycotrack.api.json.{UnrestrictedLiftJsonSupport, ObjectIdSerializer}
+import com.mycotrack.api.spray.MongoAuthSupport
 
-trait SpeciesEndpoint extends Directives with UnrestrictedLiftJsonSupport with Logging {
+trait SpeciesEndpoint extends Directives with UnrestrictedLiftJsonSupport with Logging with MongoAuthSupport {
   implicit val liftJsonFormats = DefaultFormats + new ObjectIdSerializer
 
   final val NOT_FOUND_MESSAGE = "resource.notFound"
@@ -29,28 +29,15 @@ trait SpeciesEndpoint extends Directives with UnrestrictedLiftJsonSupport with L
 
   def JsonContent(content: String) = HttpContent(ContentType(`application/json`), content)
 
-  EventHandler.info(this, "Starting actor.")
   val service: ISpeciesDao
-
-  def withErrorHandling(ctx: RequestContext)(f: Future[_]): Future[_] = {
-    f.onTimeout(f => {
-      ctx.fail(StatusCodes.InternalServerError, write(ErrorResponse(1, ctx.request.path, List("Internal error."))))
-      log.info("Timed out")
-    }).onException {
-      case e => {
-        EventHandler.info(this, "Excepted: " + e)
-        ctx.fail(StatusCodes.InternalServerError, write(ErrorResponse(1, ctx.request.path, List(e.getMessage))))
-      }
-    }
-  }
 
   def withSuccessCallback(ctx: RequestContext, statusCode: StatusCode = OK)(f: Future[_]): Future[_] = {
     f.onComplete(f => {
-      f.result.get match {
-        case Some(SpeciesWrapper(oid, version, dateCreated, lastUpdated, content)) => ctx.complete(statusCode, content.map(x => x.copy(id = oid)).head)
-        case Some(c: Species) => ctx.complete(c)
-        case Some(c: List[Species]) => ctx.complete(c)
-        case None => ctx.fail(StatusCodes.NotFound, write(ErrorResponse(1l, ctx.request.path, List(NOT_FOUND_MESSAGE))))
+      f match {
+        case Right(Some(SpeciesWrapper(oid, version, dateCreated, lastUpdated, content))) => ctx.complete(statusCode, content.map(x => x.copy(id = oid)).head)
+        case Right(Some(c: Species)) => ctx.complete(c)
+        case Right(Some(c: List[Species])) => ctx.complete(c)
+        case _ => ctx.fail(StatusCodes.NotFound, write(ErrorResponse(1l, ctx.request.path, List(NOT_FOUND_MESSAGE))))
       }
     })
   }
@@ -71,35 +58,23 @@ trait SpeciesEndpoint extends Directives with UnrestrictedLiftJsonSupport with L
         resourceId =>
           getSpecies {
             ctx =>
-                withErrorHandling(ctx) {
                   withSuccessCallback(ctx) {
                     service.get[SpeciesWrapper](service.formatKeyAsId(resourceId))
                   }
-                }
-              
           } ~
             putSpecies {
               resource => ctx =>
-                try {
-                  withErrorHandling(ctx) {
                     withSuccessCallback(ctx) {
                       service.update[Species, SpeciesWrapper](resourceId, resource)
                     }
-                  }
-                }
-                catch {
-                  case e: IllegalArgumentException => {
-                    ctx.fail(StatusCodes.NotFound, write(ErrorResponse(1l, ctx.request.path, List(NOT_FOUND_MESSAGE))))
-                  }
-                }
             }
       } ~
       getProjectsBySpecies {
-        authenticate(httpMongo(realm = "mycotrack", authenticator = FromMongoUserPassAuthenticator)) {user =>
+        authenticate(httpMongo()) {user =>
           completeWith {
-            log.info("Got species project request")
+            logger.info("Got species project request")
             val result = service.getProjectsBySpecies(user.id).get
-            log.info("Result is: " + result)
+            logger.info("Result is: " + result)
             result
           }
         }
@@ -108,34 +83,23 @@ trait SpeciesEndpoint extends Directives with UnrestrictedLiftJsonSupport with L
           resource => ctx =>
             val now = new java.util.Date
             val resourceWrapper = SpeciesWrapper(None, 1, now, now, List(resource))
-            withErrorHandling(ctx) {
               withSuccessCallback(ctx, Created) {
                 service.create[SpeciesWrapper](resourceWrapper)
               }
-            }
         } ~
         searchSpecies {
           (commonName, scientificName) => ctx =>
-            withErrorHandling(ctx) {
               service.search(SpeciesSearchParams(scientificName, commonName)).onComplete(f => {
-                f.result.get match {
-                    case Some(content) => {
-                      log.info("Completing species call")
+                f match {
+                    case Right(Some(content)) => {
+                      logger.info("Completing species call")
                       val res: List[Species] = content
                       ctx.complete(res)
                     }
-                    case None => ctx.fail(StatusCodes.NotFound, ErrorResponse(1, ctx.request.path, List(NOT_FOUND_MESSAGE)))
+                    case _ => ctx.fail(StatusCodes.NotFound, ErrorResponse(1, ctx.request.path, List(NOT_FOUND_MESSAGE)))
                   }
                 })
-            }
         }
     }
   }
-
-  def httpMongo[U](realm: String = "Secured Resource",
-                   authenticator: UserPassAuthenticator[U] = FromMongoUserPassAuthenticator)
-  : BasicHttpAuthenticator[U] =
-    new BasicHttpAuthenticator[U](realm, authenticator)
-
-
 }
