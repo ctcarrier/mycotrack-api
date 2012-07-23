@@ -39,14 +39,14 @@ libraryDependencies ++= Seq(
     "ch.qos.logback" % "logback-classic" % "0.9.28" % "runtime",
     "ch.qos.logback" % "logback-core" % "0.9.28" % "runtime",
     //SPRAY
-    "cc.spray" % "spray-base" % "1.0-M2" % "compile" withSources(),
-    "cc.spray" % "spray-server" % "1.0-M2" % "compile" withSources(),
-    "cc.spray" % "spray-can" % "1.0-M2" % "compile" withSources(),
-    "cc.spray" % "spray-io" % "1.0-M2" % "compile" withSources(),
+    "cc.spray" % "spray-base" % "1.0-M2.1" % "compile" withSources(),
+    "cc.spray" % "spray-server" % "1.0-M2.1" % "compile" withSources(),
+    "cc.spray" % "spray-can" % "1.0-M2.1" % "compile" withSources(),
+    "cc.spray" % "spray-io" % "1.0-M2.1" % "compile" withSources(),
     //AKKA
-    "com.typesafe.akka" % "akka-actor" % "2.0.1",
-    "com.typesafe.akka" % "akka-testkit" % "2.0.1",
-    "com.typesafe.akka" % "akka-slf4j" % "2.0.1",
+    "com.typesafe.akka" % "akka-actor" % "2.0.2",
+    "com.typesafe.akka" % "akka-testkit" % "2.0.2",
+    "com.typesafe.akka" % "akka-slf4j" % "2.0.2",
   //LIFT-JSON
   "net.liftweb" % "lift-json-ext_2.9.0-1" % "2.4-M2",
   "net.liftweb" % "lift-json_2.9.0-1" % "2.4-M2",
