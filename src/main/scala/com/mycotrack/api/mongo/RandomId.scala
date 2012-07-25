@@ -15,7 +15,7 @@ object RandomId extends Logging {
   def getNextValue : Option[String]  = {
     val bits = randomByteArray
 
-    val res = Some(base62Encode(bits))
+    val res = Some(base36Encode(bits))
     res
   }
 
@@ -25,24 +25,24 @@ object RandomId extends Logging {
 
     val fourBitTimestamp = (System.currentTimeMillis / 1000).toInt
 
-    //val sec = new java.security.SecureRandom
-    //val sbuf = sec.generateSeed(4)
+    val sec = new java.security.SecureRandom
+    val sbuf = sec.generateSeed(4)
 
     logger.info("Using util.Random")
 
-    val sbuf = new Array[Byte](4)
+    /*val sbuf = new Array[Byte](4)
     val rand = new java.util.Random
-    rand.nextBytes(sbuf)
+    rand.nextBytes(sbuf)*/
 
     dos.write(sbuf)
-    dos.writeInt(fourBitTimestamp)
+    //dos.writeInt(fourBitTimestamp)
     dos.flush
     bos.toByteArray
   }
 
-  def base62Encode(ba: Array[Byte]): String = {
-    val digits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
-    val result = ba.map(b => digits(positive(b % 62)))
+  def base36Encode(ba: Array[Byte]): String = {
+    val digits = "0123456789abcdefghijklmnopqrstuvwxyz"
+    val result = ba.map(b => digits(positive(b % 36)))
 
     new String(result)
   }
