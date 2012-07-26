@@ -1,7 +1,6 @@
 package com.mycotrack.api.dao
 
 import com.mongodb.casbah.Imports._
-import akka.dispatch.Future
 import org.bson.types.ObjectId
 import com.mycotrack.api.model._
 import com.mycotrack.api.mongo.RandomId
@@ -9,11 +8,16 @@ import com.novus.salat._
 import com.novus.salat.global._
 import scala.reflect.Manifest
 import com.weiglewilczek.slf4s.Logging
-import akka.actor.ActorSystem
+import com.mycotrack.api.aggregation.AggregationBroadcaster
+import akka.actor.{ActorRef, ActorSystem}
+import akka.dispatch.{ExecutionContext, Future}
+import java.util.concurrent.Executors
 
 trait MycotrackDao[T <: CaseClass, W <: CaseClass] extends Logging {
+  def aggBroadcaster: ActorRef
   val mongoCollection: MongoCollection
-  implicit def actorSystem: ActorSystem
+
+  implicit val ec: ExecutionContext
 
   def urlPrefix: String
   def formatKeyAsId(s: String): String = {
@@ -54,7 +58,9 @@ trait MycotrackDao[T <: CaseClass, W <: CaseClass] extends Logging {
       builder += ("_id" -> Some(nextRandomId))
       val toSave = builder.result
       mongoCollection += toSave
-      Some(grater[TT].asObject(toSave))
+      val res = grater[TT].asObject(toSave)
+      aggBroadcaster ! res
+      Some(res)
     }
   }
 
@@ -94,5 +100,5 @@ trait UserService extends MycotrackDao[User, UserWrapper] {
 }
 
 trait EventService {
-  def search(): Future[Option[List[Event]]]
+  def search(searchObj: MongoDBObject): Future[Option[List[Event]]]
 }

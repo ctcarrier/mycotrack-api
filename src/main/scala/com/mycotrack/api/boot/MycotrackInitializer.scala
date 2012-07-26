@@ -11,16 +11,19 @@ import akka.actor.{ActorSystem, Props}
 import com.weiglewilczek.slf4s.Logging
 import com.typesafe.config.ConfigFactory
 import com.mycotrack.api.mongo.MongoSettings
+import com.mycotrack.api.aggregation.GlobalAggregators
+import akka.dispatch.ExecutionContext
 
 /**
  * @author chris_carrier
  */
 
-object MycotrackInitializer extends App with Logging {
+object MycotrackInitializer extends App with Logging with GlobalAggregators {
 
   logger.info("Running Initializer")
 
-  val system = ActorSystem("taps")
+  val system = ActorSystem("mycotrack")
+  val executionContext: ExecutionContext = system.dispatcher
 
   val config = ConfigFactory.load()
 
@@ -39,27 +42,33 @@ object MycotrackInitializer extends App with Logging {
 
   val MongoSettings(db) = Properties.envOrNone("MONGOHQ_URL")
 
+  val cultureCountCollection = db(config.getString("mycotrack.cultureCount.collection"))
+
   val projectDao = new ProjectDao {
-    implicit def actorSystem = system
+    implicit val ec = executionContext
     val mongoCollection = db(projectCollection)
+    def aggBroadcaster = aggregationBroadcaster
   }
   val speciesDao = new SpeciesDao {
-    implicit def actorSystem = system
+    implicit val ec = executionContext
     val mongoCollection = db(speciesCollection)
     val projCollection = db(projectCollection)
+    def aggBroadcaster = aggregationBroadcaster
   }
   val cultureDao = new CultureDao {
-    implicit def actorSystem = system
+    implicit val ec = executionContext
     val mongoCollection = db(cultureCollection)
     val speciesService = speciesDao
     val projCollection = db(projectCollection)
+    def aggBroadcaster = aggregationBroadcaster
   }
   val aggregationDao = new AggregationDao(db(projectCollection))(system) {
-    implicit def actorSystem = system
+//    implicit def actorSystem = system
   }
   val userDao = new UserDao {
-    implicit def actorSystem = system
+    implicit val ec = executionContext
     val mongoCollection = db(userCollection)
+    def aggBroadcaster = aggregationBroadcaster
   }
 
   // ///////////// INDEXES for collections go here (include all lookup fields)

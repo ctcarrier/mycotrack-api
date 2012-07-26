@@ -70,67 +70,65 @@ trait ProjectEndpoint extends Directives with LiftJsonSupport with Logging with 
   val restService = {
     // Debugging: /ping -> pong
     path("ping") {
-      detach{
-      cache {
-        get {
-          _.complete("pong " + new java.util.Date())
+      detach {
+        cache {
+          get {
+            _.complete("pong " + new java.util.Date())
+          }
         }
-      }
       }
     } ~
       // Service implementation.
       pathPrefix("api" / "projects") {
-        authenticate(httpMongo()) { user =>
-        objectIdPathMatch {
-          resourceId =>
-            logger.info("REsourceId: " + resourceId)
-                respondWithHeader(CustomHeader("TEST", "Awesome")){
-                directGetProject {
-                  ctx =>
-                        withSuccessCallback(ctx) {
-                          service.get[ProjectWrapper](service.formatKeyAsId(resourceId), user.id)
-                        }
-                    }
+        authenticate(httpMongo()) {
+          user =>
+            objectIdPathMatch {
+              resourceId =>
+                logger.info("REsourceId: " + resourceId)
+                respondWithHeader(CustomHeader("TEST", "Awesome")) {
+                  directGetProject {
+                    ctx =>
+                      withSuccessCallback(ctx) {
+                        service.get[ProjectWrapper](service.formatKeyAsId(resourceId), user.id)
+                      }
+                  }
                 } ~
-              putProject {
-                resource => ctx =>
+                  putProject {
+                    resource => ctx =>
                       withSuccessCallback(ctx) {
                         service.update[Project, ProjectWrapper](resourceId, resource)
                       }
-              }
-        } ~
-          postEvent {
-            (resourceId, eventName) => ctx =>
-                withSuccessCallback(ctx) {
-                  Future {
-                    logger.info("Posting event " + eventName)
-                    service.addEvent(resourceId, eventName)
                   }
-              }
-          } ~
-          postProject {
-            resource => ctx =>
-                withSuccessCallback(ctx, Created) {
-                  service.create[ProjectWrapper](resource.copy(userUrl = user.id))
-                }
-          } ~
-          indirectGetProjects {
-            (name, description) => ctx =>
-                service.search(ProjectSearchParams(name, description, user.id)).onComplete(f => {
-                  logger.info("User: " + user.toString)
-                  f match {
-                    case Right(Some(content)) => {
-                      val res: List[Project] = content
-                      ctx.complete(res)
+            } ~
+              postEvent {
+                (resourceId, eventName) => ctx =>
+                  withSuccessCallback(ctx) {
+                    Future {
+                      logger.info("Posting event " + eventName)
+                      service.addEvent(resourceId, eventName)
                     }
-                    case _ => ctx.fail(StatusCodes.NotFound, ErrorResponse(1, ctx.request.path, List(NOT_FOUND_MESSAGE)))
                   }
-                })
+              } ~
+              postProject {
+                resource => ctx =>
+                  withSuccessCallback(ctx, Created) {
+                    service.create[ProjectWrapper](resource.copy(userUrl = user.id))
+                  }
+              } ~
+              indirectGetProjects {
+                (name, description) => ctx =>
+                  service.search(ProjectSearchParams(name, description, user.id)).onComplete(f => {
+                    logger.info("User: " + user.toString)
+                    f match {
+                      case Right(Some(content)) => {
+                        val res: List[Project] = content
+                        ctx.complete(res)
+                      }
+                      case _ => ctx.fail(StatusCodes.NotFound, ErrorResponse(1, ctx.request.path, List(NOT_FOUND_MESSAGE)))
+                    }
+                  })
               }
         }
-
       }
-
-
   }
 }

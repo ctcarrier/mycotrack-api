@@ -19,7 +19,6 @@ trait CultureDao extends ICultureDao {
 
   def urlPrefix = "/cultures/"
 
-  implicit def actorSystem: ActorSystem
   val mongoCollection: MongoCollection
   val speciesService: ISpeciesDao
   val projCollection: MongoCollection

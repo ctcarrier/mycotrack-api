@@ -19,7 +19,6 @@ import akka.actor.ActorSystem
  */
 trait SpeciesDao extends ISpeciesDao with Logging {
 
-  implicit def actorSystem: ActorSystem
   val mongoCollection: MongoCollection
   val projCollection: MongoCollection
   def urlPrefix = "/species/"

@@ -19,7 +19,6 @@ import akka.actor.ActorSystem
 
 trait ProjectDao extends IProjectDao with Logging {
 
-  implicit def actorSystem: ActorSystem
   val mongoCollection: MongoCollection
   def urlPrefix = "/projects/"
 

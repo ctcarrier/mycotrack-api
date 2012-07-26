@@ -17,7 +17,6 @@ import akka.actor.ActorSystem
 
 trait UserDao extends UserService {
 
-  implicit def actorSystem: ActorSystem
   val mongoCollection: MongoCollection
   def urlPrefix = "/users/"
 
