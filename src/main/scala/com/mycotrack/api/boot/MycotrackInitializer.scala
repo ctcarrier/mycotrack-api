@@ -13,6 +13,7 @@ import com.typesafe.config.ConfigFactory
 import com.mycotrack.api.mongo.MongoSettings
 import com.mycotrack.api.aggregation.GlobalAggregators
 import akka.dispatch.ExecutionContext
+import com.mycotrack.api.service.DefaultFarmService
 
 /**
  * @author chris_carrier
@@ -44,6 +45,9 @@ object MycotrackInitializer extends App with Logging with GlobalAggregators {
 
   val cultureCountCollection = db(config.getString("mycotrack.cultureCount.collection"))
 
+  val defaultSubstrateCollection = db(config.getString("mycotrack.defaultSubstrates.collection"))
+  val defaultContainerCollection = db(config.getString("mycotrack.defaultContainers.collection"))
+
   val projectDao = new ProjectDao {
     implicit val ec = executionContext
     val mongoCollection = db(projectCollection)
@@ -70,6 +74,9 @@ object MycotrackInitializer extends App with Logging with GlobalAggregators {
     val mongoCollection = db(userCollection)
     def aggBroadcaster = aggregationBroadcaster
   }
+  val farmDao = new MongoFarmDao(defaultSubstrateCollection, defaultContainerCollection)
+
+  val farmService = new DefaultFarmService(farmDao)
 
   // ///////////// INDEXES for collections go here (include all lookup fields)
   //  configsCollection.ensureIndex(MongoDBObject("customerId" -> 1), "idx_customerId")
@@ -96,6 +103,11 @@ object MycotrackInitializer extends App with Logging with GlobalAggregators {
   val webAppModule = new WebAppEndpoint {
     implicit def actorSystem = system
   }
+  val farmModule = new FarmEndpoint {
+    implicit def actorSystem = system
+
+    val service = farmService
+  }
 
   val projectService = system.actorOf(
     props = Props(new HttpService(projectModule.restService)),
@@ -121,9 +133,13 @@ object MycotrackInitializer extends App with Logging with GlobalAggregators {
     props = Props(new HttpService(userModule.restService)),
     name = "user-service"
   )
+  val farmEndpoint = system.actorOf(
+    props = Props(new HttpService(farmModule.restService)),
+    name = "farm-service"
+  )
 
   val rootService = system.actorOf(
-    props = Props(new SprayCanRootService(projectService, speciesService, cultureService, aggregationService, userService, webAppService)),
+    props = Props(new SprayCanRootService(projectService, speciesService, cultureService, aggregationService, userService, webAppService, farmEndpoint)),
     name = "root-service"
   )
 

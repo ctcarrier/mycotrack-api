@@ -1,7 +1,7 @@
 package com.mycotrack.api.model
 
 import org.bson.types.ObjectId
-import com.novus.salat.annotations.Ignore
+import com.novus.salat.annotations.{Ignore, Key}
 import java.util.Date
 
 case class Project(@Ignore id: Option[String],
@@ -48,3 +48,9 @@ object User {
 }
 
 case class Event(name: String, dateCreated: Date)
+
+case class Substrate(@Key("_id") id: Option[String], name: String)
+
+case class Container(@Key("_id") id: Option[String], name: String)
+
+case class Farm(@Ignore id: Option[String], substrates: List[Substrate], containers: List[Container])
