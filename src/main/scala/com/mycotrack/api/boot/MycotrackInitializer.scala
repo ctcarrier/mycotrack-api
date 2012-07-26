@@ -14,6 +14,7 @@ import com.mycotrack.api.mongo.MongoSettings
 import com.mycotrack.api.aggregation.GlobalAggregators
 import akka.dispatch.ExecutionContext
 import com.mycotrack.api.service.DefaultFarmService
+import com.mongodb.casbah.commons.MongoDBObject
 
 /**
  * @author chris_carrier
@@ -47,6 +48,25 @@ object MycotrackInitializer extends App with Logging with GlobalAggregators {
 
   val defaultSubstrateCollection = db(config.getString("mycotrack.defaultSubstrates.collection"))
   val defaultContainerCollection = db(config.getString("mycotrack.defaultContainers.collection"))
+
+  defaultContainerCollection.insert(MongoDBObject("_id" -> "quart", "name" -> "mason jar(quart)"))
+  defaultContainerCollection.insert(MongoDBObject("_id" -> "halfpint", "name" -> "mason jar(half-pint)"))
+  defaultContainerCollection.insert(MongoDBObject("_id" -> "pint", "name" -> "mason jar(pint)"))
+  defaultContainerCollection.insert(MongoDBObject("_id" -> "filterbag", "name" -> "filter patch bag"))
+  defaultContainerCollection.insert(MongoDBObject("_id" -> "tub", "name" -> "tub"))
+  defaultContainerCollection.insert(MongoDBObject("_id" -> "plasticTubing", "name" -> "plastic tube"))
+  defaultContainerCollection.insert(MongoDBObject("_id" -> "pyrex", "name" -> "pyrex dish"))
+
+  defaultSubstrateCollection.insert(MongoDBObject("_id" ->"rye", "name" -> "rye"))
+  defaultSubstrateCollection.insert(MongoDBObject("_id" ->"sorghum", "name" -> "sorghum"))
+  defaultSubstrateCollection.insert(MongoDBObject("_id" ->"wbs", "name" -> "wild bird seed"))
+  defaultSubstrateCollection.insert(MongoDBObject("_id" ->"sawdust", "name" -> "sawdust"))
+  defaultSubstrateCollection.insert(MongoDBObject("_id" ->"enrichedsawdust", "name" -> "sawdust(enriched)"))
+  defaultSubstrateCollection.insert(MongoDBObject("_id" ->"woodchips", "name" -> "wood chips"))
+  defaultSubstrateCollection.insert(MongoDBObject("_id" ->"straw", "name" -> "straw"))
+  defaultSubstrateCollection.insert(MongoDBObject("_id" ->"coir", "name" -> "coir"))
+  defaultSubstrateCollection.insert(MongoDBObject("_id" ->"hpoo", "name" -> "horse poo"))
+
 
   val projectDao = new ProjectDao {
     implicit val ec = executionContext
