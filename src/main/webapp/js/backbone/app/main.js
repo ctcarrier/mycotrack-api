@@ -20,6 +20,7 @@ require([
   "modules/views/species",
   "modules/models/user",
   "modules/views/login",
+  "modules/models/farm",
 
   //plugins
   "use!bootstrapdatepicker",
@@ -30,7 +31,7 @@ require([
   "use!datejs"
 ],
 
-function(namespace, jQuery, _, Backbone, Base64, Mycotrack, Context, Navbar, Project, Species, Culture, GeneralAggregation, Aggregation, BaseView, SpeciesView, User, Login) {
+function(namespace, jQuery, _, Backbone, Base64, Mycotrack, Context, Navbar, Project, Species, Culture, GeneralAggregation, Aggregation, BaseView, SpeciesView, User, Login, Farm) {
 
     var context = new Context.Model();
 
@@ -176,6 +177,7 @@ function(namespace, jQuery, _, Backbone, Base64, Mycotrack, Context, Navbar, Pro
       "projects/:id": "mtlayout",
       "culture_list": "cultureLayout",
       "species_list": "speciesLayout",
+      "species/:key": "speciesDetail",
       "new_project": "newProject",
       "spawn_project": "spawnProject",
       "new_culture": "newCulture",
@@ -260,14 +262,16 @@ function(namespace, jQuery, _, Backbone, Base64, Mycotrack, Context, Navbar, Pro
         count: 1,
         startDate: new Date()
       });
+      var farm = new Farm.Model({});
       if (namespace.app.parentProject){
         newProject.set('parent', namespace.app.parentProject.id);
       }
       var cultures = new Culture.Collection();
 
-      cultures.fetch({success: function(){
-        cultures.trigger('cultures:fetch');
-      }});
+      $.when(farm.fetch()).then(function() {
+          cultures.fetch({success: function(){
+            cultures.trigger('cultures:fetch');
+      }})});
 
       cultures.on('cultures:fetch', function(eventName){
 
@@ -388,6 +392,33 @@ function(namespace, jQuery, _, Backbone, Base64, Mycotrack, Context, Navbar, Pro
 
         var speciesView = new SpeciesView.List({
             collection: species
+        });
+
+        var speciesBaseView = new BaseView.Species({
+            views: {
+                "#detail": speciesView
+            }
+        });
+      context.main.setView("#contentAnchor", speciesBaseView);
+
+      species.on('species:fetch', function(eventName){
+            console.log('Rendering species view');
+            speciesBaseView.render();
+        });
+    },
+
+    speciesDetail: function(key) {
+      var route = this;
+      var species = new Species.Model({
+        id: "/species/" + key
+      });
+
+      species.fetch({success: function(){
+        species.trigger('species:fetch');
+      }});
+
+        var speciesView = new SpeciesView.Detail({
+            model: species
         });
 
         var speciesBaseView = new BaseView.Species({

@@ -26,6 +26,14 @@ function(namespace, $, _, Backbone, Context) {
     }
   });
 
+  SpeciesView.Detail = Backbone.View.extend({
+      template: "detail/species_detail",
+
+      serialize: function() {
+        return this.model.toJSON();
+      }
+    });
+
   // Required, return the module for AMD compliance
   return SpeciesView;
 

@@ -20,6 +20,13 @@ function(namespace, $, _, Backbone) {
   Species.Model = Backbone.Model.extend({
         urlRoot: '/',
 
+        url: function() {
+            if (!this.isNew()){
+                return '/api' + this.id;
+            }
+          return this.urlRoot;
+        },
+
         parse: function(response) {
             var content = response;
             return content;
