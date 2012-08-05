@@ -5,25 +5,16 @@
     <form id="idForm">
         <select id="substrate" name="substrate">
             <option name="">Substrate...</option>
-            <option name="rye">rye</option>
-            <option name="sorghum">sorghum</option>
-            <option name="wbs">wild bird seed</option>
-            <option name="sawdust">sawdust</option>
-            <option name="enrichedsawdust">sawdust(enriched)</option>
-            <option name="woodchips">wood chips</option>
-            <option name="straw">straw</option>
-            <option name="coir">coir</option>
-            <option name="hpoo">horse poo</option>
+            {{#each farm.substrates}}
+            <option name="{{this.id}}">{{this.name}}</option>
+            {{/each}}
         </select>
+
         <select id="container" name="container">
-            <option name="">Container...</option>
-            <option name="quart">mason jar(quart)</option>
-            <option name="halfpint">mason jar(half-pint)</option>
-            <option name="pint">mason jar(pint)</option>
-            <option name="filterbag">filter patch bag</option>
-            <option name="tub">tub</option>
-            <option name="plasticTubing">plastic tube</option>
-            <option name="pyrex">pyrex dish</option>
+            <option name="">Containers...</option>
+            {{#each farm.containers}}
+            <option name="{{this.id}}">{{this.name}}</option>
+            {{/each}}
         </select>
         <div class="control-group">
             <label class="control-label" for="description">Notes</label>

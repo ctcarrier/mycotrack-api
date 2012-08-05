@@ -268,10 +268,9 @@ function(namespace, jQuery, _, Backbone, Base64, Mycotrack, Context, Navbar, Pro
       }
       var cultures = new Culture.Collection();
 
-      $.when(farm.fetch()).then(function() {
-          cultures.fetch({success: function(){
+      $.when(farm.fetch(), cultures.fetch()).then(function() {
             cultures.trigger('cultures:fetch');
-      }})});
+      });
 
       cultures.on('cultures:fetch', function(eventName){
 
@@ -280,6 +279,7 @@ function(namespace, jQuery, _, Backbone, Base64, Mycotrack, Context, Navbar, Pro
         });
         context.main.setView("#contentAnchor", newProjectView);
         newProjectView.model.set('cultureList', cultures.toJSON());
+        newProjectView.model.set('farm', farm.toJSON());
 
         $.when(newProjectView.render()).then(function() {
             $("#dp1").datepicker();
@@ -300,16 +300,20 @@ function(namespace, jQuery, _, Backbone, Base64, Mycotrack, Context, Navbar, Pro
           console.log("newProject: ");
           console.log(newProject);
 
-        var spawnProjectView = new BaseView.SpawnProject({
-            model: newProject
+        var farm = new Farm.Model({});
+        $.when(farm.fetch()).then(function() {
+           var spawnProjectView = new BaseView.SpawnProject({
+               model: newProject
+           });
+           spawnProjectView.model.set('farm', farm.toJSON());
+             context.main.setView("#contentAnchor", spawnProjectView);
+
+             spawnProjectView.render(function(){
+                   spawnProjectView.bind();
+             });
+
+             $("#dp1").datepicker();
         });
-          context.main.setView("#contentAnchor", spawnProjectView);
-
-          spawnProjectView.render(function(){
-                spawnProjectView.bind();
-          });
-
-          $("#dp1").datepicker();
         },
 
     newCulture: function(hash) {
