@@ -28,7 +28,7 @@ class MongoFarmDao(defaultSubstrateCollection: MongoCollection, defaultContainer
   }
 
   def defaultContainers: List[Container] = {
-    val res = defaultSubstrateCollection.find().map(f => {
+    val res = defaultContainerCollection.find().map(f => {
       grater[Container].asObject(f)
     })
 
