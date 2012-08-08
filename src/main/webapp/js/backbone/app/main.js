@@ -28,7 +28,8 @@ require([
   "use!h5validate",
   "use!jquerycookies",
   "collapsiblelists",
-  "use!datejs"
+  "use!datejs",
+  "bootstrap"
 ],
 
 function(namespace, jQuery, _, Backbone, Base64, Mycotrack, Context, Navbar, Project, Species, Culture, GeneralAggregation, Aggregation, BaseView, SpeciesView, User, Login, Farm) {

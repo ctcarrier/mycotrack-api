@@ -27,6 +27,7 @@ require.config({
     jquerycookies: "../assets/js/plugins/jquery.cookies.2.2.0",
     datejs: "../assets/js/plugins/date-en-US",
     collapsiblelists: "../assets/js/libs/CollapsibleLists",
+    bootstrap: "../assets/js/plugins/bootstrap",
 
     // Shim Plugin
     use: "../assets/js/plugins/use"
