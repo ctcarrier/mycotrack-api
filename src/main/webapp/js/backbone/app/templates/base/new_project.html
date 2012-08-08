@@ -2,22 +2,22 @@
 <div class="span4 offset2">
     <form id="idForm">
             <select id="cultureUrl" name="cultureUrl">
-                <option name="">Cultures...</option>
+                <option value="">Cultures...</option>
                 {{#each cultureList}}
-                   <option name="{{this.id}}">{{this.name}}</option>
+                   <option value="{{this.id}}">{{this.name}}</option>
                 {{/each}}
             </select>
         <select id="substrate" name="substrate">
-            <option name="">Substrate...</option>
+            <option value="">Substrate...</option>
             {{#each farm.substrates}}
-            <option name="{{this.id}}">{{this.name}}</option>
+            <option value="{{this.id}}">{{this.name}}</option>
             {{/each}}
         </select>
 
         <select id="container" name="container">
-            <option name="">Containers...</option>
+            <option value="">Containers...</option>
             {{#each farm.containers}}
-            <option name="{{this.id}}">{{this.name}}</option>
+            <option value="{{this.id}}">{{this.name}}</option>
             {{/each}}
         </select>
         <div class="control-group">
