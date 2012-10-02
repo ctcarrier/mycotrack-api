@@ -29,7 +29,8 @@ require([
   "use!jquerycookies",
   "collapsiblelists",
   "use!datejs",
-  "bootstrap"
+  "use!bootstrap",
+  "use!bootstrapdropdown"
 ],
 
 function(namespace, jQuery, _, Backbone, Base64, Mycotrack, Context, Navbar, Project, Species, Culture, GeneralAggregation, Aggregation, BaseView, SpeciesView, User, Login, Farm) {
@@ -166,6 +167,7 @@ function(namespace, jQuery, _, Backbone, Base64, Mycotrack, Context, Navbar, Pro
         context.nav.render(function(el) {
             context.navBarView.bindForm();
             $("#mtnav").html(el);
+            $('.dropdown-toggle').dropdown();
         });
         $("#main").html(context.main.el);
 

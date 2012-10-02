@@ -65,11 +65,14 @@ require.config({
         deps: ["use!backbone", "jquery"],
         attach: "CollectionBinder"
     },
-    bootstrapdropdown: {
+    bootstrap: {
         deps: ["jquery"]
     },
+    bootstrapdropdown: {
+        deps: ["jquery", "use!bootstrap"]
+    },
     bootstrapdatepicker: {
-        deps: ["jquery"]
+        deps: ["jquery", "use!bootstrap"]
     },
     gx: {
         deps: ["jquery"]
