@@ -1,35 +1,30 @@
 package com.mycotrack.api.dao
 
-import com.mongodb.casbah.Imports._
-import com.novus.salat._
-import com.novus.salat.global._
-import com.mongodb.casbah.commons.MongoDBObject
 import com.mycotrack.api._
+import com.typesafe.scalalogging.LazyLogging
 import model._
-import com.weiglewilczek.slf4s.Logging
-import akka.actor.ActorSystem
-import akka.dispatch.{ExecutionContext, Future}
+import akka.actor.{ActorRefFactory, ActorSystem}
+import reactivemongo.api.collections.default.BSONCollection
+import reactivemongo.bson.BSONDocument
+import scaldi.Injector
+import scaldi.akka.AkkaInjectable
 
-/*
- * User: gregg
- * Date: 11/6/11
- * Time: 1:23 PM
- */
-class EventDao(mongoCollection: MongoCollection)(implicit ec: ExecutionContext) extends EventService with Logging {
+import scala.concurrent.{Future, ExecutionContext}
+
+trait EventService {
+  def search(searchObj: BSONDocument): Future[List[Event]]
+}
+
+class EventDao(implicit inj: Injector) extends EventService with LazyLogging with AkkaInjectable {
 
   def urlPrefix = "/events/"
 
-  def search(searchObj: MongoDBObject): Future[Option[List[Event]]] = Future {
-    val listRes = mongoCollection.find(searchObj).map(f => {
-      grater[Event].asObject(f)
-    }).toList
+  import ExecutionContext.Implicits.global
+  implicit lazy val system = inject[ActorSystem]
+  lazy val actorRefFactory: ActorRefFactory = system
 
+  val eventCollection = inject[BSONCollection] (identified by 'EVENT_COLLECTION)
 
-    val res = listRes match {
-      case l: List[Species] if (!l.isEmpty) => Some(l)
-      case _ => None
-    }
-
-    res
-  }
+  def search(searchObj: BSONDocument): Future[List[Event]] =
+    eventCollection.find(searchObj).cursor[Event].collect[List]()
 }

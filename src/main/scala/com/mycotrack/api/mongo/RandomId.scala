@@ -1,8 +1,7 @@
 package com.mycotrack.api.mongo
 
 import java.io.{DataOutputStream, ByteArrayOutputStream}
-import org.apache.commons.codec.binary.Base64
-import com.weiglewilczek.slf4s.Logging
+import com.typesafe.scalalogging.LazyLogging
 
 /**
  * @author chris_carrier
@@ -10,7 +9,7 @@ import com.weiglewilczek.slf4s.Logging
  */
 
 
-object RandomId extends Logging {
+object RandomId extends LazyLogging {
 
   def getNextValue : Option[String]  = {
     val bits = randomByteArray

@@ -1,24 +1,27 @@
 package com.mycotrack.api.dao
 
-import com.mongodb.casbah.Imports._
-import akka.dispatch.Future
-import com.novus.salat._
-import com.novus.salat.global._
-import com.mongodb.casbah.commons.MongoDBObject
 import com.mycotrack.api._
 import model._
-import mongo.RandomId
-import org.bson.types.ObjectId
-import akka.actor.ActorSystem
+import akka.actor.{ActorRefFactory, ActorSystem}
+import reactivemongo.api.collections.default.BSONCollection
+import reactivemongo.bson.BSONDocument
+import scaldi.Injector
+import scaldi.akka.AkkaInjectable
 
-/**
- * @author chris carrier
- */
+import scala.concurrent.ExecutionContext
 
-trait UserDao extends UserService {
+trait UserService extends MycotrackDao[User, UserWrapper] {
+}
 
-  val mongoCollection: MongoCollection
+class UserDao(implicit inj: Injector) extends UserService with AkkaInjectable {
+
   def urlPrefix = "/users/"
+
+  import ExecutionContext.Implicits.global
+  implicit lazy val system = inject[ActorSystem]
+  lazy val actorRefFactory: ActorRefFactory = system
+
+  val userCollection = inject[BSONCollection] (identified by 'USER_COLLECTION)
 
 //  def create(model: UserWrapper) = {
 //    Future {
@@ -46,20 +49,6 @@ trait UserDao extends UserService {
 //    }
 //  }
 
-  def search(searchObj: MongoDBObject) = {
-    Future {
-      val listRes: List[User] = mongoCollection.find(searchObj).map(f => {
-        val u: User = grater[UserWrapper].asObject(f)
-        u
-      }).toList
-
-      val res = listRes match {
-        case l: List[User] if (!l.isEmpty) => Some(l)
-        case _ => None
-      }
-
-      res
-    }
-  }
+  def search(searchObj: BSONDocument) = userCollection.find(searchObj).cursor[User].collect[List]()
 }
 

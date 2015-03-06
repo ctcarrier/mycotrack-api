@@ -1,29 +1,34 @@
 package com.mycotrack.api.dao
 
-import com.mongodb.casbah.Imports._
-import akka.dispatch.Future
-import com.novus.salat._
-import com.novus.salat.global._
-import com.mongodb.casbah.commons.MongoDBObject
 import com.mycotrack.api._
+import com.typesafe.scalalogging.LazyLogging
 import model._
-import mongo.RandomId
-import org.bson.types.ObjectId
-import com.weiglewilczek.slf4s.Logging
 import java.util.Date
-import akka.actor.ActorSystem
+import akka.actor.{ActorRefFactory, ActorSystem}
+import reactivemongo.api.collections.default.BSONCollection
+import reactivemongo.bson.BSONDocument
+import scaldi.akka.AkkaInjectable
 
-/**
- * @author chris carrier
- */
+import scala.concurrent.{Future, ExecutionContext}
 
-trait ProjectDao extends IProjectDao with Logging {
+trait IProjectDao extends MycotrackDao[Project, ProjectWrapper] {
+  def search(searchObj: BSONDocument): Future[Option[List[Project]]]
+  def getChildren(root: Project): Future[Option[List[Project]]]
+  def addEvent(projectId: String, eventName: String): Option[Project]
+}
 
-  val mongoCollection: MongoCollection
+trait ProjectDao extends IProjectDao with LazyLogging with AkkaInjectable {
+
   def urlPrefix = "/projects/"
 
-  def search(searchObj: MongoDBObject) = Future {
-    val listRes = mongoCollection.find(searchObj).map(f => {
+  import ExecutionContext.Implicits.global
+  implicit lazy val system = inject[ActorSystem]
+  lazy val actorRefFactory: ActorRefFactory = system
+
+  val projectCollection = inject[BSONCollection] (identified by 'PROJECT_COLLECTION)
+
+  def search(searchObj: BSONDocument) = Future {
+    val listRes = projectCollection.find(searchObj).map(f => {
       logger.info(f.toString);
       val pw: Project = grater[ProjectWrapper].asObject(f)
       pw
@@ -38,8 +43,8 @@ trait ProjectDao extends IProjectDao with Logging {
   }
 
   def getChildren(root: Project) = Future {
-    val query = MongoDBObject("parent" -> root.id)
-    mongoCollection.find(query).map(f =>
+    val query = BSONDocument("parent" -> root.id)
+    projectCollection.find(query).map(f =>
       grater[ProjectWrapper].asObject(f).content).toList match {
       case l: List[Project] if (!l.isEmpty) => Some(l)
       case _ => None
@@ -49,9 +54,9 @@ trait ProjectDao extends IProjectDao with Logging {
   def addEvent(projectId: String, eventName: String): Option[Project] = {
     logger.info("adding event in DAO with" + projectId + " and " + eventName)
     val eventDbo = grater[Event].asDBObject(Event(eventName, new Date()))
-    val find = MongoDBObject("_id" -> formatKeyAsId(projectId))
+    val find = BSONDocument("_id" -> formatKeyAsId(projectId))
     val update = $addToSet("events" -> eventDbo)
-    mongoCollection.findAndModify(find, null, null, false, update, true, false).map(f => {
+    projectCollection.findAndModify(find, null, null, false, update, true, false).map(f => {
       val pw: Project = grater[ProjectWrapper].asObject(f)
       pw
     })

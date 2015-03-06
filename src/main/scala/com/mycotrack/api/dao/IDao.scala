@@ -1,21 +1,16 @@
 package com.mycotrack.api.dao
 
-import com.mongodb.casbah.Imports._
-import org.bson.types.ObjectId
-import com.mycotrack.api.model._
+import akka.actor.ActorRef
 import com.mycotrack.api.mongo.RandomId
-import com.novus.salat._
-import com.novus.salat.global._
-import scala.reflect.Manifest
-import com.weiglewilczek.slf4s.Logging
-import com.mycotrack.api.aggregation.AggregationBroadcaster
-import akka.actor.{ActorRef, ActorSystem}
-import akka.dispatch.{ExecutionContext, Future}
-import java.util.concurrent.Executors
+import com.typesafe.scalalogging.LazyLogging
+import reactivemongo.api.collections.default.BSONCollection
 
-trait MycotrackDao[T <: CaseClass, W <: CaseClass] extends Logging {
+import scala.concurrent.{Future, ExecutionContext}
+
+
+trait MycotrackDao[T <: CaseClass, W <: CaseClass] extends LazyLogging {
   def aggBroadcaster: ActorRef
-  val mongoCollection: MongoCollection
+  val mongoCollection: BSONCollection
 
   implicit val ec: ExecutionContext
 
@@ -80,25 +75,3 @@ trait MycotrackDao[T <: CaseClass, W <: CaseClass] extends Logging {
   }
 }
 
-trait IProjectDao extends MycotrackDao[Project, ProjectWrapper] {
-  def search(searchObj: MongoDBObject): Future[Option[List[Project]]]
-  def getChildren(root: Project): Future[Option[List[Project]]]
-  def addEvent(projectId: String, eventName: String): Option[Project]
-}
-
-trait ISpeciesDao extends MycotrackDao[Species, SpeciesWrapper] {
-  def search(searchObj: MongoDBObject): Future[Option[List[Species]]]
-  def getProjectsBySpecies(userUrl: Option[String]): Option[Map[String, List[Project]]];
-}
-
-trait ICultureDao extends MycotrackDao[Culture, CultureWrapper] {
-  def search(searchObj: MongoDBObject, includeProjects: Option[Boolean]): Future[Option[List[Culture]]]
-  def getProjectsByCulture(userUrl: Option[String]): Option[List[Culture]];
-}
-
-trait UserService extends MycotrackDao[User, UserWrapper] {
-}
-
-trait EventService {
-  def search(searchObj: MongoDBObject): Future[Option[List[Event]]]
-}

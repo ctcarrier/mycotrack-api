@@ -1,29 +1,31 @@
 package com.mycotrack.api.dao
 
-import com.mongodb.casbah.Imports._
-import akka.dispatch.Future
-import com.novus.salat._
-import com.novus.salat.global._
-import com.mongodb.casbah.commons.MongoDBObject
 import com.mycotrack.api._
 import model._
-import mongo.RandomId
-import akka.actor.ActorSystem
+import akka.actor.{ActorRefFactory, ActorSystem}
+import reactivemongo.api.collections.default.BSONCollection
+import reactivemongo.bson.BSONDocument
+import scaldi.Injector
+import scaldi.akka.AkkaInjectable
 
-/*
- * User: gregg
- * Date: 11/6/11
- * Time: 3:52 PM
- */
-trait CultureDao extends ICultureDao {
+import scala.concurrent.{ExecutionContext, Future}
+
+trait ICultureDao extends MycotrackDao[Culture, CultureWrapper] {
+  def search(searchObj: BSONDocument, includeProjects: Option[Boolean]): Future[Option[List[Culture]]]
+  def getProjectsByCulture(userUrl: Option[String]): Option[List[Culture]];
+}
+
+class CultureDao(implicit inj: Injector) extends ICultureDao with AkkaInjectable {
 
   def urlPrefix = "/cultures/"
 
-  val mongoCollection: MongoCollection
-  val speciesService: ISpeciesDao
-  val projCollection: MongoCollection
+  import ExecutionContext.Implicits.global
+  implicit lazy val system = inject[ActorSystem]
+  lazy val actorRefFactory: ActorRefFactory = system
 
-  def search(searchObj: MongoDBObject, includeProjects: Option[Boolean]) = Future {
+  val projectCollection = inject[BSONCollection] (identified by 'PROJECT_COLLECTION)
+
+  def search(searchObj: BSONDocument, includeProjects: Option[Boolean]) = Future {
 
     val cultureListRes = mongoCollection.find(searchObj).map(f => {
       val cw = grater[CultureWrapper].asObject(f)

@@ -1,9 +1,12 @@
 package com.mycotrack.api.dao
 
-import com.mongodb.casbah.Imports._
+import akka.actor.{ActorRefFactory, ActorSystem}
 import com.mycotrack.api.model.{Container, Substrate}
-import com.novus.salat._
-import com.novus.salat.global._
+import reactivemongo.api.collections.default.BSONCollection
+import scaldi.Injector
+import scaldi.akka.AkkaInjectable
+
+import scala.concurrent.{Future, ExecutionContext}
 
 /**
  * @author chris_carrier
@@ -12,27 +15,26 @@ import com.novus.salat.global._
 
 trait FarmDao {
 
-  def defaultSubstrates: List[Substrate]
-  def defaultContainers: List[Container]
+  def defaultSubstrates: Future[List[Substrate]]
+  def defaultContainers: Future[List[Container]]
 
 }
 
-class MongoFarmDao(defaultSubstrateCollection: MongoCollection, defaultContainerCollection: MongoCollection) extends FarmDao {
+class MongoFarmDao(implicit inj: Injector) extends FarmDao with AkkaInjectable {
 
-  def defaultSubstrates: List[Substrate] = {
-    val res = defaultSubstrateCollection.find().map(f => {
-      grater[Substrate].asObject(f)
-    })
+  import ExecutionContext.Implicits.global
+  implicit lazy val system = inject[ActorSystem]
+  lazy val actorRefFactory: ActorRefFactory = system
 
-    res.toList
+  val defaultSubstrateCollection = inject[BSONCollection] (identified by 'DEFAULT_SUBSTRATE_COLLECTION)
+  val defaultContainerCollection = inject[BSONCollection] (identified by 'DEFAULT_CONTAINER_COLLECTION)
+
+  def defaultSubstrates: Future[List[Substrate]] = {
+    defaultSubstrateCollection.find().cursor[Substrate].collect[List]()
   }
 
-  def defaultContainers: List[Container] = {
-    val res = defaultContainerCollection.find().map(f => {
-      grater[Container].asObject(f)
-    })
-
-    res.toList
+  def defaultContainers: Future[List[Container]] = {
+    defaultContainerCollection.find().cursor[Container].collect[List]()
   }
 
 }

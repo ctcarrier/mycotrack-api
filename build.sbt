@@ -1,6 +1,6 @@
 import AssemblyKeys._
 
-import com.typesafe.startscript.StartScriptPlugin
+import com.typesafe.sbt.SbtStartScript
 
 organization := "mycotrack"
 
@@ -8,13 +8,13 @@ name := "mycotrack-api"
 
 version := "0.1.0-SNAPSHOT"
 
-scalaVersion := "2.9.1"
+scalaVersion := "2.11.5"
 
 seq(assemblySettings: _*)
 
 seq(Revolver.settings: _*)
 
-seq(StartScriptPlugin.startScriptForClassesSettings: _*)
+seq(SbtStartScript.startScriptForClassesSettings: _*)
 
 javaOptions in Revolver.reStart += "-Dakka.mode=dev"
 
@@ -33,31 +33,29 @@ ivyXML :=
 
 libraryDependencies ++= Seq(
   //LOGGING
-    "org.slf4j" % "jcl-over-slf4j" % "1.6.1",
-    "org.slf4j" % "slf4j-api" % "1.6.1",
-    "com.weiglewilczek.slf4s" %% "slf4s" % "1.0.7",
-    "ch.qos.logback" % "logback-classic" % "0.9.28" % "runtime",
-    "ch.qos.logback" % "logback-core" % "0.9.28" % "runtime",
+  "org.slf4j" % "jcl-over-slf4j" % "1.7.7",
+  "org.slf4j" % "slf4j-api" % "1.7.7",
+  "com.typesafe.scala-logging" %% "scala-logging" % "3.0.0",
+  "ch.qos.logback" % "logback-classic" % "1.1.2",
+  "ch.qos.logback" % "logback-core" % "1.1.2",
     //SPRAY
-    "cc.spray" % "spray-base" % "1.0-M2.1" % "compile" withSources(),
-    "cc.spray" % "spray-server" % "1.0-M2.1" % "compile" withSources(),
-    "cc.spray" % "spray-can" % "1.0-M2.1" % "compile" withSources(),
-    "cc.spray" % "spray-io" % "1.0-M2.1" % "compile" withSources(),
+  "io.spray" %% "spray-http" % "1.3.1" % "compile" withSources(),
+  "io.spray" %% "spray-httpx" % "1.3.1" % "compile" withSources(),
+  "io.spray" %% "spray-can" % "1.3.1" % "compile" withSources(),
+  "io.spray" %% "spray-io" % "1.3.1" % "compile" withSources(),
+  "io.spray" %% "spray-caching" % "1.3.1" % "compile" withSources(),
+  "io.spray" %% "spray-client" % "1.3.1" % "compile" withSources(),
+  "io.spray" %% "spray-util" % "1.3.1" % "compile" withSources(),
+  "io.spray" %% "spray-testkit" % "1.3.1" % "test" withSources(),
     //AKKA
-    "com.typesafe.akka" % "akka-actor" % "2.0.2",
-    "com.typesafe.akka" % "akka-testkit" % "2.0.2",
-    "com.typesafe.akka" % "akka-slf4j" % "2.0.2",
-  //LIFT-JSON
-  "net.liftweb" % "lift-json-ext_2.9.0-1" % "2.4-M2",
-  "net.liftweb" % "lift-json_2.9.0-1" % "2.4-M2",
-  //CASBAH
-  "com.mongodb.casbah" % "casbah_2.9.0-1" % "2.1.5.0",
-  "com.novus" % "salat-core_2.9.0-1" % "0.0.8-SNAPSHOT",
+  "org.scaldi" %% "scaldi-akka" % "0.4",
+  "com.typesafe.akka" %% "akka-actor" % "2.3.6",
+  "com.typesafe.akka" %% "akka-slf4j" % "2.3.6",
+  //ReactiveMongo
+  "org.reactivemongo" %% "reactivemongo" % "0.10.5.0.akka23" % "compile",
   //TESTING
-  "org.specs2" %% "specs2" % "1.5" % "test",
-  "org.specs2" % "specs2-scalaz-core_2.9.0-1" % "6.0.RC2" % "test",
-  // Dispatch
-  "net.databinder" %% "dispatch-http" % "0.8.6"
+  "org.specs2" %% "specs2" % "2.4.2" % "test",
+  "org.scalatest" % "scalatest_2.11" % "2.2.2" % "test"
 )
 
 resolvers ++= Seq(
