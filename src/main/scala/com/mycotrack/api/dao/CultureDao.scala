@@ -4,15 +4,17 @@ import com.mycotrack.api._
 import model._
 import akka.actor.{ActorRefFactory, ActorSystem}
 import reactivemongo.api.collections.default.BSONCollection
-import reactivemongo.bson.BSONDocument
+import reactivemongo.bson.{BSONObjectID, BSONDocument}
 import scaldi.Injector
 import scaldi.akka.AkkaInjectable
 
 import scala.concurrent.{ExecutionContext, Future}
 
-trait ICultureDao extends MycotrackDao[Culture, CultureWrapper] {
-  def search(searchObj: BSONDocument, includeProjects: Option[Boolean]): Future[Option[List[Culture]]]
-  def getProjectsByCulture(userUrl: Option[String]): Option[List[Culture]];
+trait ICultureDao {
+  def get(key: BSONObjectID): Future[Option[Culture]]
+  def save(species: Culture): Future[Option[Culture]]
+  def search(searchObj: BSONDocument, includeProjects: Option[Boolean]): Future[List[Culture]]
+  def update(cultureId: BSONObjectID, culture: Culture): Future[Option[Culture]]
 }
 
 class CultureDao(implicit inj: Injector) extends ICultureDao with AkkaInjectable {
@@ -23,62 +25,28 @@ class CultureDao(implicit inj: Injector) extends ICultureDao with AkkaInjectable
   implicit lazy val system = inject[ActorSystem]
   lazy val actorRefFactory: ActorRefFactory = system
 
-  val projectCollection = inject[BSONCollection] (identified by 'PROJECT_COLLECTION)
+  lazy val cultureCollection = inject[BSONCollection] (identified by 'PROJECT_COLLECTION)
 
-  def search(searchObj: BSONDocument, includeProjects: Option[Boolean]) = Future {
+  def get(key: BSONObjectID): Future[Option[Culture]] = cultureCollection.find(BSONDocument("_id" -> key)).one[Culture]
 
-    val cultureListRes = mongoCollection.find(searchObj).map(f => {
-      val cw = grater[CultureWrapper].asObject(f)
+  def save(culture: Culture): Future[Option[Culture]] = {
 
-      if (includeProjects.getOrElse(false)) {
-        //fetch list of projects by culture
-        val projectBuilder = MongoDBObject.newBuilder
-        cw._id.foreach(projectBuilder += "content.cultureUrl" -> _)
-        projectBuilder += ("content.enabled" -> true)
-        val listRes = projCollection.find(projectBuilder.result.asDBObject).map(p => {
-          val pw = grater[ProjectWrapper].asObject(p)
-          pw.content.head.copy(id = pw._id)
-        }).toList
-
-        cw.content.head.copy(id = cw._id, projects = Option(listRes))
-      }
-      else {
-        cw.content.head.copy(id = cw._id)
-      }
-    }).toList
-
-    val res = cultureListRes match {
-      case l: List[Culture] if (!l.isEmpty) => Some(l)
-      case _ => None
-    }
-
-    res
+    val newObjectId = Option(BSONObjectID.generate)
+    for {
+      lastError <- cultureCollection.save(culture.copy(_id = newObjectId))
+      toReturn <- cultureCollection.find(BSONDocument("_id" -> newObjectId)).one[Culture]
+    } yield toReturn
   }
 
-  def getProjectsByCulture(userUrl: Option[String]): Option[List[Culture]] = {
-    val builder = MongoDBObject.newBuilder
-    userUrl.foreach(builder += "content.userUrl" -> _)
+  def search(searchObj: BSONDocument, includeProjects: Option[Boolean]): Future[List[Culture]] = {
+    cultureCollection.find(searchObj).cursor[Culture].collect[List]()
+  }
 
-    val cultureListRes = mongoCollection.find(builder.result.asDBObject).map(f => {
-      val cw = grater[CultureWrapper].asObject(f)
-
-      //fetch list of projects by culture
-      val projectBuilder = MongoDBObject.newBuilder
-      userUrl.foreach(projectBuilder += "content.userUrl" -> _)
-      cw._id.foreach(projectBuilder += "content.cultureUrl" -> _)
-      val listRes = projCollection.find(projectBuilder.result.asDBObject).map(f => {
-        val pw = grater[ProjectWrapper].asObject(f)
-        pw.content.head.copy(id = pw._id)
-      }).toList
-
-      cw.content.head.copy(id = cw._id, projects = Option(listRes))
-    }).toList
-
-    val res = cultureListRes match {
-      case l: List[Culture] if (!l.isEmpty) => Some(l)
-      case _ => None
-    }
-
-    res
+  def update(cultureId: BSONObjectID, culture: Culture): Future[Option[Culture]] = {
+    val query = BSONDocument("_id" -> cultureId)
+    for {
+      lastError <- cultureCollection.update(query, culture)
+      toReturn <- cultureCollection.find(BSONDocument("_id" -> culture._id)).one[Culture]
+    } yield toReturn
   }
 }

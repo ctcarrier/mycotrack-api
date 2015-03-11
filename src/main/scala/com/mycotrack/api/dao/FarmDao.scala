@@ -3,6 +3,7 @@ package com.mycotrack.api.dao
 import akka.actor.{ActorRefFactory, ActorSystem}
 import com.mycotrack.api.model.{Container, Substrate}
 import reactivemongo.api.collections.default.BSONCollection
+import reactivemongo.bson.BSONDocument
 import scaldi.Injector
 import scaldi.akka.AkkaInjectable
 
@@ -26,15 +27,17 @@ class MongoFarmDao(implicit inj: Injector) extends FarmDao with AkkaInjectable {
   implicit lazy val system = inject[ActorSystem]
   lazy val actorRefFactory: ActorRefFactory = system
 
-  val defaultSubstrateCollection = inject[BSONCollection] (identified by 'DEFAULT_SUBSTRATE_COLLECTION)
-  val defaultContainerCollection = inject[BSONCollection] (identified by 'DEFAULT_CONTAINER_COLLECTION)
+  lazy val defaultSubstrateCollection = inject[BSONCollection] (identified by 'DEFAULT_SUBSTRATE_COLLECTION)
+  lazy val defaultContainerCollection = inject[BSONCollection] (identified by 'DEFAULT_CONTAINER_COLLECTION)
+
+  val existsQuery = BSONDocument("_id" -> BSONDocument("$exists" -> true))
 
   def defaultSubstrates: Future[List[Substrate]] = {
-    defaultSubstrateCollection.find().cursor[Substrate].collect[List]()
+    defaultSubstrateCollection.find(existsQuery).cursor[Substrate].collect[List]()
   }
 
   def defaultContainers: Future[List[Container]] = {
-    defaultContainerCollection.find().cursor[Container].collect[List]()
+    defaultContainerCollection.find(existsQuery).cursor[Container].collect[List]()
   }
 
 }

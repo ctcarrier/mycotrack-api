@@ -1,11 +1,11 @@
 package com.mycotrack.api.aggregation
 
 import akka.event.Logging
-import com.mongodb.casbah.Imports._
-import org.apache.commons.codec.binary.Base64
 import akka.actor.{ActorSystem, Actor, Props}
-import com.mycotrack.api.model.{ProjectWrapper, Project}
-import com.weiglewilczek.slf4s.Logging
+import com.mycotrack.api.model.{Project}
+import com.typesafe.scalalogging.LazyLogging
+import reactivemongo.api.collections.default.BSONCollection
+import reactivemongo.bson.BSONObjectID
 
 /**
  * @author chris_carrier
@@ -13,50 +13,39 @@ import com.weiglewilczek.slf4s.Logging
  */
 
 
-trait GlobalAggregators { this: Logging =>
+trait GlobalAggregators { this: LazyLogging =>
   val system: ActorSystem
-  def cultureCountCollection: MongoCollection
+  def cultureCountCollection: BSONCollection
 
   logger.info("Akka actor system: " + system)
 
   lazy val aggregationBroadcaster = system.actorOf(Props(new AggregationBroadcaster((cultureCountCollection))), name = "aggregationBroadcaster")
 }
 
-class AggregationBroadcaster(cultureCountCollection: MongoCollection) extends Actor {
+class AggregationBroadcaster(cultureCountCollection: BSONCollection) extends Actor {
   val log = Logging(context.system, this)
 
   val projectActors = List(context.actorOf(Props(new CultureCountActor(cultureCountCollection)), name = "cultureCountActor"))
 
   def receive = {
-    case p: ProjectWrapper => projectActors.foreach(_ ! p.content.head)
+    case p: Project => projectActors.foreach(_ ! p)
     case e => log.error("Got something weird in GlobalAgg: " + e)
   }
 }
 
-class CultureCountActor(cultureCountCollection: MongoCollection) extends Actor {
+class CultureCountActor(cultureCountCollection: BSONCollection) extends Actor {
   val log = Logging(context.system, this)
 
   def receive = {
-    case Project(id, description, cultureUrl, userUrl, enabled, substrate, container, startDate,
+    case Project(id, description, cultureUrl, userId, enabled, substrate, container, startDate,
     parent, timestamp, count, events) => {
       log.info("Should aggregate : " + cultureUrl.getOrElse(""))
-      incrementCultureCount(cultureUrl, userUrl, count)
+      incrementCultureCount(cultureUrl, userId, count)
     }
     case _ => log.info("received unknown message")
   }
 
-  def incrementCultureCount(cultureUrl: Option[String], userUrl: Option[String], count: Option[Long]) {
-    (userUrl, cultureUrl, count) match {
-      case (Some(u), Some(c), Some(count)) => {
-        val id = Base64.encodeBase64URLSafeString("%s%s" format (u, c) getBytes)
-        val query = MongoDBObject(("_id" -> id))
-        val dbo = $inc("created" -> count) ++ ("cultureUrl" -> cultureUrl)
-        log.info("DBO: " + dbo)
-        cultureCountCollection.update(query, dbo, true, false)
-      }
-      case _ => None
-    }
-  }
+  def incrementCultureCount(cultureUrl: Option[String], userId: Option[BSONObjectID], count: Option[Long]) = ???
 }
 
 

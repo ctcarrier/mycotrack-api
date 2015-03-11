@@ -1,56 +1,46 @@
 package com.mycotrack.api.model
 
-import org.bson.types.ObjectId
-import com.novus.salat.annotations.{Ignore, Key}
 import java.util.Date
 
-case class Project(@Ignore id: Option[String],
+import org.joda.time.DateTime
+import reactivemongo.bson.BSONObjectID
+
+case class Project(_id: Option[BSONObjectID],
                    description: Option[String],
                    cultureUrl: Option[String],
-                   userUrl: Option[String],
+                   userId: Option[BSONObjectID],
                    enabled: Boolean,
                    substrate: Option[String],
                    container: Option[String],
-                   startDate: Option[Date],
+                   startDate: Option[DateTime],
                    parent: Option[String] = None,
-                   @Ignore timestamp: Option[Date] = Some(new Date()),
+                   timestamp: Option[DateTime] = Some(DateTime.now()),
                     count: Option[Long],
                     events: List[Event] = List.empty)
-object Project {
-  implicit def projToProjWrapper(project: Project): ProjectWrapper = {
-    val now = new Date
-    ProjectWrapper(project.id, 1, now, now, List(project), project.events)
-  }
-}
 
-case class Species(@Ignore id: Option[String], scientificName: String, commonName: String, imageUrl: String)
-object Species {
-  implicit def species2SpeciesWrapper(species: Species): SpeciesWrapper = {
-    val now = new Date
-    SpeciesWrapper(species.id, 1, now, now, List(species))
-  }
-}
 
-case class Culture(@Ignore id: Option[String], name: String, speciesUrl: Option[String], userUrl: Option[String], species: Option[Species] = None, projects: Option[List[Project]] = None)
-object Culture {
-  implicit def culture2CultureWrapper(culture: Culture): CultureWrapper = {
-    val now = new Date
-    CultureWrapper(culture.id, 1, now, now, List(culture))
-  }
-}
+case class Species(_id: Option[BSONObjectID], scientificName: String, commonName: String, imageUrl: String)
 
-case class User(@Ignore id: Option[String], @Ignore dateCreated: Option[Date], @Ignore lastUpdated: Option[Date], email: String, password: String)
+
+case class Culture(_id: Option[BSONObjectID], name: String, speciesUrl: Option[String], userId: Option[BSONObjectID], species: Option[Species] = None, projects: Option[List[Project]] = None)
+
+
+case class User(_id: Option[BSONObjectID], dateCreated: Option[DateTime], lastUpdated: Option[DateTime], email: String, password: String)
 object User {
-  implicit def user2UserWrapper(user: User): UserWrapper = {
-    val now = new Date
-    UserWrapper(user.id, 1, now, now, List(user))
+  val rx = "(^[\\w\\._%+-]+@[\\w\\.-]+\\.[\\w]{2,4}$)".r
+
+  def validEmail(email: String) = {
+    rx.findFirstIn(email) match {
+      case Some(_) => true
+      case None => false
+    }
   }
 }
 
-case class Event(name: String, dateCreated: Date)
+case class Event(name: String, dateCreated: DateTime)
 
-case class Substrate(@Key("_id") id: Option[String], name: String)
+case class Substrate(_id: Option[BSONObjectID], name: String)
 
-case class Container(@Key("_id") id: Option[String], name: String)
+case class Container(_id: Option[BSONObjectID], name: String)
 
-case class Farm(@Ignore id: Option[String], substrates: List[Substrate], containers: List[Container])
+case class Farm(_id: Option[BSONObjectID], substrates: List[Substrate], containers: List[Container])

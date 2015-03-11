@@ -1,76 +1,73 @@
 package com.mycotrack.api.endpoint
 
-import com.mycotrack.api.json.{ObjectIdSerializer}
+import akka.actor.ActorSystem
+import com.mycotrack.api.auth.Authenticator
 import com.mycotrack.api.model._
 import com.mycotrack.api.response._
 import com.mycotrack.api.dao._
-import com.mycotrack.api.spray.MongoAuthSupport
+import com.mycotrack.api.spraylib.{LocalPathMatchers}
+import com.typesafe.scalalogging.LazyLogging
+import org.json4s.Formats
+import scaldi.Injector
+import scaldi.akka.AkkaInjectable
+import spray.httpx.Json4sJacksonSupport
+import spray.routing.HttpService
+import scala.concurrent.ExecutionContext.Implicits.global
 
-class CultureEndpoint extends HttpService with Json4sJacksonSupport with LazyLogging with MongoAuthSupport {
-  implicit val liftJsonFormats = DefaultFormats + new ObjectIdSerializer
+import spray.http.StatusCodes._
+
+import scala.language.postfixOps
+
+class CultureEndpoint(implicit inj: Injector) extends HttpService
+  with Json4sJacksonSupport
+  with LazyLogging
+  with LocalPathMatchers
+  with AkkaInjectable{
+
+  implicit lazy val system = inject[ActorSystem]
+  val actorRefFactory = system
+  lazy val json4sJacksonFormats = inject[Formats]
 
   final val NOT_FOUND_MESSAGE = "resource.notFound"
   final val INTERNAL_ERROR_MESSAGE = "error"
 
   val requiredFields = List("name")
 
-  val service: ICultureDao
+  val service = inject[ICultureDao]
+
+  lazy val authenticator = inject[Authenticator]
 
   //directive compositions
-  val objectIdPathMatch = path("^[a-zA-Z0-9]+$".r)
-  val putCulture = content(as[Culture]) & put
-  val postCulture = path("") & content(as[Culture]) & post
-  val searchCultures = path("") & parameters('name ?, 'includeProjects.as[Boolean]?) & get
-  val getProjectsByCulture = path("all" / "projects") & get
+  val getCulture =  path(BSONObjectIDSegment) & get
+  val putCulture =  path(BSONObjectIDSegment) & put & entity(as[Culture])
+  val postCulture = post & entity(as[Culture]) & respondWithStatus(Created)
+  val searchCultures = get & parameters('name ?, 'includeProjects.as[Boolean] ?)
 
   val route = {
     // Debugging: /ping -> pong
     // Service implementation.
-    pathPrefix("api" / "cultures") {
-      authenticate(httpMongo()) { user =>
-      objectIdPathMatch {
-        resourceId =>
-          get {
-            ctx =>
-                  withSuccessCallback(ctx) {
-                    service.get[CultureWrapper](service.formatKeyAsId(resourceId), user.id)
-                  }
-
-          } ~
-            putCulture {
-              resource => ctx =>
-                    withSuccessCallback(ctx) {
-                      service.update[Culture, CultureWrapper](resourceId, resource)
-                    }
-
-            }
-      } ~
-        postCulture {
-          resource => ctx =>
-              withSuccessCallback(ctx, Created) {
-                service.create[CultureWrapper](resource.copy(userUrl = user.id))
-              }
+    pathPrefix("cultures") {
+      authenticate(authenticator.basicAuthenticator) { user =>
+        getCulture { resourceId =>
+          complete {
+            service.get(resourceId)
+          }
 
         } ~
-        getProjectsByCulture {
-            completeWith {
-              logger.info("Got culture project request")
-              val result = service.getProjectsByCulture(user.id).get
-              logger.info("Result is: " + result)
-              result
-            }
+        putCulture { (resourceId, resource) =>
+          complete {
+            service.update(resourceId, resource)
+          }
         } ~
-        searchCultures {
-          (name, includeProjects) => ctx =>
-              service.search(CultureSearchParams(name, user.id), includeProjects).onComplete(f => {
-                f match {
-                    case Right(Some(content)) => {
-                      val res: List[Culture] = content
-                      ctx.complete(res)
-                    }
-                    case _ => ctx.fail(StatusCodes.NotFound, ErrorResponse(1, ctx.request.path, List(NOT_FOUND_MESSAGE)))
-                  }
-                })
+        postCulture { resource =>
+          complete {
+            service.save(resource.copy(userId = user._id))
+          }
+        } ~
+        searchCultures { (name, includeProjects) =>
+          complete {
+            service.search(CultureSearchParams(name, user._id), includeProjects)
+          }
         }
       }
     }

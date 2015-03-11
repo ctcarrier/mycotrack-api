@@ -6,18 +6,20 @@ import model._
 import java.util.Date
 import akka.actor.{ActorRefFactory, ActorSystem}
 import reactivemongo.api.collections.default.BSONCollection
-import reactivemongo.bson.BSONDocument
+import reactivemongo.bson.{BSONObjectID, BSONDocument}
+import scaldi.Injector
 import scaldi.akka.AkkaInjectable
 
 import scala.concurrent.{Future, ExecutionContext}
 
-trait IProjectDao extends MycotrackDao[Project, ProjectWrapper] {
-  def search(searchObj: BSONDocument): Future[Option[List[Project]]]
-  def getChildren(root: Project): Future[Option[List[Project]]]
-  def addEvent(projectId: String, eventName: String): Option[Project]
+trait IProjectDao {
+  def get(key: BSONObjectID, userId: BSONObjectID): Future[Option[Project]]
+  def save(project: Project): Future[Option[Project]]
+  def search(searchObj: BSONDocument): Future[List[Project]]
+  def update(id: BSONObjectID, project: Project): Future[Option[Project]]
 }
 
-trait ProjectDao extends IProjectDao with LazyLogging with AkkaInjectable {
+class ProjectDao(implicit inj: Injector) extends IProjectDao with LazyLogging with AkkaInjectable {
 
   def urlPrefix = "/projects/"
 
@@ -25,41 +27,30 @@ trait ProjectDao extends IProjectDao with LazyLogging with AkkaInjectable {
   implicit lazy val system = inject[ActorSystem]
   lazy val actorRefFactory: ActorRefFactory = system
 
-  val projectCollection = inject[BSONCollection] (identified by 'PROJECT_COLLECTION)
+  lazy val projectCollection = inject[BSONCollection] (identified by 'PROJECT_COLLECTION)
 
-  def search(searchObj: BSONDocument) = Future {
-    val listRes = projectCollection.find(searchObj).map(f => {
-      logger.info(f.toString);
-      val pw: Project = grater[ProjectWrapper].asObject(f)
-      pw
-    }).toList
+  def get(key: BSONObjectID, userId: BSONObjectID): Future[Option[Project]] =
+    projectCollection.find(BSONDocument("_id" -> key, "userId" -> userId)).one[Project]
 
-    val res = listRes match {
-      case l: List[Project] if (!l.isEmpty) => Some(l)
-      case _ => None
-    }
+  def save(project: Project): Future[Option[Project]] = {
 
-    res
+    val newObjectId = Option(BSONObjectID.generate)
+    for {
+      lastError <- projectCollection.save(project.copy(_id = newObjectId))
+      toReturn <- projectCollection.find(BSONDocument("_id" -> newObjectId)).one[Project]
+    } yield toReturn
   }
 
-  def getChildren(root: Project) = Future {
-    val query = BSONDocument("parent" -> root.id)
-    projectCollection.find(query).map(f =>
-      grater[ProjectWrapper].asObject(f).content).toList match {
-      case l: List[Project] if (!l.isEmpty) => Some(l)
-      case _ => None
-    }
+  def search(searchObj: BSONDocument): Future[List[Project]] = {
+    projectCollection.find(searchObj).cursor[Project].collect[List]()
   }
 
-  def addEvent(projectId: String, eventName: String): Option[Project] = {
-    logger.info("adding event in DAO with" + projectId + " and " + eventName)
-    val eventDbo = grater[Event].asDBObject(Event(eventName, new Date()))
-    val find = BSONDocument("_id" -> formatKeyAsId(projectId))
-    val update = $addToSet("events" -> eventDbo)
-    projectCollection.findAndModify(find, null, null, false, update, true, false).map(f => {
-      val pw: Project = grater[ProjectWrapper].asObject(f)
-      pw
-    })
+  def update(id: BSONObjectID, project: Project): Future[Option[Project]] = {
+    val query = BSONDocument("_id" -> id)
+    for {
+      lastError <- projectCollection.update(query, project)
+      toReturn <- projectCollection.find(BSONDocument("_id" -> project._id)).one[Project]
+    } yield toReturn
   }
 }
 

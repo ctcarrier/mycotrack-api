@@ -1,19 +1,32 @@
 package com.mycotrack.api.endpoint
 
-import com.mycotrack.api.json.ObjectIdSerializer
+import akka.actor.ActorSystem
+import com.mycotrack.api.auth.Authenticator
 import com.typesafe.scalalogging.LazyLogging
-import com.mycotrack.api.spray.MongoAuthSupport
 import com.mycotrack.api.service.FarmService
+import org.json4s.Formats
+import scaldi.Injector
+import scaldi.akka.AkkaInjectable
 import spray.httpx.Json4sJacksonSupport
+import spray.routing.HttpService
+import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
  * @author chris carrier
  */
 
-class FarmEndpoint extends HttpService with Json4sJacksonSupport with LazyLogging with MongoAuthSupport {
-  implicit val liftJsonFormats = DefaultFormats.lossless + new ObjectIdSerializer
+class FarmEndpoint(implicit inj: Injector) extends HttpService
+  with Json4sJacksonSupport
+  with LazyLogging
+  with AkkaInjectable {
 
-  val service: FarmService
+  implicit lazy val system = inject[ActorSystem]
+  val actorRefFactory = system
+  lazy val json4sJacksonFormats = inject[Formats]
+
+  val service = inject[FarmService]
+
+  lazy val authenticator = inject[Authenticator]
 
   //directive compositions
   val indirectGet = path("") & get
@@ -21,25 +34,18 @@ class FarmEndpoint extends HttpService with Json4sJacksonSupport with LazyLoggin
   val route = {
     // Debugging: /ping -> pong
     path("ping") {
-      detach {
-        cache {
-          get {
-            _.complete("pong " + new java.util.Date())
+      get {
+        complete("pong " + new java.util.Date())
+      }
+    } ~
+    pathPrefix("farms") {
+      authenticate(authenticator.basicAuthenticator) { user =>
+        indirectGet {
+          complete {
+            service.getFarm(user)
           }
         }
       }
-    } ~
-      // Service implementation.
-      pathPrefix("api" / "farms") {
-        authenticate(httpMongo()) {
-          user =>
-            indirectGet {
-                completeWith {
-                  service.getFarm(user)
-                }
-            }
-
-        }
-      }
+    }
   }
 }

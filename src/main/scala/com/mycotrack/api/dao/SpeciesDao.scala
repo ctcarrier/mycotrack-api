@@ -5,55 +5,48 @@ import com.typesafe.scalalogging.LazyLogging
 import model._
 import akka.actor.{ActorRefFactory, ActorSystem}
 import reactivemongo.api.collections.default.BSONCollection
-import reactivemongo.bson.BSONDocument
+import reactivemongo.bson.{BSONObjectID, BSONDocument}
+import scaldi.Injector
 import scaldi.akka.AkkaInjectable
 
 import scala.concurrent.{Future, ExecutionContext}
 
-trait ISpeciesDao extends MycotrackDao[Species, SpeciesWrapper] {
-  def search(searchObj: BSONDocument): Future[Option[List[Species]]]
-  def getProjectsBySpecies(userUrl: Option[String]): Option[Map[String, List[Project]]];
+trait ISpeciesDao {
+  def get(key: BSONObjectID): Future[Option[Species]]
+  def save(species: Species): Future[Option[Species]]
+  def search(searchObj: BSONDocument): Future[List[Species]]
+  def update(id: BSONObjectID, species: Species): Future[Option[Species]]
 }
 
-trait SpeciesDao extends ISpeciesDao with LazyLogging with AkkaInjectable {
+class SpeciesDao(implicit inj: Injector) extends ISpeciesDao with LazyLogging with AkkaInjectable {
 
   import ExecutionContext.Implicits.global
   implicit lazy val system = inject[ActorSystem]
   lazy val actorRefFactory: ActorRefFactory = system
 
-  val projectCollection = inject[BSONCollection] (identified by 'PROJECT_COLLECTION)
-  val speciesCollection = inject[BSONCollection] (identified by 'SPECIES_COLLECTION)
+  lazy val projectCollection = inject[BSONCollection] (identified by 'PROJECT_COLLECTION)
+  lazy val speciesCollection = inject[BSONCollection] (identified by 'SPECIES_COLLECTION)
 
-  def search(searchObj: BSONDocument) = Future {
-    val listRes = speciesCollection.find(searchObj).map(f => {
-      val pw = grater[SpeciesWrapper].asObject(f)
-      pw.content.head.copy(id = pw._id)
-    }).toList
+  def get(key: BSONObjectID): Future[Option[Species]] = speciesCollection.find(BSONDocument("_id" -> key)).one[Species]
 
+  def save(species: Species): Future[Option[Species]] = {
 
-    val res = listRes match {
-      case l: List[Species] if (!l.isEmpty) => Some(l)
-      case _ => None
-    }
-
-    res
+    val newObjectId = Option(BSONObjectID.generate)
+    for {
+      lastError <- speciesCollection.save(species.copy(_id = newObjectId))
+      toReturn <- speciesCollection.find(BSONDocument("_id" -> newObjectId)).one[Species]
+    } yield toReturn
   }
 
-  def getProjectsBySpecies(userUrl: Option[String]): Option[Map[String, List[Project]]] = {
-    val builder = MongoDBObject.newBuilder
-    userUrl.foreach(builder += "content.userUrl" -> _)
+  def search(searchObj: BSONDocument): Future[List[Species]] = {
+    speciesCollection.find(searchObj).cursor[Species].collect[List]()
+  }
 
-    val listRes = projectCollection.find(builder.result.asDBObject).map(f => {
-      logger.info(f.toString);
-      val pw = grater[ProjectWrapper].asObject(f)
-      pw.content.head.copy(id = pw._id)
-    }).toList
-
-    val res = listRes match {
-      case l: List[Project] if (!l.isEmpty) => Some(l.groupBy(p => p.cultureUrl.get))
-      case _ => None
-    }
-
-    res
+  def update(id: BSONObjectID, species: Species): Future[Option[Species]] = {
+    val query = BSONDocument("_id" -> id)
+    for {
+      lastError <- speciesCollection.update(query, species)
+      toReturn <- speciesCollection.find(BSONDocument("_id" -> species._id)).one[Species]
+    } yield toReturn
   }
 }

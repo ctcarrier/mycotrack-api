@@ -1,79 +1,65 @@
 package com.mycotrack.api.endpoint
 
+import akka.actor.ActorSystem
+import com.mycotrack.api.auth.Authenticator
 import com.typesafe.scalalogging.LazyLogging
 import com.mycotrack.api.model._
 import com.mycotrack.api.response._
 import com.mycotrack.api.dao._
-import com.mycotrack.api.json.{UnrestrictedLiftJsonSupport, ObjectIdSerializer}
-import com.mycotrack.api.spray.MongoAuthSupport
+import com.mycotrack.api.spraylib.{LocalPathMatchers}
+import org.json4s.Formats
+import scaldi.Injector
+import scaldi.akka.AkkaInjectable
 import spray.httpx.Json4sJacksonSupport
+import spray.routing.HttpService
+import scala.concurrent.ExecutionContext.Implicits.global
 
-class SpeciesEndpoint extends HttpService with Json4sJacksonSupport with LazyLogging with MongoAuthSupport {
-  implicit val liftJsonFormats = DefaultFormats + new ObjectIdSerializer
+import spray.http.StatusCodes._
 
-  final val NOT_FOUND_MESSAGE = "resource.notFound"
-  final val INTERNAL_ERROR_MESSAGE = "error"
+import scala.language.postfixOps
 
-  val service: ISpeciesDao
+class SpeciesEndpoint(implicit inj: Injector) extends HttpService
+  with Json4sJacksonSupport
+  with LazyLogging
+  with LocalPathMatchers
+  with AkkaInjectable {
+
+  implicit lazy val system = inject[ActorSystem]
+  val actorRefFactory = system
+  lazy val json4sJacksonFormats = inject[Formats]
+
+  val service = inject[ISpeciesDao]
+
+  lazy val authenticator = inject[Authenticator]
 
   //directive compositions
-  val objectIdPathMatch = path("^[a-zA-Z0-9]+$".r)
-  val getSpecies = get
-  val getProjectsBySpecies = path("all" / "projects") & get
-  val putSpecies = content(as[Species]) & put
-  val postSpecies = path("") & content(as[Species]) & post
-  val searchSpecies = path("") & parameters('commonName ?, 'scientificName ?) & get
+  val getSpecies = path(BSONObjectIDSegment) & get
+  val putSpecies = path(BSONObjectIDSegment) & put & entity(as[Species])
+  val postSpecies = post & entity(as[Species]) & respondWithStatus(Created)
+  val searchSpecies = parameters('commonName ?, 'scientificName ?) & get
 
   val route = {
-    // Debugging: /ping -> pong
-    // Service implementation.
-    pathPrefix("api" / "species") {
-      objectIdPathMatch {
-        resourceId =>
-          getSpecies {
-            ctx =>
-                  withSuccessCallback(ctx) {
-                    service.get[SpeciesWrapper](service.formatKeyAsId(resourceId))
-                  }
-          } ~
-            putSpecies {
-              resource => ctx =>
-                    withSuccessCallback(ctx) {
-                      service.update[Species, SpeciesWrapper](resourceId, resource)
-                    }
-            }
+    pathPrefix("species") {
+      getSpecies { resourceId =>
+        complete {
+          service.get(resourceId)
+        }
       } ~
-      getProjectsBySpecies {
-        authenticate(httpMongo()) {user =>
-          completeWith {
-            logger.info("Got species project request")
-            val result = service.getProjectsBySpecies(user.id).get
-            logger.info("Result is: " + result)
-            result
+      putSpecies { (resourceId, resource) =>
+        complete {
+          service.update(resourceId, resource)
+        }
+      } ~
+      postSpecies { resource =>
+          complete {
+            service.save(resource)
           }
-        }
       } ~
-        postSpecies {
-          resource => ctx =>
-            val now = new java.util.Date
-            val resourceWrapper = SpeciesWrapper(None, 1, now, now, List(resource))
-              withSuccessCallback(ctx, Created) {
-                service.create[SpeciesWrapper](resourceWrapper)
-              }
-        } ~
-        searchSpecies {
-          (commonName, scientificName) => ctx =>
-              service.search(SpeciesSearchParams(scientificName, commonName)).onComplete(f => {
-                f match {
-                    case Right(Some(content)) => {
-                      logger.info("Completing species call")
-                      val res: List[Species] = content
-                      ctx.complete(res)
-                    }
-                    case _ => ctx.fail(StatusCodes.NotFound, ErrorResponse(1, ctx.request.path, List(NOT_FOUND_MESSAGE)))
-                  }
-                })
+      searchSpecies { (commonName, scientificName) =>
+        complete {
+          service.search(SpeciesSearchParams(scientificName, commonName))
         }
+      }
     }
   }
 }

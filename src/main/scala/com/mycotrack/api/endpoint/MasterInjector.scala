@@ -1,10 +1,13 @@
 package com.mycotrack.api.endpoint
 
 import akka.actor.{Actor, ActorSystem}
+import com.mycotrack.api.spraylib.LocalRejectionHandlers
 import scaldi.Injector
 import scaldi.akka.AkkaInjectable
 import spray.http.CacheDirectives.{`must-revalidate`, `no-cache`, `no-store`}
 import spray.http.HttpHeaders._
+import spray.routing.HttpService
+import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
  * Created by ccarrier for bl-rest.
@@ -13,7 +16,7 @@ import spray.http.HttpHeaders._
 
 
 class MasterInjector(implicit val inj: Injector) extends Actor with AkkaInjectable
-   with LocalRejectionHandlers with HttpService {
+with LocalRejectionHandlers with HttpService {
 
   implicit lazy val system = inject[ActorSystem]
   lazy val actorRefFactory = system
@@ -24,7 +27,8 @@ class MasterInjector(implicit val inj: Injector) extends Actor with AkkaInjectab
   lazy val projectEndpoint = inject[ProjectEndpoint]
   lazy val speciesEndpoint = inject[SpeciesEndpoint]
 
-  def receive = runRoute{ respondWithHeader(`Cache-Control`(`no-cache`, `no-store`, `must-revalidate`)) {
+  def receive = runRoute {
+    respondWithHeader(`Cache-Control`(`no-cache`, `no-store`, `must-revalidate`)) {
       userEndpoint.route ~
         cultureEndpoint.route ~
         farmDataEndpoint.route ~

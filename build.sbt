@@ -16,6 +16,8 @@ seq(Revolver.settings: _*)
 
 seq(SbtStartScript.startScriptForClassesSettings: _*)
 
+scalacOptions ++= Seq("-feature")
+
 javaOptions in Revolver.reStart += "-Dakka.mode=dev"
 
 javaOptions in Revolver.reStart += "-Xdebug"
@@ -31,6 +33,8 @@ ivyXML :=
 	 	        <exclude org="commons-logging" module="commons-logging"/>
  	        </dependencies>
 
+ivyScala := ivyScala.value map { _.copy(overrideScalaVersion = true) }
+
 libraryDependencies ++= Seq(
   //LOGGING
   "org.slf4j" % "jcl-over-slf4j" % "1.7.7",
@@ -39,6 +43,7 @@ libraryDependencies ++= Seq(
   "ch.qos.logback" % "logback-classic" % "1.1.2",
   "ch.qos.logback" % "logback-core" % "1.1.2",
     //SPRAY
+  "io.spray" %% "spray-routing" % "1.3.1" % "compile" withSources(),
   "io.spray" %% "spray-http" % "1.3.1" % "compile" withSources(),
   "io.spray" %% "spray-httpx" % "1.3.1" % "compile" withSources(),
   "io.spray" %% "spray-can" % "1.3.1" % "compile" withSources(),
@@ -51,11 +56,15 @@ libraryDependencies ++= Seq(
   "org.scaldi" %% "scaldi-akka" % "0.4",
   "com.typesafe.akka" %% "akka-actor" % "2.3.6",
   "com.typesafe.akka" %% "akka-slf4j" % "2.3.6",
+  "org.json4s" %% "json4s-jackson" % "3.2.11",
+  "com.github.nscala-time" %% "nscala-time" % "1.4.0",
+  "org.mindrot" % "jbcrypt" % "0.3m",
   //ReactiveMongo
   "org.reactivemongo" %% "reactivemongo" % "0.10.5.0.akka23" % "compile",
   //TESTING
   "org.specs2" %% "specs2" % "2.4.2" % "test",
-  "org.scalatest" % "scalatest_2.11" % "2.2.2" % "test"
+  "org.scalatest" % "scalatest_2.11" % "2.2.2" % "test",
+  "commons-codec" % "commons-codec" % "1.10"
 )
 
 resolvers ++= Seq(
@@ -68,18 +77,3 @@ resolvers ++= Seq(
   "repo.novus snaps" at "http://repo.novus.com/snapshots/",
   "Spray repo" at "http://repo.spray.cc"
 )
-
-testOptions in Test += Tests.Setup( loader => {
-  val oldEnv = System.getProperty("akka.mode")
-  if (oldEnv != null) {
-    System.setProperty("akka.mode.old", oldEnv)
-  }
-  System.setProperty("akka.mode", "test")
-} )
-
-testOptions in Test += Tests.Cleanup( loader => {
-  val oldEnv = System.getProperty("akka.mode.old")
-  if (oldEnv != null) {
-    System.setProperty("akka.mode", oldEnv)
-  }
-} )

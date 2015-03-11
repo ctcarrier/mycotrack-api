@@ -1,13 +1,25 @@
 package com.mycotrack.api.endpoint
 
-import com.mycotrack.api.json.{ObjectIdSerializer}
+import akka.actor.ActorSystem
+import com.mycotrack.api.spraylib.LocalPathMatchers
 import com.typesafe.scalalogging.LazyLogging
 import com.mycotrack.api.dao._
+import org.json4s.Formats
+import scaldi.Injector
+import scaldi.akka.AkkaInjectable
 import spray.httpx.Json4sJacksonSupport
 import spray.routing.HttpService
+import scala.concurrent.ExecutionContext.Implicits.global
 
-class AggregationEndpoint extends HttpService with Json4sJacksonSupport with LazyLogging {
-  implicit val liftJsonFormats = DefaultFormats + new ObjectIdSerializer
+class AggregationEndpoint(implicit inj: Injector) extends HttpService
+  with Json4sJacksonSupport
+  with LazyLogging
+  with LocalPathMatchers
+  with AkkaInjectable {
+
+  implicit lazy val system = inject[ActorSystem]
+  val actorRefFactory = system
+  lazy val json4sJacksonFormats = inject[Formats]
 
   final val NOT_FOUND_MESSAGE = "resource.notFound"
   final val INTERNAL_ERROR_MESSAGE = "error"
@@ -15,22 +27,19 @@ class AggregationEndpoint extends HttpService with Json4sJacksonSupport with Laz
 
   val requiredFields = List("name")
 
-  val service: AggregationService
-
-  //directive compositions
-  val objectIdPathMatch = path("^[a-f0-9]+$".r)
+  lazy val service: AggregationService = inject[AggregationService]
 
   val route = {
     // Debugging: /ping -> pong
     // Service implementation.
-    path("api" / "aggregations") {
-        get {
-            logger.info("Got agg request")
-              complete {
-                logger.info("Getting aggregation")
-                  service.getGeneralAggregation
-              }
-          }
+    path("aggregations") {
+      get {
+        logger.info("Got agg request")
+        complete {
+          logger.info("Getting aggregation")
+          service.getGeneralAggregation
         }
+      }
     }
   }
+}

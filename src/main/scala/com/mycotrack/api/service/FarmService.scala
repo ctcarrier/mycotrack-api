@@ -2,6 +2,10 @@ package com.mycotrack.api.service
 
 import com.mycotrack.api.dao.FarmDao
 import com.mycotrack.api.model.{Farm, User}
+import scaldi.Injector
+import scaldi.akka.AkkaInjectable
+
+import scala.concurrent.Future
 
 /**
  * @author chris_carrier
@@ -9,15 +13,20 @@ import com.mycotrack.api.model.{Farm, User}
  */
 
 trait FarmService {
-  def getFarm(user: User): Farm
+  def getFarm(user: User): Future[Farm]
 }
 
-class DefaultFarmService(farmDao: FarmDao) extends FarmService {
+class DefaultFarmService(implicit inj: Injector) extends FarmService with AkkaInjectable {
 
-  def getFarm(user: User): Farm = {
-    val substrates = farmDao.defaultSubstrates
-    val containers = farmDao.defaultContainers
+  import scala.concurrent.ExecutionContext.Implicits.global
 
-    Farm(None, substrates, containers)
+  lazy val farmDao = inject[FarmDao]
+
+  def getFarm(user: User): Future[Farm] = {
+
+    for {
+      substrates <- farmDao.defaultSubstrates
+      containers <- farmDao.defaultContainers
+    } yield Farm(None, substrates, containers)
   }
 }
