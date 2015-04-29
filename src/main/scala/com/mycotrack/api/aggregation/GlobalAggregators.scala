@@ -37,15 +37,15 @@ class CultureCountActor(cultureCountCollection: BSONCollection) extends Actor {
   val log = Logging(context.system, this)
 
   def receive = {
-    case Project(id, description, cultureUrl, userId, enabled, substrate, container, startDate,
+    case Project(id, description, cultureId, userId, enabled, substrate, container, startDate,
     parent, timestamp, count, events) => {
-      log.info("Should aggregate : " + cultureUrl.getOrElse(""))
-      incrementCultureCount(cultureUrl, userId, count)
+      log.info("Should aggregate : " + cultureId.getOrElse(""))
+      incrementCultureCount(cultureId, userId, count)
     }
     case _ => log.info("received unknown message")
   }
 
-  def incrementCultureCount(cultureUrl: Option[String], userId: Option[BSONObjectID], count: Option[Long]) = ???
+  def incrementCultureCount(cultureUrl: Option[BSONObjectID], userId: Option[BSONObjectID], count: Option[Long]) = ???
 }
 
 

@@ -38,38 +38,44 @@ class CultureEndpoint(implicit inj: Injector) extends HttpService
   lazy val authenticator = inject[Authenticator]
 
   //directive compositions
-  val getCulture =  path(BSONObjectIDSegment) & get
-  val putCulture =  path(BSONObjectIDSegment) & put & entity(as[Culture])
-  val postCulture = post & entity(as[Culture]) & respondWithStatus(Created)
-  val searchCultures = get & parameters('name ?, 'includeProjects.as[Boolean] ?)
+  val culturePrefix = pathPrefix("cultures")
+  val speciesPrefix = pathPrefix("species")
+  val getCulture =  culturePrefix & path(BSONObjectIDSegment) & get
+  val putCulture =  culturePrefix & path(BSONObjectIDSegment) & put & entity(as[Culture])
+  val postCulture = culturePrefix & post & entity(as[Culture]) & respondWithStatus(Created)
+  val getCulturesBySpecies = speciesPrefix & path(BSONObjectIDSegment / "cultures") & get
+  val searchCultures = culturePrefix & get & parameters('name ?, 'includeProjects.as[Boolean] ?)
 
   val route = {
     // Debugging: /ping -> pong
     // Service implementation.
-    pathPrefix("cultures") {
-      authenticate(authenticator.basicAuthenticator) { user =>
-        getCulture { resourceId =>
-          complete {
-            service.get(resourceId)
-          }
-
-        } ~
-        putCulture { (resourceId, resource) =>
-          complete {
-            service.update(resourceId, resource)
-          }
-        } ~
-        postCulture { resource =>
-          complete {
-            service.save(resource.copy(userId = user._id))
-          }
-        } ~
-        searchCultures { (name, includeProjects) =>
-          complete {
-            service.search(CultureSearchParams(name, user._id), includeProjects)
-          }
+    authenticate(authenticator.basicAuthenticator) { user =>
+      getCulture { resourceId =>
+        complete {
+          service.get(resourceId)
+        }
+      } ~
+      putCulture { (resourceId, resource) =>
+        complete {
+          service.update(resourceId, resource)
+        }
+      } ~
+      postCulture { resource =>
+        complete {
+          service.save(resource.copy(userId = user._id))
+        }
+      } ~
+      searchCultures { (name, includeProjects) =>
+        complete {
+          service.search(CultureSearchParams(name, user._id), includeProjects)
+        }
+      } ~
+      getCulturesBySpecies { speciesId =>
+        complete {
+          service.getBySpecies(speciesId)
         }
       }
     }
   }
+
 }

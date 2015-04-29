@@ -15,6 +15,7 @@ trait ICultureDao {
   def save(species: Culture): Future[Option[Culture]]
   def search(searchObj: BSONDocument, includeProjects: Option[Boolean]): Future[List[Culture]]
   def update(cultureId: BSONObjectID, culture: Culture): Future[Option[Culture]]
+  def getBySpecies(speciesId: BSONObjectID): Future[List[Culture]]
 }
 
 class CultureDao(implicit inj: Injector) extends ICultureDao with AkkaInjectable {
@@ -25,7 +26,7 @@ class CultureDao(implicit inj: Injector) extends ICultureDao with AkkaInjectable
   implicit lazy val system = inject[ActorSystem]
   lazy val actorRefFactory: ActorRefFactory = system
 
-  lazy val cultureCollection = inject[BSONCollection] (identified by 'PROJECT_COLLECTION)
+  lazy val cultureCollection = inject[BSONCollection] (identified by 'CULTURE_COLLECTION)
 
   def get(key: BSONObjectID): Future[Option[Culture]] = cultureCollection.find(BSONDocument("_id" -> key)).one[Culture]
 
@@ -48,5 +49,10 @@ class CultureDao(implicit inj: Injector) extends ICultureDao with AkkaInjectable
       lastError <- cultureCollection.update(query, culture)
       toReturn <- cultureCollection.find(BSONDocument("_id" -> culture._id)).one[Culture]
     } yield toReturn
+  }
+
+  def getBySpecies(speciesId: BSONObjectID): Future[List[Culture]] = {
+    val query = BSONDocument("speciesId" -> speciesId)
+    cultureCollection.find(query).cursor[Culture].collect[List]()
   }
 }

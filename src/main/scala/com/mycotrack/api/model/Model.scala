@@ -7,7 +7,7 @@ import reactivemongo.bson.BSONObjectID
 
 case class Project(_id: Option[BSONObjectID],
                    description: Option[String],
-                   cultureUrl: Option[String],
+                   cultureId: Option[BSONObjectID],
                    userId: Option[BSONObjectID],
                    enabled: Boolean,
                    substrate: Option[String],
@@ -22,7 +22,7 @@ case class Project(_id: Option[BSONObjectID],
 case class Species(_id: Option[BSONObjectID], scientificName: String, commonName: String, imageUrl: String)
 
 
-case class Culture(_id: Option[BSONObjectID], name: String, speciesUrl: Option[String], userId: Option[BSONObjectID], species: Option[Species] = None, projects: Option[List[Project]] = None)
+case class Culture(_id: Option[BSONObjectID], name: String, speciesId: Option[BSONObjectID], userId: Option[BSONObjectID], species: Option[Species] = None, projects: Option[List[Project]] = None)
 
 
 case class User(_id: Option[BSONObjectID], dateCreated: Option[DateTime], lastUpdated: Option[DateTime], email: String, password: String)

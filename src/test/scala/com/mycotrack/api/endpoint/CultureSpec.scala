@@ -42,6 +42,16 @@ with AkkaInjectable with LocalRejectionHandlers with LazyLogging with TestModule
             sealRoute(cultureEndpoint.route) ~>
             check {
               status === OK
+              val innerActual = responseAs[Culture]
+              innerActual === actual
+            }
+          Get(s"/species/${actual.speciesId.get.stringify}/") ~>
+            testUserContext.authHeader ~>
+            sealRoute(cultureEndpoint.route) ~>
+            check {
+              status === OK
+              val innerActual = responseAs[List[Culture]]
+              innerActual.head === actual
             }
         }
     }

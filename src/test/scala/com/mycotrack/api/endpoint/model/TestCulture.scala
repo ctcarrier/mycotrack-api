@@ -9,8 +9,8 @@ import reactivemongo.bson.BSONObjectID
 object TestCulture {
 
   val NAME = "name"
-  val SPECIES_URL = Some("species url")
   val SPECIES = Some(TestSpecies.generate)
+  val SPECIES_ID = SPECIES.map(_._id).flatten
 
   def generate: Culture = {
     val speciesId = Option(BSONObjectID.generate)
@@ -18,6 +18,6 @@ object TestCulture {
   }
 
   def generateWithoutId: Culture = {
-    Culture(None, NAME, SPECIES_URL, None, SPECIES, None)
+    Culture(None, NAME, SPECIES_ID, None, SPECIES, None)
   }
 }

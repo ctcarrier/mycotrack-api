@@ -29,11 +29,13 @@ with LocalRejectionHandlers with HttpService {
 
   def receive = runRoute {
     respondWithHeader(`Cache-Control`(`no-cache`, `no-store`, `must-revalidate`)) {
-      userEndpoint.route ~
-        cultureEndpoint.route ~
-        farmDataEndpoint.route ~
-        projectEndpoint.route ~
-        speciesEndpoint.route
+      pathPrefix("api") {
+        userEndpoint.route ~
+          cultureEndpoint.route ~
+          farmDataEndpoint.route ~
+          projectEndpoint.route ~
+          speciesEndpoint.route
+      }
     }
   }
 }

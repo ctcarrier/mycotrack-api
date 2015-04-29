@@ -10,7 +10,7 @@ import reactivemongo.bson.BSONObjectID
 object TestProject {
 
   val DESCRIPTION = Option("description")
-  val CULTURE_URL = Option("cultureUrl")
+  val CULTURE_ID = Option(BSONObjectID.generate)
   val ENABLED = true
   val SUBSTRATE = Option("SUBSTRATE")
   val CONTAINER = Option("CONTAINER")
@@ -25,7 +25,7 @@ object TestProject {
     val newUserId = Option(BSONObjectID.generate)
     Project(_id = projectId,
       description = DESCRIPTION,
-      cultureUrl = CULTURE_URL,
+      cultureId = CULTURE_ID,
       userId = newUserId,
       enabled = ENABLED,
       substrate = SUBSTRATE,
@@ -42,7 +42,7 @@ object TestProject {
     val newUserId = Option(BSONObjectID.generate)
     Project(_id = projectId,
       description = DESCRIPTION,
-      cultureUrl = CULTURE_URL,
+      cultureId = CULTURE_ID,
       userId = newUserId,
       enabled = ENABLED,
       substrate = SUBSTRATE,
