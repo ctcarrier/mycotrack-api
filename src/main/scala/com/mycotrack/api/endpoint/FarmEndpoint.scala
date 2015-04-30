@@ -29,15 +29,10 @@ class FarmEndpoint(implicit inj: Injector) extends HttpService
   lazy val authenticator = inject[Authenticator]
 
   //directive compositions
-  val indirectGet = path("") & get
+  val indirectGet = get
 
   val route = {
     // Debugging: /ping -> pong
-    path("ping") {
-      get {
-        complete("pong " + new java.util.Date())
-      }
-    } ~
     pathPrefix("farms") {
       authenticate(authenticator.basicAuthenticator) { user =>
         indirectGet {

@@ -8,6 +8,7 @@ import reactivemongo.bson.BSONObjectID
 case class Project(_id: Option[BSONObjectID],
                    description: Option[String],
                    cultureId: Option[BSONObjectID],
+                   speciesId: Option[BSONObjectID],
                    userId: Option[BSONObjectID],
                    enabled: Boolean,
                    substrate: Option[String],
@@ -39,8 +40,8 @@ object User {
 
 case class Event(name: String, dateCreated: DateTime)
 
-case class Substrate(_id: Option[BSONObjectID], name: String)
+case class Substrate(_id: Option[String], name: String)
 
-case class Container(_id: Option[BSONObjectID], name: String)
+case class Container(_id: Option[String], name: String)
 
 case class Farm(_id: Option[BSONObjectID], substrates: List[Substrate], containers: List[Container])

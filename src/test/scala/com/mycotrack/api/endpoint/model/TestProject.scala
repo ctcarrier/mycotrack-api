@@ -11,6 +11,7 @@ object TestProject {
 
   val DESCRIPTION = Option("description")
   val CULTURE_ID = Option(BSONObjectID.generate)
+  val SPECIES_ID = Option(BSONObjectID.generate)
   val ENABLED = true
   val SUBSTRATE = Option("SUBSTRATE")
   val CONTAINER = Option("CONTAINER")
@@ -25,6 +26,7 @@ object TestProject {
     val newUserId = Option(BSONObjectID.generate)
     Project(_id = projectId,
       description = DESCRIPTION,
+      speciesId = SPECIES_ID,
       cultureId = CULTURE_ID,
       userId = newUserId,
       enabled = ENABLED,
@@ -42,6 +44,7 @@ object TestProject {
     val newUserId = Option(BSONObjectID.generate)
     Project(_id = projectId,
       description = DESCRIPTION,
+      speciesId = SPECIES_ID,
       cultureId = CULTURE_ID,
       userId = newUserId,
       enabled = ENABLED,

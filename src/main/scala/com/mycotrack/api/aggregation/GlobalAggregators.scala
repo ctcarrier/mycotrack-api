@@ -37,7 +37,7 @@ class CultureCountActor(cultureCountCollection: BSONCollection) extends Actor {
   val log = Logging(context.system, this)
 
   def receive = {
-    case Project(id, description, cultureId, userId, enabled, substrate, container, startDate,
+    case Project(id, description, cultureId, speciesId, userId, enabled, substrate, container, startDate,
     parent, timestamp, count, events) => {
       log.info("Should aggregate : " + cultureId.getOrElse(""))
       incrementCultureCount(cultureId, userId, count)
