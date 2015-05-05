@@ -16,7 +16,7 @@ case class Project(_id: Option[BSONObjectID],
                    startDate: Option[DateTime],
                    parent: Option[String] = None,
                    timestamp: Option[DateTime] = Some(DateTime.now()),
-                    count: Option[Long],
+                    count: Long = 1l,
                     events: List[Event] = List.empty)
 
 
@@ -43,5 +43,3 @@ case class Event(name: String, dateCreated: DateTime)
 case class Substrate(_id: Option[String], name: String)
 
 case class Container(_id: Option[String], name: String)
-
-case class Farm(_id: Option[BSONObjectID], substrates: List[Substrate], containers: List[Container])

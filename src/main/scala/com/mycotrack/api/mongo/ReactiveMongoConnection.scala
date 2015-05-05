@@ -53,6 +53,7 @@ class ReactiveMongoConnection extends Module {
   bind[DB] to db
 
   bind[BSONCollection] as 'CULTURE_COUNT_COLLECTION to db(config.getString("mycotrack.cultureCount.collection"))
+  bind[BSONCollection] as 'CONTAINER_COUNT_COLLECTION to db(config.getString("mycotrack.containerCount.collection"))
   bind[BSONCollection] as 'DEFAULT_SUBSTRATE_COLLECTION to db(config.getString("mycotrack.defaultSubstrates.collection"))
   bind[BSONCollection] as 'DEFAULT_CONTAINER_COLLECTION to db(config.getString("mycotrack.defaultContainers.collection"))
 

@@ -2,12 +2,11 @@ package com.mycotrack.api.boot
 
 import akka.io.IO
 import akka.util.Timeout
+import com.mycotrack.api.aggregation.{ContainerCountActor, AggregationBroadcaster, CultureCountActor}
 import com.mycotrack.api.auth.PasswordManagingActor
 import com.mycotrack.api.dao._
-import com.mycotrack.api.mongo.ReactiveMongoConnection
 import com.mycotrack.api.{ModuleDefinition, ActorSystemModule, CryptoModule}
-import com.mycotrack.api.json.LocalJacksonFormats
-import com.mycotrack.api.service.{FarmService, DefaultFarmService, DataInitializer, DefaultDataInitializer}
+import com.mycotrack.api.service._
 import scala.concurrent.duration._
 import com.typesafe.scalalogging.LazyLogging
 import scaldi.Module
@@ -41,6 +40,7 @@ class MycotrackServices extends Module {
 
   bind[DataInitializer] to new DefaultDataInitializer
   bind[FarmService] to new DefaultFarmService()
+  bind[ProjectService] to new ProjectServiceImpl()
   bind[PasswordManagingActor] to new PasswordManagingActor
 }
 
@@ -54,6 +54,12 @@ class SprayModule extends Module {
   bind[SpeciesEndpoint] to new SpeciesEndpoint
   bind[UserEndpoint] to new UserEndpoint
 
+}
+
+class AggregationModule extends Module {
+  binding toProvider new AggregationBroadcaster()
+  binding toProvider new CultureCountActor
+  binding toProvider new ContainerCountActor
 }
 
 class Configs extends Module with LazyLogging {

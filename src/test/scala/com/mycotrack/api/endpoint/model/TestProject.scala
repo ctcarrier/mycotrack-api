@@ -18,7 +18,7 @@ object TestProject {
   val START_DATE = Option(DateTime.now)
   val PARENT: Option[String] = None
   val TIMESTAMP = Option(DateTime.now)
-  val COUNT = Option(0l)
+  val COUNT = 0l
   val EVENTS: List[Event] = List.empty
 
   def generate: Project = {

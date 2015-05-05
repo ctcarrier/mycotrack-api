@@ -2,6 +2,7 @@ package com.mycotrack.api.endpoint
 
 import akka.actor.ActorSystem
 import com.mycotrack.api.auth.Authenticator
+import com.mycotrack.api.service.ProjectService
 import com.typesafe.scalalogging.LazyLogging
 import com.mycotrack.api.model._
 import com.mycotrack.api.response._
@@ -39,7 +40,8 @@ class ProjectEndpoint(implicit inj: Injector) extends HttpService
 
   lazy val authenticator = inject[Authenticator]
 
-  lazy val service = inject[IProjectDao]
+  lazy val dao = inject[IProjectDao]
+  lazy val service = inject[ProjectService]
 
   //val directGetProject = authenticate(httpMongo(realm = "mycotrack")) & get
   val directGetProject = path(BSONObjectIDSegment) & get
@@ -62,12 +64,12 @@ class ProjectEndpoint(implicit inj: Injector) extends HttpService
       authenticate(authenticator.basicAuthenticator) { user =>
         directGetProject { resourceId =>
           complete {
-            service.get(resourceId, user._id.getOrElse(throw new RuntimeException("This shouldn't happen")))
+            dao.get(resourceId, user._id.getOrElse(throw new RuntimeException("This shouldn't happen")))
           }
         } ~
         putProject { (resourceId, resource) =>
           complete {
-            service.update(resourceId, resource)
+            dao.update(resourceId, resource)
           }
         } ~
         postProject { resource =>
@@ -77,7 +79,7 @@ class ProjectEndpoint(implicit inj: Injector) extends HttpService
         } ~
         indirectGetProjects { (name, description) =>
           complete {
-            service.search(ProjectSearchParams(name, description, user._id))
+            dao.search(ProjectSearchParams(name, description, user._id))
           }
         }
       }

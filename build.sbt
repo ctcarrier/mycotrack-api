@@ -18,6 +18,8 @@ seq(SbtStartScript.startScriptForClassesSettings: _*)
 
 scalacOptions ++= Seq("-feature")
 
+parallelExecution in Test := false
+
 javaOptions in Revolver.reStart += "-Dakka.mode=dev"
 
 javaOptions in Revolver.reStart += "-Xdebug"

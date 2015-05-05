@@ -10,6 +10,7 @@ import akka.actor.ActorSystem
 import com.mycotrack.api.endpoint.auth.TestUserContext
 import com.mycotrack.api.endpoint.model.TestSpecies
 import com.mycotrack.api.model.Species
+import com.mycotrack.api.test.BeforeAllAfterAll
 import com.mycotrack.api.{CryptoModule, ActorSystemModule}
 import com.mycotrack.api.boot.{MycotrackServices, Configs, SprayModule, MycotrackDaos}
 import com.mycotrack.api.json.LocalJacksonFormats

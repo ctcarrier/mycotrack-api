@@ -1,6 +1,8 @@
 package com.mycotrack
 
+import com.mycotrack.api.dao.{ContainerAggregation, CultureAggregation}
 import com.mycotrack.api.model._
+import com.mycotrack.api.service.Farm
 import org.joda.time.format.ISODateTimeFormat
 import org.joda.time.{DateTime, DateTimeZone}
 import reactivemongo.bson.{BSONHandler, BSONDateTime, Macros}
@@ -25,6 +27,9 @@ package object api {
   implicit val userHandler = Macros.handler[User]
   implicit val substrateHandler = Macros.handler[Substrate]
   implicit val containerHandler = Macros.handler[Container]
+  implicit val cultureAggregationHandler = Macros.handler[CultureAggregation]
+  implicit val containerAggregationHandler = Macros.handler[ContainerAggregation]
+
   implicit val farmHandler = Macros.handler[Farm]
 
 }

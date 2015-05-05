@@ -3,7 +3,7 @@ package com.mycotrack.api
 import akka.actor.ActorSystem
 import akka.util.Timeout
 import com.mycotrack.api.auth.Authenticator
-import com.mycotrack.api.boot.{MycotrackDaos, SprayModule, Configs, MycotrackServices}
+import com.mycotrack.api.boot._
 import com.mycotrack.api.json.LocalJacksonFormats
 import com.mycotrack.api.mongo.ReactiveMongoConnection
 import com.typesafe.config.ConfigFactory
@@ -43,5 +43,5 @@ trait ModuleDefinition {
 
   implicit val appModule = new ActorSystemModule :: new MycotrackDaos :: new SprayModule :: new Configs ::
     new LocalJacksonFormats :: new MycotrackServices :: new ReactiveMongoConnection :: new AuthModule ::
-    new CryptoModule
+    new CryptoModule :: new AggregationModule
 }
