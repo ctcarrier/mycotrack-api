@@ -1,6 +1,6 @@
 package com.mycotrack
 
-import com.mycotrack.api.dao.{ContainerAggregation, CultureAggregation}
+import com.mycotrack.api.dao.{GeneralAggregationQuery, GeneralAggregation, ContainerAggregation, CultureAggregation}
 import com.mycotrack.api.model._
 import com.mycotrack.api.service.Farm
 import org.joda.time.format.ISODateTimeFormat
@@ -29,6 +29,7 @@ package object api {
   implicit val containerHandler = Macros.handler[Container]
   implicit val cultureAggregationHandler = Macros.handler[CultureAggregation]
   implicit val containerAggregationHandler = Macros.handler[ContainerAggregation]
+  implicit val generalAggregationQueryHandler = Macros.handler[GeneralAggregationQuery]
 
   implicit val farmHandler = Macros.handler[Farm]
 

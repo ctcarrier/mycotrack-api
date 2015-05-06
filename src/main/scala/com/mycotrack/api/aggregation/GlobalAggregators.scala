@@ -3,7 +3,7 @@ package com.mycotrack.api.aggregation
 import akka.event.Logging
 import akka.actor.{ActorSystem, Actor, Props}
 import com.mycotrack.api.dao.CultureDao
-import com.mycotrack.api.model.{Project}
+import com.mycotrack.api.model.{Species, Project}
 import com.typesafe.scalalogging.LazyLogging
 import reactivemongo.api.collections.default.BSONCollection
 import reactivemongo.bson.{BSONDocument, BSONObjectID}
@@ -21,7 +21,9 @@ class AggregationBroadcaster(implicit inj: Injector) extends Actor with AkkaInje
 
   lazy val cultureCountActor = injectActorRef[CultureCountActor]
   lazy val containerCountActor = injectActorRef[ContainerCountActor]
-  lazy val projectActors = List(cultureCountActor, containerCountActor)
+  lazy val generalAggregationActor = injectActorRef[GeneralAggregatioActor]
+
+  lazy val projectActors = List(cultureCountActor, containerCountActor, generalAggregationActor)
 
   def receive = {
     case p: Project => projectActors.foreach(_ ! p)
@@ -38,18 +40,18 @@ class CultureCountActor(implicit inj: Injector) extends Actor with AkkaInjectabl
   def receive = {
     case Project(id, description, cultureId, speciesId, userId, enabled, substrate, container, startDate,
     parent, timestamp, count, events) => {
-      log.info("Should aggregate : " + cultureId.getOrElse(""))
+      log.info("Should aggregate : " + cultureId)
       incrementCultureCount(cultureId, userId, count)
     }
     case _ => log.info("received unknown message")
   }
 
-  def incrementCultureCount(cultureId: Option[BSONObjectID], userId: Option[BSONObjectID], count: Long) = {
+  def incrementCultureCount(cultureId: BSONObjectID, userId: Option[BSONObjectID], count: Long) = {
     for {
-      culture <- cultureDao.get(cultureId.get)
+      culture <- cultureDao.get(cultureId)
     } yield {
       val queryInput = BSONDocument("userId" -> userId.getOrElse(throw new RuntimeException("UserId shouldn't be null")),
-                                          "culture._id" -> cultureId.getOrElse(throw new RuntimeException("CultureId shouldn't be null")))
+                                          "culture._id" -> cultureId)
       val updateInput = BSONDocument("$inc" -> BSONDocument("count" -> count), "$set" -> BSONDocument("userId" -> userId, "culture" -> culture))
       cultureCountCollection.update(selector = queryInput, update = updateInput, upsert = true)
     }
@@ -64,13 +66,13 @@ class SpeciesCountActor(implicit inj: Injector) extends Actor with AkkaInjectabl
   def receive = {
     case Project(id, description, cultureId, speciesId, userId, enabled, substrate, container, startDate,
     parent, timestamp, count, events) => {
-      log.info("Should aggregate : " + cultureId.getOrElse(""))
+      log.info("Should aggregate : " + cultureId)
       incrementSpeciesCount(cultureId, userId, count)
     }
     case _ => log.info("received unknown message")
   }
 
-  def incrementSpeciesCount(cultureId: Option[BSONObjectID], userId: Option[BSONObjectID], count: Long) = ???
+  def incrementSpeciesCount(cultureId: BSONObjectID, userId: Option[BSONObjectID], count: Long) = ???
 }
 
 class ContainerCountActor(implicit inj: Injector) extends Actor with AkkaInjectable {
@@ -81,8 +83,8 @@ class ContainerCountActor(implicit inj: Injector) extends Actor with AkkaInjecta
   def receive = {
     case Project(id, description, cultureId, speciesId, userId, enabled, substrate, container, startDate,
     parent, timestamp, count, events) => {
-      log.info("Should aggregate : " + container.getOrElse(""))
-      incrementContainerCount(container.getOrElse(""), userId, count)
+      log.info("Should aggregate : " + container)
+      incrementContainerCount(container, userId, count)
     }
     case _ => log.info("received unknown message")
   }
@@ -92,5 +94,41 @@ class ContainerCountActor(implicit inj: Injector) extends Actor with AkkaInjecta
       "container" -> container)
     val updateInput = BSONDocument("$inc" -> BSONDocument("count" -> count), "$set" -> BSONDocument("userId" -> userId, "container" -> container))
     containerCountCollection.update(selector = queryInput, update = updateInput, upsert = true)
+  }
+}
+
+class GeneralAggregatioActor(implicit inj: Injector) extends Actor with AkkaInjectable {
+  val log = Logging(context.system, this)
+
+  lazy val generalAggregationCollection = inject[BSONCollection] (identified by 'GENERAL_AGGREGATION_COLLECTION)
+
+  def receive = {
+    case Project(id, description, cultureId, speciesId, userIdOpt, enabled, substrate, container, startDate,
+    parent, timestamp, count, events) => {
+      log.info("Doing general agg")
+      val userId = userIdOpt.getOrElse(throw new RuntimeException("UserId shouldn't be none"))
+      processNewProject(container, substrate, cultureId, speciesId, userId, count)
+    }
+    case _ => log.info("received unknown message")
+  }
+
+  def processNewProject(container: String,
+                        substrate: String,
+                        cultureId: BSONObjectID,
+                        speciesId: BSONObjectID,
+                        userId: BSONObjectID,
+                        count: Long) = {
+    val queryInput = BSONDocument("userId" -> userId,
+      "containerId" -> container,
+    "substrateId" -> substrate,
+    "cultureId" -> cultureId,
+    "speciesId" -> speciesId)
+    val updateInput = BSONDocument("$inc" -> BSONDocument("count" -> count),
+      "$set" -> BSONDocument("userId" -> userId,
+        "containerId" -> container,
+        "substrateId" -> substrate,
+        "cultureId" -> cultureId,
+        "speciesId" -> speciesId))
+    generalAggregationCollection.update(selector = queryInput, update = updateInput, upsert = true)
   }
 }

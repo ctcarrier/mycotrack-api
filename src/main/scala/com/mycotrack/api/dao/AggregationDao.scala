@@ -1,7 +1,6 @@
 package com.mycotrack.api.dao
 
-import com.mycotrack.api.model.Culture
-import com.mycotrack.api.model.aggregation.General
+import com.mycotrack.api.model.{Substrate, Container, Species, Culture}
 import com.typesafe.scalalogging.LazyLogging
 import akka.actor.{ActorRefFactory, ActorSystem}
 import reactivemongo.api.collections.default.BSONCollection
@@ -18,11 +17,36 @@ import scala.concurrent.ExecutionContext
  * @version 3/25/12
  */
 
+case class GeneralAggregation(_id: Option[BSONObjectID],
+                   count: Long,
+                   userId: BSONObjectID,
+                   culture: Culture,
+                   species: Species,
+                   container: Container,
+                   substrate: Substrate)
+case class GeneralAggregationQuery(_id: Option[BSONObjectID],
+                              count: Long,
+                              userId: BSONObjectID,
+                              cultureId: BSONObjectID,
+                              speciesId: BSONObjectID,
+                              containerId: String,
+                              substrateId: String)
+
+object GeneralAggregation {
+
+  def apply(generalAggQuery: GeneralAggregationQuery,
+            culture: Culture,
+            species: Species,
+            container: Container,
+            substrate: Substrate): GeneralAggregation = {
+    GeneralAggregation(generalAggQuery._id, generalAggQuery.count, generalAggQuery.userId, culture, species, container, substrate)
+  }
+}
 case class CultureAggregation(_id: Option[BSONObjectID], count: Long, userId: BSONObjectID, culture: Culture)
 case class ContainerAggregation(_id: Option[BSONObjectID], count: Long, container: String, userId: BSONObjectID)
 
 trait AggregationService {
-  def getGeneralAggregation: Future[Option[General]]
+  def getGeneralAggregation(userId: BSONObjectID): Future[List[GeneralAggregation]]
   def getCultureCount(userId: BSONObjectID): Future[List[CultureAggregation]]
   def getContainerCount(userId: BSONObjectID): Future[List[ContainerAggregation]]
 }
@@ -34,18 +58,29 @@ class AggregationDao(implicit inj: Injector) extends AggregationService with Laz
   lazy val actorRefFactory: ActorRefFactory = system
 
   lazy val projectCollection = inject[BSONCollection] (identified by 'PROJECT_COLLECTION)
+  lazy val generalAggregationCollection = inject[BSONCollection] (identified by 'GENERAL_AGGREGATION_COLLECTION)
   lazy val cultureCountCollection = inject[BSONCollection] (identified by 'CULTURE_COUNT_COLLECTION)
   lazy val containerCountCollection = inject[BSONCollection] (identified by 'CONTAINER_COUNT_COLLECTION)
 
-  def getGeneralAggregation: Future[Option[General]] = {
-    for {
-      futureCount <- projectCollection.db.command(
-        Count(
-          projectCollection.name,
-          None
-        )
-      )
-    } yield Some(General(futureCount))
+  lazy val cultureDao = inject[CultureDao]
+  lazy val speciesDao = inject[SpeciesDao]
+  lazy val farmDao = inject[FarmDao]
+
+  def getGeneralAggregation(userId: BSONObjectID): Future[List[GeneralAggregation]] = {
+    val query = BSONDocument("userId" -> userId)
+
+    val queryResultFuture = generalAggregationCollection.find(query).cursor[GeneralAggregationQuery].collect[List]()
+
+    queryResultFuture.map(queryResult => {
+      Future.sequence(queryResult.map(generalAggResult => {
+        for {
+          culture <- cultureDao.get(generalAggResult.cultureId)
+          species <- speciesDao.get(generalAggResult.speciesId)
+          container <- farmDao.getContainer(generalAggResult.containerId)
+          substrate <- farmDao.getSubstrate(generalAggResult.substrateId)
+        } yield (GeneralAggregation(generalAggQuery = generalAggResult, culture.get, species.get, container.get, substrate.get))
+      }))
+    }).flatMap(x => x)
   }
 
   def getCultureCount(userId: BSONObjectID): Future[List[CultureAggregation]] = {

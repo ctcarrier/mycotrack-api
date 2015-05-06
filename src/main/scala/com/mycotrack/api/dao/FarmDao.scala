@@ -18,7 +18,8 @@ trait FarmDao {
 
   def defaultSubstrates: Future[List[Substrate]]
   def defaultContainers: Future[List[Container]]
-
+  def getContainer(key: String): Future[Option[Container]]
+  def getSubstrate(key: String): Future[Option[Substrate]]
 }
 
 class MongoFarmDao(implicit inj: Injector) extends FarmDao with AkkaInjectable {
@@ -40,4 +41,15 @@ class MongoFarmDao(implicit inj: Injector) extends FarmDao with AkkaInjectable {
     defaultContainerCollection.find(existsQuery).cursor[Container].collect[List]()
   }
 
+  def getContainer(key: String): Future[Option[Container]] = {
+    val query = BSONDocument("_id" -> key)
+
+    defaultContainerCollection.find(query).one[Container]
+  }
+
+  def getSubstrate(key: String): Future[Option[Substrate]] = {
+    val query = BSONDocument("_id" -> key)
+
+    defaultSubstrateCollection.find(query).one[Substrate]
+  }
 }

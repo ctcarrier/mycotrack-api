@@ -1,6 +1,7 @@
 package com.mycotrack.api.endpoint
 
 import akka.actor.ActorSystem
+import com.mycotrack.api.auth.Authenticator
 import com.mycotrack.api.spraylib.LocalPathMatchers
 import com.typesafe.scalalogging.LazyLogging
 import com.mycotrack.api.dao._
@@ -21,6 +22,8 @@ class AggregationEndpoint(implicit inj: Injector) extends HttpService
   val actorRefFactory = system
   lazy val json4sJacksonFormats = inject[Formats]
 
+  lazy val authenticator = inject[Authenticator]
+
   final val NOT_FOUND_MESSAGE = "resource.notFound"
   final val INTERNAL_ERROR_MESSAGE = "error"
 
@@ -33,11 +36,13 @@ class AggregationEndpoint(implicit inj: Injector) extends HttpService
     // Debugging: /ping -> pong
     // Service implementation.
     path("aggregations") {
-      get {
-        logger.info("Got agg request")
-        complete {
-          logger.info("Getting aggregation")
-          service.getGeneralAggregation
+      authenticate(authenticator.basicAuthenticator) { user =>
+        get {
+          logger.info("Got agg request")
+          complete {
+            logger.info("Getting aggregation")
+            service.getGeneralAggregation(user._id.getOrElse(throw new RuntimeException("UserId shouldn't be null")))
+          }
         }
       }
     }
