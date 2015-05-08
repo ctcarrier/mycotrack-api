@@ -3,10 +3,10 @@ package com.mycotrack.api.model
 import reactivemongo.bson.{BSONObjectID, BSONDocument}
 import scala.language.implicitConversions
 
-case class ProjectSearchParams(name: Option[String], description: Option[String], userId: Option[BSONObjectID])
+case class ProjectSearchParams(cultureId: Option[BSONObjectID], containerId: Option[String], userId: Option[BSONObjectID])
 object ProjectSearchParams {
   implicit def toDbo(p: ProjectSearchParams): BSONDocument = {
-    BSONDocument()
+    BSONDocument("cultureId" -> p.cultureId, "container" -> p.containerId, "userId" -> p.userId)
 
   }
 }

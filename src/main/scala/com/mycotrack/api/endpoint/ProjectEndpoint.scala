@@ -7,8 +7,9 @@ import com.typesafe.scalalogging.LazyLogging
 import com.mycotrack.api.model._
 import com.mycotrack.api.response._
 import com.mycotrack.api.dao._
-import com.mycotrack.api.spraylib.{LocalPathMatchers}
+import com.mycotrack.api.spraylib.{LocalDeserializers, LocalPathMatchers}
 import org.json4s.Formats
+import reactivemongo.bson.BSONObjectID
 import scaldi.Injector
 import scaldi.akka.AkkaInjectable
 import spray.httpx.Json4sJacksonSupport
@@ -27,7 +28,8 @@ class ProjectEndpoint(implicit inj: Injector) extends HttpService
   with Json4sJacksonSupport
   with LazyLogging
   with AkkaInjectable
-  with LocalPathMatchers {
+  with LocalPathMatchers
+  with LocalDeserializers {
 
   implicit lazy val system = inject[ActorSystem]
   val actorRefFactory = system
@@ -48,7 +50,7 @@ class ProjectEndpoint(implicit inj: Injector) extends HttpService
   val putProject = path(BSONObjectIDSegment) & put & entity(as[Project])
   val postEvent = path("[^/]+".r / "events" / Segment) & post
   val postProject = post & entity(as[Project]) & respondWithStatus(Created)
-  val indirectGetProjects = get & parameters('name ?, 'description ?)
+  val indirectGetProjects = get & parameters('cultureId.as[BSONObjectID] ?, 'containerId ?)
 
   val route = {
     // Debugging: /ping -> pong
@@ -77,9 +79,9 @@ class ProjectEndpoint(implicit inj: Injector) extends HttpService
             service.save(resource.copy(userId = user._id))
           }
         } ~
-        indirectGetProjects { (name, description) =>
+        indirectGetProjects { (cultureId, conatinerId) =>
           complete {
-            dao.search(ProjectSearchParams(name, description, user._id))
+            dao.search(ProjectSearchParams(cultureId, conatinerId, user._id))
           }
         }
       }

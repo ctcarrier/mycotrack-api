@@ -42,6 +42,7 @@ class ProjectDao(implicit inj: Injector) extends IProjectDao with LazyLogging wi
   }
 
   def search(searchObj: BSONDocument): Future[List[Project]] = {
+    logger.info(s"Searching with obj ${searchObj}")
     projectCollection.find(searchObj).cursor[Project].collect[List]()
   }
 

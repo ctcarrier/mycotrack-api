@@ -5,7 +5,10 @@ import com.mycotrack.api.model._
 import com.mycotrack.api.service.Farm
 import org.joda.time.format.ISODateTimeFormat
 import org.joda.time.{DateTime, DateTimeZone}
-import reactivemongo.bson.{BSONHandler, BSONDateTime, Macros}
+import reactivemongo.bson.{BSONObjectID, BSONHandler, BSONDateTime, Macros}
+import spray.httpx.unmarshalling.{MalformedContent, Deserializer}
+
+import scala.util.{Failure, Success}
 
 /**
  * Created by ctcarrier on 3/6/15.
