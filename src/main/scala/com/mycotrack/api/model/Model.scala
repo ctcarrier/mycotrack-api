@@ -14,10 +14,10 @@ case class Project(_id: Option[BSONObjectID],
                    substrate: String,
                    container: String,
                    startDate: Option[DateTime],
-                   parent: Option[String] = None,
+                   parent: Option[BSONObjectID] = None,
                    timestamp: Option[DateTime] = Some(DateTime.now()),
-                    count: Long = 1l,
-                    events: List[Event] = List.empty)
+                   count: Long = 1l,
+                   events: List[Event] = List.empty)
 
 
 case class Species(_id: Option[BSONObjectID], scientificName: String, commonName: String, imageUrl: String)

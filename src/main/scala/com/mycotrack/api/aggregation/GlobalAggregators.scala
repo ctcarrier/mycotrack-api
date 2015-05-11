@@ -16,12 +16,14 @@ import scala.concurrent.ExecutionContext.Implicits.global
  * @version 7/16/12
  */
 
+case class Disable(project: Project)
+
 class AggregationBroadcaster(implicit inj: Injector) extends Actor with AkkaInjectable {
   val log = Logging(context.system, this)
 
   lazy val cultureCountActor = injectActorRef[CultureCountActor]
   lazy val containerCountActor = injectActorRef[ContainerCountActor]
-  lazy val generalAggregationActor = injectActorRef[GeneralAggregatioActor]
+  lazy val generalAggregationActor = injectActorRef[GeneralAggregationActor]
 
   lazy val projectActors = List(cultureCountActor, containerCountActor, generalAggregationActor)
 
@@ -86,18 +88,30 @@ class ContainerCountActor(implicit inj: Injector) extends Actor with AkkaInjecta
       log.info("Should aggregate : " + container)
       incrementContainerCount(container, userId, count)
     }
+    case Disable(Project(id, description, cultureId, speciesId, userId, enabled, substrate, container, startDate,
+    parent, timestamp, count, events)) => {
+      log.info("Should decrement : " + container)
+      decrementContainerCount(container, userId, count)
+    }
     case _ => log.info("received unknown message")
   }
 
-  def incrementContainerCount(container: String, userId: Option[BSONObjectID], count: Long) = {
+  private[this] def incrementContainerCount(container: String, userId: Option[BSONObjectID], count: Long) = {
     val queryInput = BSONDocument("userId" -> userId.getOrElse(throw new RuntimeException("UserId shouldn't be null")),
       "container" -> container)
     val updateInput = BSONDocument("$inc" -> BSONDocument("count" -> count), "$set" -> BSONDocument("userId" -> userId, "container" -> container))
     containerCountCollection.update(selector = queryInput, update = updateInput, upsert = true)
   }
+
+  private[this] def decrementContainerCount(container: String, userId: Option[BSONObjectID], count: Long) = {
+    val queryInput = BSONDocument("userId" -> userId.getOrElse(throw new RuntimeException("UserId shouldn't be null")),
+      "container" -> container)
+    val updateInput = BSONDocument("$dec" -> BSONDocument("count" -> count))
+    containerCountCollection.update(selector = queryInput, update = updateInput, upsert = false)
+  }
 }
 
-class GeneralAggregatioActor(implicit inj: Injector) extends Actor with AkkaInjectable {
+class GeneralAggregationActor(implicit inj: Injector) extends Actor with AkkaInjectable {
   val log = Logging(context.system, this)
 
   lazy val generalAggregationCollection = inject[BSONCollection] (identified by 'GENERAL_AGGREGATION_COLLECTION)
@@ -109,10 +123,16 @@ class GeneralAggregatioActor(implicit inj: Injector) extends Actor with AkkaInje
       val userId = userIdOpt.getOrElse(throw new RuntimeException("UserId shouldn't be none"))
       processNewProject(container, substrate, cultureId, speciesId, userId, count)
     }
+    case Disable(Project(id, description, cultureId, speciesId, userIdOpt, enabled, substrate, container, startDate,
+    parent, timestamp, count, events)) => {
+      log.info("Should decrement : " + container)
+      val userId = userIdOpt.getOrElse(throw new RuntimeException("UserId shouldn't be none"))
+      processDisabledProject(container, substrate, cultureId, speciesId, userId, count)
+    }
     case _ => log.info("received unknown message")
   }
 
-  def processNewProject(container: String,
+  private[this] def processNewProject(container: String,
                         substrate: String,
                         cultureId: BSONObjectID,
                         speciesId: BSONObjectID,
@@ -120,15 +140,27 @@ class GeneralAggregatioActor(implicit inj: Injector) extends Actor with AkkaInje
                         count: Long) = {
     val queryInput = BSONDocument("userId" -> userId,
       "containerId" -> container,
-    "substrateId" -> substrate,
     "cultureId" -> cultureId,
     "speciesId" -> speciesId)
     val updateInput = BSONDocument("$inc" -> BSONDocument("count" -> count),
       "$set" -> BSONDocument("userId" -> userId,
         "containerId" -> container,
-        "substrateId" -> substrate,
         "cultureId" -> cultureId,
         "speciesId" -> speciesId))
     generalAggregationCollection.update(selector = queryInput, update = updateInput, upsert = true)
+  }
+
+  private[this] def processDisabledProject(container: String,
+                        substrate: String,
+                        cultureId: BSONObjectID,
+                        speciesId: BSONObjectID,
+                        userId: BSONObjectID,
+                        count: Long) = {
+    val queryInput = BSONDocument("userId" -> userId,
+      "containerId" -> container,
+      "cultureId" -> cultureId,
+      "speciesId" -> speciesId)
+    val updateInput = BSONDocument("dec" -> BSONDocument("count" -> count))
+    generalAggregationCollection.update(selector = queryInput, update = updateInput, upsert = false)
   }
 }

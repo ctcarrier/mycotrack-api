@@ -46,43 +46,39 @@ class ProjectEndpoint(implicit inj: Injector) extends HttpService
   lazy val service = inject[ProjectService]
 
   //val directGetProject = authenticate(httpMongo(realm = "mycotrack")) & get
-  val directGetProject = path(BSONObjectIDSegment) & get
-  val putProject = path(BSONObjectIDSegment) & put & entity(as[Project])
-  val postEvent = path("[^/]+".r / "events" / Segment) & post
-  val postProject = post & entity(as[Project]) & respondWithStatus(Created)
-  val indirectGetProjects = get & parameters('cultureId.as[BSONObjectID] ?, 'containerId ?)
+  val directGetProject = path("projects" / BSONObjectIDSegment) & get
+  val putProject = path("projects" / BSONObjectIDSegment) & put & entity(as[Project])
+  val postProjectChildren = path("projects" / BSONObjectIDSegment / "children") & post & entity(as[Project]) & respondWithStatus(Created)
+  val postEvent = path("projects" / "[^/]+".r / "events" / Segment) & post
+  val postProject = path("projects") & post & entity(as[Project]) & respondWithStatus(Created)
+  val indirectGetProjects = path("projects") & get & parameters('cultureId.as[BSONObjectID] ?, 'containerId ?)
 
   val route = {
-    // Debugging: /ping -> pong
-    path("ping") {
-      get {
-        _.complete("pong " + new java.util.Date())
-      }
-
-
-    } ~
     // Service implementation.
-    pathPrefix("projects") {
-      authenticate(authenticator.basicAuthenticator) { user =>
-        directGetProject { resourceId =>
-          complete {
-            dao.get(resourceId, user._id.getOrElse(throw new RuntimeException("This shouldn't happen")))
-          }
-        } ~
-        putProject { (resourceId, resource) =>
-          complete {
-            dao.update(resourceId, resource)
-          }
-        } ~
-        postProject { resource =>
-          complete {
-            service.save(resource.copy(userId = user._id))
-          }
-        } ~
-        indirectGetProjects { (cultureId, conatinerId) =>
-          complete {
-            dao.search(ProjectSearchParams(cultureId, conatinerId, user._id))
-          }
+    authenticate(authenticator.basicAuthenticator) { user =>
+      directGetProject { resourceId =>
+        complete {
+          dao.get(resourceId, user._id.getOrElse(throw new RuntimeException("This shouldn't happen")))
+        }
+      } ~
+      putProject { (resourceId, resource) =>
+        complete {
+          dao.update(resourceId, resource)
+        }
+      } ~
+      postProjectChildren { (resourceId, resource) =>
+        complete {
+          service.addChild(resourceId, user._id.getOrElse(throw new RuntimeException("This shouldn't happen")), resource)
+        }
+      } ~
+      postProject { resource =>
+        complete {
+          service.save(resource.copy(userId = user._id))
+        }
+      } ~
+      indirectGetProjects { (cultureId, containerId) =>
+        complete {
+          dao.search(ProjectSearchParams(cultureId, containerId, user._id))
         }
       }
     }

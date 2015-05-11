@@ -11,6 +11,7 @@ import scaldi.Injector
 import scaldi.akka.AkkaInjectable
 
 import scala.concurrent.{Future, ExecutionContext}
+import scala.util.Success
 
 trait IProjectDao {
   def get(key: BSONObjectID, userId: BSONObjectID): Future[Option[Project]]

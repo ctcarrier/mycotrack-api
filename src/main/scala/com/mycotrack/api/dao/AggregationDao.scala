@@ -1,6 +1,6 @@
 package com.mycotrack.api.dao
 
-import com.mycotrack.api.model.{Substrate, Container, Species, Culture}
+import com.mycotrack.api.model._
 import com.typesafe.scalalogging.LazyLogging
 import akka.actor.{ActorRefFactory, ActorSystem}
 import reactivemongo.api.collections.default.BSONCollection
@@ -22,24 +22,21 @@ case class GeneralAggregation(_id: Option[BSONObjectID],
                    userId: BSONObjectID,
                    culture: Culture,
                    species: Species,
-                   container: Container,
-                   substrate: Substrate)
+                   container: Container)
 case class GeneralAggregationQuery(_id: Option[BSONObjectID],
                               count: Long,
                               userId: BSONObjectID,
                               cultureId: BSONObjectID,
                               speciesId: BSONObjectID,
-                              containerId: String,
-                              substrateId: String)
+                              containerId: String)
 
 object GeneralAggregation {
 
   def apply(generalAggQuery: GeneralAggregationQuery,
             culture: Culture,
             species: Species,
-            container: Container,
-            substrate: Substrate): GeneralAggregation = {
-    GeneralAggregation(generalAggQuery._id, generalAggQuery.count, generalAggQuery.userId, culture, species, container, substrate)
+            container: Container): GeneralAggregation = {
+    GeneralAggregation(generalAggQuery._id, generalAggQuery.count, generalAggQuery.userId, culture, species, container)
   }
 }
 case class CultureAggregation(_id: Option[BSONObjectID], count: Long, userId: BSONObjectID, culture: Culture)
@@ -77,8 +74,7 @@ class AggregationDao(implicit inj: Injector) extends AggregationService with Laz
           culture <- cultureDao.get(generalAggResult.cultureId)
           species <- speciesDao.get(generalAggResult.speciesId)
           container <- farmDao.getContainer(generalAggResult.containerId)
-          substrate <- farmDao.getSubstrate(generalAggResult.substrateId)
-        } yield (GeneralAggregation(generalAggQuery = generalAggResult, culture.get, species.get, container.get, substrate.get))
+        } yield (GeneralAggregation(generalAggQuery = generalAggResult, culture.get, species.get, container.get))
       }))
     }).flatMap(x => x)
   }
