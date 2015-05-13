@@ -13,9 +13,8 @@ case class Project(_id: Option[BSONObjectID],
                    enabled: Boolean,
                    substrate: String,
                    container: String,
-                   startDate: Option[DateTime],
+                   createdDate: Option[DateTime] = Some(DateTime.now()),
                    parent: Option[BSONObjectID] = None,
-                   timestamp: Option[DateTime] = Some(DateTime.now()),
                    count: Long = 1l,
                    events: List[Event] = List.empty)
 

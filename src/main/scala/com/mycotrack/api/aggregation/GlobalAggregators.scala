@@ -29,6 +29,7 @@ class AggregationBroadcaster(implicit inj: Injector) extends Actor with AkkaInje
 
   def receive = {
     case p: Project => projectActors.foreach(_ ! p)
+    case d: Disable => projectActors.foreach(_ ! d)
     case e => log.error("Got something weird in GlobalAgg: " + e)
   }
 }
@@ -41,7 +42,7 @@ class CultureCountActor(implicit inj: Injector) extends Actor with AkkaInjectabl
 
   def receive = {
     case Project(id, description, cultureId, speciesId, userId, enabled, substrate, container, startDate,
-    parent, timestamp, count, events) => {
+    parent, count, events) => {
       log.info("Should aggregate : " + cultureId)
       incrementCultureCount(cultureId, userId, count)
     }
@@ -67,7 +68,7 @@ class SpeciesCountActor(implicit inj: Injector) extends Actor with AkkaInjectabl
 
   def receive = {
     case Project(id, description, cultureId, speciesId, userId, enabled, substrate, container, startDate,
-    parent, timestamp, count, events) => {
+    parent, count, events) => {
       log.info("Should aggregate : " + cultureId)
       incrementSpeciesCount(cultureId, userId, count)
     }
@@ -84,12 +85,12 @@ class ContainerCountActor(implicit inj: Injector) extends Actor with AkkaInjecta
 
   def receive = {
     case Project(id, description, cultureId, speciesId, userId, enabled, substrate, container, startDate,
-    parent, timestamp, count, events) => {
+    parent, count, events) => {
       log.info("Should aggregate : " + container)
       incrementContainerCount(container, userId, count)
     }
     case Disable(Project(id, description, cultureId, speciesId, userId, enabled, substrate, container, startDate,
-    parent, timestamp, count, events)) => {
+    parent, count, events)) => {
       log.info("Should decrement : " + container)
       decrementContainerCount(container, userId, count)
     }
@@ -118,13 +119,13 @@ class GeneralAggregationActor(implicit inj: Injector) extends Actor with AkkaInj
 
   def receive = {
     case Project(id, description, cultureId, speciesId, userIdOpt, enabled, substrate, container, startDate,
-    parent, timestamp, count, events) => {
+    parent, count, events) => {
       log.info("Doing general agg")
       val userId = userIdOpt.getOrElse(throw new RuntimeException("UserId shouldn't be none"))
       processNewProject(container, substrate, cultureId, speciesId, userId, count)
     }
     case Disable(Project(id, description, cultureId, speciesId, userIdOpt, enabled, substrate, container, startDate,
-    parent, timestamp, count, events)) => {
+    parent, count, events)) => {
       log.info("Should decrement : " + container)
       val userId = userIdOpt.getOrElse(throw new RuntimeException("UserId shouldn't be none"))
       processDisabledProject(container, substrate, cultureId, speciesId, userId, count)
@@ -160,7 +161,7 @@ class GeneralAggregationActor(implicit inj: Injector) extends Actor with AkkaInj
       "containerId" -> container,
       "cultureId" -> cultureId,
       "speciesId" -> speciesId)
-    val updateInput = BSONDocument("dec" -> BSONDocument("count" -> count))
+    val updateInput = BSONDocument("$inc" -> BSONDocument("count" -> (count * -1)))
     generalAggregationCollection.update(selector = queryInput, update = updateInput, upsert = false)
   }
 }

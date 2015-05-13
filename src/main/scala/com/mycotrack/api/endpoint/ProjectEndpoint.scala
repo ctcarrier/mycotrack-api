@@ -63,12 +63,12 @@ class ProjectEndpoint(implicit inj: Injector) extends HttpService
       } ~
       putProject { (resourceId, resource) =>
         complete {
-          dao.update(resourceId, resource)
+          service.addChild(resourceId, user._id.getOrElse(throw new RuntimeException("This shouldn't happen")), resource.copy(userId = user._id))
         }
       } ~
       postProjectChildren { (resourceId, resource) =>
         complete {
-          service.addChild(resourceId, user._id.getOrElse(throw new RuntimeException("This shouldn't happen")), resource)
+          service.addChild(resourceId, user._id.getOrElse(throw new RuntimeException("This shouldn't happen")), resource.copy(userId = user._id))
         }
       } ~
       postProject { resource =>

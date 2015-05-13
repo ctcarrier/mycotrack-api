@@ -1,10 +1,11 @@
 package com.mycotrack.api.service
 
 import akka.actor.ActorSystem
-import com.mycotrack.api.aggregation.AggregationBroadcaster
+import com.mycotrack.api.aggregation.{Disable, AggregationBroadcaster}
 import com.mycotrack.api.boot.Boot._
 import com.mycotrack.api.dao.ProjectDao
 import com.mycotrack.api.model.Project
+import org.joda.time.DateTime
 import reactivemongo.bson.BSONObjectID
 import scaldi.Injector
 import scaldi.akka.AkkaInjectable
@@ -39,16 +40,16 @@ class ProjectServiceImpl(implicit inj: Injector) extends ProjectService with Akk
 
     val response: Future[Future[Option[Project]]] = for {
       parentProject <- projectDao.get(id, userId)
-      toSave <- Future.successful(newProject.copy(Some(id)))
+      toSave <- Future.successful(newProject.copy(parent = Some(id)))
     } yield {
         if (toSave.count < parentProject.get.count) {
           val newCount = parentProject.get.count - toSave.count
-          val remainder = parentProject.get.copy(count = newCount, _id = None, parent = parentProject.get._id)
+          val remainder = parentProject.get.copy(count = newCount, _id = None, parent = parentProject.get._id, createdDate = Option(DateTime.now))
           save(remainder)
         }
         save(toSave).andThen({
-          case Success(_) => projectDao.update(id, newProject.copy(enabled=false)).andThen({
-            case Success(_) =>
+          case Success(_) => projectDao.update(id, parentProject.get.copy(enabled=false)).andThen({
+            case Success(Some(disabledProject)) => aggregationBroadcaster ! Disable(disabledProject)
           })
         })
       }.flatMap({x: Option[Project] => Future.successful(x)})

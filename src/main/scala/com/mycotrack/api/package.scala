@@ -1,6 +1,6 @@
 package com.mycotrack
 
-import com.mycotrack.api.dao.{GeneralAggregationQuery, GeneralAggregation, ContainerAggregation, CultureAggregation}
+import com.mycotrack.api.dao._
 import com.mycotrack.api.model._
 import com.mycotrack.api.service.Farm
 import org.joda.time.format.ISODateTimeFormat
@@ -23,6 +23,7 @@ package object api {
     def write(jdtime: DateTime) = BSONDateTime(jdtime.getMillis)
   }
 
+  implicit val locationQueryHandler = Macros.handler[Location]
   implicit val eventHandler = Macros.handler[Event]
   implicit val projectHandler = Macros.handler[Project]
   implicit val speciesHandler = Macros.handler[Species]

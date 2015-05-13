@@ -38,9 +38,7 @@ class AggregationEndpoint(implicit inj: Injector) extends HttpService
     path("aggregations") {
       authenticate(authenticator.basicAuthenticator) { user =>
         get {
-          logger.info("Got agg request")
           complete {
-            logger.info("Getting aggregation")
             service.getGeneralAggregation(user._id.getOrElse(throw new RuntimeException("UserId shouldn't be null")))
           }
         }

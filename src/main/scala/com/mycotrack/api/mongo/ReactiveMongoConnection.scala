@@ -62,6 +62,7 @@ class ReactiveMongoConnection extends Module {
   bind[BSONCollection] as 'CULTURE_COLLECTION to db(config.getString("mycotrack.culture.collection"))
   bind[BSONCollection] as 'SPECIES_COLLECTION to db(config.getString("mycotrack.species.collection"))
   bind[BSONCollection] as 'USER_COLLECTION to db(config.getString("mycotrack.user.collection"))
+  bind[BSONCollection] as 'LOCATION_COLLECTION to db(config.getString("mycotrack.location.collection"))
 
 }
 

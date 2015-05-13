@@ -6,7 +6,7 @@ import scala.language.implicitConversions
 case class ProjectSearchParams(cultureId: Option[BSONObjectID], containerId: Option[String], userId: Option[BSONObjectID])
 object ProjectSearchParams {
   implicit def toDbo(p: ProjectSearchParams): BSONDocument = {
-    BSONDocument("cultureId" -> p.cultureId, "container" -> p.containerId, "userId" -> p.userId)
+    BSONDocument("cultureId" -> p.cultureId, "container" -> p.containerId, "userId" -> p.userId, "enabled" -> true)
 
   }
 }
@@ -28,6 +28,13 @@ object CultureSearchParams {
 case class UserSearchParams(email: Option[String], password: Option[String])
 object UserSearchParams {
   implicit def toDbo(c: UserSearchParams): BSONDocument = {
+    BSONDocument()
+  }
+}
+
+case class LocationSearchParams()
+object LocationSearchParams {
+  implicit def asDBObject(s: LocationSearchParams): BSONDocument = {
     BSONDocument()
   }
 }

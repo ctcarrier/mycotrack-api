@@ -34,6 +34,7 @@ class MycotrackDaos extends Module {
   bind[ProjectDao] to new ProjectDao
   bind[SpeciesDao] to new SpeciesDao
   bind[UserDao] to new UserDao
+  bind[LocationDao] to new MongoLocationDao
 }
 
 class MycotrackServices extends Module {
@@ -53,6 +54,7 @@ class SprayModule extends Module {
   bind[ProjectEndpoint] to new ProjectEndpoint
   bind[SpeciesEndpoint] to new SpeciesEndpoint
   bind[UserEndpoint] to new UserEndpoint
+  bind[LocationEndpoint] to new LocationEndpoint
 
 }
 
