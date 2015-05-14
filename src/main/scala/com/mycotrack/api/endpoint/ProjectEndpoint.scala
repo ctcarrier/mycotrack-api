@@ -48,7 +48,7 @@ class ProjectEndpoint(implicit inj: Injector) extends HttpService
   //val directGetProject = authenticate(httpMongo(realm = "mycotrack")) & get
   val directGetProject = path("projects" / BSONObjectIDSegment) & get
   val putProject = path("projects" / BSONObjectIDSegment) & put & entity(as[Project])
-  val postProjectChildren = path("projects" / BSONObjectIDSegment / "children") & post & entity(as[Project]) & respondWithStatus(Created)
+  val postProjectChildren = path("projects" / BSONObjectIDSegment / "children") & post & entity(as[ProjectResponse]) & respondWithStatus(Created)
   val postEvent = path("projects" / "[^/]+".r / "events" / Segment) & post
   val postProject = path("projects") & post & entity(as[Project]) & respondWithStatus(Created)
   val indirectGetProjects = path("projects") & get & parameters('cultureId.as[BSONObjectID] ?, 'containerId ?)
@@ -58,12 +58,12 @@ class ProjectEndpoint(implicit inj: Injector) extends HttpService
     authenticate(authenticator.basicAuthenticator) { user =>
       directGetProject { resourceId =>
         complete {
-          dao.get(resourceId, user._id.getOrElse(throw new RuntimeException("This shouldn't happen")))
+          service.get(resourceId, user._id.getOrElse(throw new RuntimeException("This shouldn't happen")))
         }
       } ~
       putProject { (resourceId, resource) =>
         complete {
-          service.addChild(resourceId, user._id.getOrElse(throw new RuntimeException("This shouldn't happen")), resource.copy(userId = user._id))
+          dao.update(resourceId, resource)
         }
       } ~
       postProjectChildren { (resourceId, resource) =>
@@ -78,7 +78,7 @@ class ProjectEndpoint(implicit inj: Injector) extends HttpService
       } ~
       indirectGetProjects { (cultureId, containerId) =>
         complete {
-          dao.search(ProjectSearchParams(cultureId, containerId, user._id))
+          service.search(cultureId, containerId, user._id)
         }
       }
     }

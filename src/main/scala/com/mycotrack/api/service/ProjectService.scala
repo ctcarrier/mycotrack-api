@@ -3,10 +3,10 @@ package com.mycotrack.api.service
 import akka.actor.ActorSystem
 import com.mycotrack.api.aggregation.{Disable, AggregationBroadcaster}
 import com.mycotrack.api.boot.Boot._
-import com.mycotrack.api.dao.ProjectDao
-import com.mycotrack.api.model.Project
+import com.mycotrack.api.dao._
+import com.mycotrack.api.model.{ProjectSearchParams, ProjectResponse, Project}
 import org.joda.time.DateTime
-import reactivemongo.bson.BSONObjectID
+import reactivemongo.bson.{BSONDocument, BSONObjectID}
 import scaldi.Injector
 import scaldi.akka.AkkaInjectable
 
@@ -20,6 +20,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
  */
 trait ProjectService {
 
+  def get(key: BSONObjectID, userId: BSONObjectID): Future[Option[ProjectResponse]]
+  def search(cultureId: Option[BSONObjectID], containerId: Option[String], userId: Option[BSONObjectID]): Future[List[ProjectResponse]]
   def save(project: Project): Future[Option[Project]]
   def addChild(id: BSONObjectID, userId: BSONObjectID, project: Project): Future[Option[Project]]
 }
@@ -29,6 +31,48 @@ class ProjectServiceImpl(implicit inj: Injector) extends ProjectService with Akk
 
   lazy val aggregationBroadcaster = injectActorRef[AggregationBroadcaster]
   lazy val projectDao = inject[ProjectDao]
+  lazy val farmDao = inject[FarmDao]
+  lazy val speciesDao = inject[SpeciesDao]
+  lazy val cultureDao = inject[CultureDao]
+  lazy val locationDao = inject[LocationDao]
+
+  def get(key: BSONObjectID, userId: BSONObjectID): Future[Option[ProjectResponse]] = {
+
+    for {
+      baseProject <- projectDao.get(key, userId)
+      container <- farmDao.getContainer(baseProject.get.container)
+      substrate <- farmDao.getSubstrate(baseProject.get.substrate)
+      species <- speciesDao.get(baseProject.get.speciesId)
+      culture <- cultureDao.get(baseProject.get.cultureId)
+      location <- {
+        baseProject.get.locationId match {
+          case Some(locationId) => locationDao.get(locationId, userId)
+          case None => Future.successful(None)
+        }
+
+      }
+    } yield Option(ProjectResponse(baseProject.get, culture.get, species.get, substrate.get, container.get, location))
+  }
+
+  def search(cultureId: Option[BSONObjectID], containerId: Option[String], userId: Option[BSONObjectID]): Future[List[ProjectResponse]] = {
+    val response: Future[Future[List[ProjectResponse]]] = projectDao.search(ProjectSearchParams(cultureId, containerId, userId)).map(x => Future.sequence(x.map(projectItem => {
+      for {
+        container <- farmDao.getContainer(projectItem.container)
+        substrate <- farmDao.getSubstrate(projectItem.substrate)
+        species <- speciesDao.get(projectItem.speciesId)
+        culture <- cultureDao.get(projectItem.cultureId)
+        location <- {
+          projectItem.locationId match {
+            case Some(locationId) => locationDao.get(locationId, userId.get)
+            case None => Future.successful(None)
+          }
+
+        }
+      } yield ProjectResponse(projectItem, culture.get, species.get, substrate.get, container.get, location)
+    })))
+
+    response.flatMap(x => x)
+  }
 
   def save(project: Project): Future[Option[Project]] = {
     projectDao.save(project).andThen({

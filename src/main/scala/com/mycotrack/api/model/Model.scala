@@ -2,6 +2,7 @@ package com.mycotrack.api.model
 
 import java.util.Date
 
+import com.mycotrack.api.dao.Location
 import org.joda.time.DateTime
 import reactivemongo.bson.BSONObjectID
 
@@ -16,7 +17,62 @@ case class Project(_id: Option[BSONObjectID],
                    createdDate: Option[DateTime] = Some(DateTime.now()),
                    parent: Option[BSONObjectID] = None,
                    count: Long = 1l,
-                   events: List[Event] = List.empty)
+                   events: List[Event] = List.empty,
+                   locationId: Option[BSONObjectID] = None)
+
+object Project {
+
+  implicit def projectResponseToProject(pr: ProjectResponse): Project = {
+    Project(pr._id,
+      pr.description,
+      pr.culture._id.get,
+      pr.species._id.get,
+      pr.userId,
+      pr.enabled,
+      pr.substrate._id.get,
+      pr.container._id.get,
+      pr.createdDate,
+      pr.parent,
+      pr.count,
+      pr.events,
+      pr.location.map(_._id).flatten)
+  }
+}
+
+case class ProjectResponse(_id: Option[BSONObjectID],
+                   description: Option[String],
+                   culture: Culture,
+                   species: Species,
+                   userId: Option[BSONObjectID],
+                   enabled: Boolean,
+                   substrate: Substrate,
+                   container: Container,
+                   createdDate: Option[DateTime] = Some(DateTime.now()),
+                   parent: Option[BSONObjectID] = None,
+                   count: Long = 1l,
+                   events: List[Event] = List.empty,
+                   location: Option[Location] = None)
+
+object ProjectResponse {
+
+  def apply(project: Project, culture: Culture, species: Species, substrate: Substrate, container: Container, location: Option[Location]): ProjectResponse = {
+
+    ProjectResponse(project._id,
+      project.description,
+      culture,
+      species,
+      project.userId,
+      project.enabled,
+      substrate,
+      container,
+      project.createdDate,
+      project.parent,
+      project.count,
+      project.events,
+      location
+    )
+  }
+}
 
 
 case class Species(_id: Option[BSONObjectID], scientificName: String, commonName: String, imageUrl: String)
