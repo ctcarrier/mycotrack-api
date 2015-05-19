@@ -29,8 +29,8 @@ class ReactiveMongoConnection extends Module {
 
     val connection = driver.connection(List("%s:%s".format(host, port)))
 
-    val userName =Properties.envOrElse("MONGODB_USER", "FAIL")
-    val pass = Properties.envOrElse("MONGODB_PASS", "FAIL")
+    val userName =Properties.envOrElse("MONGODB_USER", user)
+    val pass = Properties.envOrElse("MONGODB_PASS", password)
 
     // Gets a reference to the database "plugin"
     val db = connection(dbName)
