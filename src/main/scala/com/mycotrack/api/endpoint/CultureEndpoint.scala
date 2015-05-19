@@ -38,13 +38,13 @@ class CultureEndpoint(implicit inj: Injector) extends HttpService
   lazy val authenticator = inject[Authenticator]
 
   //directive compositions
-  val culturePrefix = pathPrefix("cultures")
-  val speciesPrefix = pathPrefix("species")
-  val getCulture =  culturePrefix & path(BSONObjectIDSegment) & get
-  val putCulture =  culturePrefix & path(BSONObjectIDSegment) & put & entity(as[Culture])
-  val postCulture = culturePrefix & post & entity(as[Culture]) & respondWithStatus(Created)
-  val getCulturesBySpecies = speciesPrefix & path(BSONObjectIDSegment / "cultures") & get
-  val searchCultures = culturePrefix & get & parameters('name ?, 'includeProjects.as[Boolean] ?)
+  val culturePrefix = "cultures"
+  val speciesPrefix = "species"
+  val getCulture =  path(culturePrefix / BSONObjectIDSegment) & get
+  val putCulture =  path(culturePrefix / BSONObjectIDSegment) & put & entity(as[Culture])
+  val postCulture = path(culturePrefix) & post & entity(as[Culture]) & respondWithStatus(Created)
+  val getCulturesBySpecies = path(speciesPrefix / BSONObjectIDSegment / "cultures") & get
+  val searchCultures = path(culturePrefix) & get & parameters('name ?, 'includeProjects.as[Boolean] ?)
 
   val route = {
     // Debugging: /ping -> pong
