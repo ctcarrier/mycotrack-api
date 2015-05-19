@@ -79,7 +79,7 @@ object Boot extends App with AkkaInjectable with LazyLogging with ModuleDefiniti
 
   implicit lazy val system = inject[ActorSystem]
   lazy val host = inject[String](identified by 'BIND)
-  lazy val port = inject[Int](identified by 'PORT)
+  lazy val port = Properties.envOrElse("PORT", inject[Int](identified by 'PORT).toString).toInt
 
   lazy val dataInitializer = inject[DataInitializer]
   dataInitializer.initializeData
