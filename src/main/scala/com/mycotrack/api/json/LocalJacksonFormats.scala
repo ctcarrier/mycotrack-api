@@ -9,7 +9,7 @@ import FieldSerializer._
 import reactivemongo.bson.{BSONObjectID, BSONDocument}
 import org.json4s.ShortTypeHints
 import org.joda.time.DateTime
-import org.joda.time.format.ISODateTimeFormat
+import org.joda.time.format.{DateTimeFormat, ISODateTimeFormat}
 import scaldi.Module
 
 
@@ -41,12 +41,12 @@ class IntervalSerializer   extends CustomSerializer[BSONObjectID](format => (
 class DateTimeSerializer   extends CustomSerializer[DateTime](format => (
   {
     case JString(id) =>
-      val fmt = ISODateTimeFormat.dateTime()
+      val fmt = DateTimeFormat.forPattern("yyyy-MM-dd")
       fmt.parseDateTime(id)
   },
   {
     case x: DateTime =>
-      val fmt = ISODateTimeFormat.dateTime()
+      val fmt = DateTimeFormat.forPattern("yyyy-MM-dd")
       JString(fmt.print(x))
   }
   ))
