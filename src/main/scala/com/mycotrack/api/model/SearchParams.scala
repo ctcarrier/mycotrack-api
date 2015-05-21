@@ -32,9 +32,9 @@ object UserSearchParams {
   }
 }
 
-case class LocationSearchParams()
+case class LocationSearchParams(userId: Option[BSONObjectID])
 object LocationSearchParams {
   implicit def asDBObject(s: LocationSearchParams): BSONDocument = {
-    BSONDocument()
+    BSONDocument("userId" -> s.userId)
   }
 }

@@ -53,7 +53,7 @@ with LocalDeserializers {
       } ~
       indirectGetLocations {
         complete {
-          locationDao.search(LocationSearchParams())
+          locationDao.search(LocationSearchParams(user._id))
         }
       }
     }

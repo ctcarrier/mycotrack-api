@@ -1,7 +1,7 @@
 package com.mycotrack.api.service
 
-import com.mycotrack.api.dao.{ContainerAggregation, CultureAggregation, AggregationService, FarmDao}
-import com.mycotrack.api.model.{Substrate, Container, User}
+import com.mycotrack.api.dao._
+import com.mycotrack.api.model.{LocationSearchParams, Substrate, Container, User}
 import reactivemongo.bson.BSONObjectID
 import scaldi.Injector
 import scaldi.akka.AkkaInjectable
@@ -17,7 +17,8 @@ case class Farm(_id: Option[BSONObjectID],
                 substrates: List[Substrate],
                 containers: List[Container],
                 cultures: List[CultureAggregation],
-                containerAggregation: List[ContainerAggregation])
+                containerAggregation: List[ContainerAggregation],
+                locations: List[Location])
 
 trait FarmService {
   def getFarm(user: User): Future[Farm]
@@ -28,6 +29,7 @@ class DefaultFarmService(implicit inj: Injector) extends FarmService with AkkaIn
   import scala.concurrent.ExecutionContext.Implicits.global
 
   lazy val farmDao = inject[FarmDao]
+  lazy val locationDao = inject[LocationDao]
   lazy val aggregationService = inject[AggregationService]
 
   def getFarm(user: User): Future[Farm] = {
@@ -37,6 +39,7 @@ class DefaultFarmService(implicit inj: Injector) extends FarmService with AkkaIn
       containers <- farmDao.defaultContainers
       cultureAggregation <- aggregationService.getCultureCount(user._id.getOrElse(throw new RuntimeException("Need a userId here")))
       containerAggregation <- aggregationService.getContainerCount(user._id.getOrElse(throw new RuntimeException("Need a userId here")))
-    } yield Farm(None, substrates, containers, cultureAggregation, containerAggregation)
+      locations <- locationDao.search(LocationSearchParams(user._id))
+    } yield Farm(None, substrates, containers, cultureAggregation, containerAggregation, locations)
   }
 }
