@@ -42,6 +42,7 @@ class CultureEndpoint(implicit inj: Injector) extends HttpService
   val speciesPrefix = "species"
   val getCulture =  path(culturePrefix / BSONObjectIDSegment) & get
   val putCulture =  path(culturePrefix / BSONObjectIDSegment) & put & entity(as[Culture])
+  val putCultureInventory =  path(culturePrefix / BSONObjectIDSegment / "inventories") & put & entity(as[CultureInventory])
   val postCulture = path(culturePrefix) & post & entity(as[Culture]) & respondWithStatus(Created)
   val getCulturesBySpecies = path(speciesPrefix / BSONObjectIDSegment / "cultures") & get
   val searchCultures = path(culturePrefix) & get & parameters('name ?, 'includeProjects.as[Boolean] ?)
@@ -58,6 +59,11 @@ class CultureEndpoint(implicit inj: Injector) extends HttpService
       putCulture { (resourceId, resource) =>
         complete {
           service.update(resourceId, resource)
+        }
+      } ~
+      putCultureInventory { (resourceId, resource) =>
+        complete {
+          service.updateInventory(resourceId, resource)
         }
       } ~
       postCulture { resource =>

@@ -21,7 +21,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 trait ProjectService {
 
   def get(key: BSONObjectID, userId: BSONObjectID): Future[Option[ProjectResponse]]
-  def search(cultureId: Option[BSONObjectID], containerId: Option[String], userId: Option[BSONObjectID]): Future[List[ProjectResponse]]
+  def search(cultureId: Option[BSONObjectID], speciesId: Option[BSONObjectID], containerId: Option[String], userId: Option[BSONObjectID]): Future[List[ProjectResponse]]
   def save(project: Project): Future[Option[Project]]
   def addChild(id: BSONObjectID, userId: BSONObjectID, project: Project): Future[Option[Project]]
 }
@@ -54,7 +54,11 @@ class ProjectServiceImpl(implicit inj: Injector) extends ProjectService with Akk
     } yield Option(ProjectResponse(baseProject.get, culture.get, species.get, substrate.get, container.get, location))
   }
 
-  def search(cultureId: Option[BSONObjectID], containerId: Option[String], userId: Option[BSONObjectID]): Future[List[ProjectResponse]] = {
+  def search(cultureId: Option[BSONObjectID],
+             speciesId: Option[BSONObjectID],
+             containerId: Option[String],
+             userId: Option[BSONObjectID]): Future[List[ProjectResponse]] = {
+
     val response: Future[Future[List[ProjectResponse]]] = projectDao.search(ProjectSearchParams(cultureId, containerId, userId)).map(x => Future.sequence(x.map(projectItem => {
       for {
         container <- farmDao.getContainer(projectItem.container)

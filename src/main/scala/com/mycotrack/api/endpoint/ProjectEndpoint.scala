@@ -51,7 +51,7 @@ class ProjectEndpoint(implicit inj: Injector) extends HttpService
   val postProjectChildren = path("extendedProjects" / BSONObjectIDSegment / "children") & post & entity(as[ProjectResponse]) & respondWithStatus(Created)
   val postEvent = path("projects" / "[^/]+".r / "events" / Segment) & post
   val postProject = path("projects") & post & entity(as[Project]) & respondWithStatus(Created)
-  val indirectGetProjects = path("extendedProjects") & get & parameters('cultureId.as[BSONObjectID] ?, 'containerId ?)
+  val indirectGetProjects = path("extendedProjects") & get & parameters('cultureId.as[BSONObjectID] ?, 'speciesId.as[BSONObjectID] ?, 'containerId ?)
 
   val route = {
     // Service implementation.
@@ -76,9 +76,9 @@ class ProjectEndpoint(implicit inj: Injector) extends HttpService
           service.save(resource.copy(userId = user._id))
         }
       } ~
-      indirectGetProjects { (cultureId, containerId) =>
+      indirectGetProjects { (cultureId, speciesId, containerId) =>
         complete {
-          service.search(cultureId, containerId, user._id)
+          service.search(cultureId, speciesId, containerId, user._id)
         }
       }
     }

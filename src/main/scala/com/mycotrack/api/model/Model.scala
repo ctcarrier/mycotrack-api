@@ -1,6 +1,6 @@
 package com.mycotrack.api.model
 
-import java.util.Date
+import scala.language.implicitConversions
 
 import com.mycotrack.api.dao.Location
 import org.joda.time.DateTime
@@ -77,9 +77,12 @@ object ProjectResponse {
 
 case class Species(_id: Option[BSONObjectID], scientificName: String, commonName: String, imageUrl: String)
 
-
 case class Culture(_id: Option[BSONObjectID], name: String, speciesId: Option[BSONObjectID], userId: Option[BSONObjectID], species: Option[Species] = None, projects: Option[List[Project]] = None)
-
+case class CultureInventory(_id: Option[BSONObjectID],
+                            cultureId: Option[BSONObjectID],
+                            speciesId: Option[BSONObjectID],
+                            userId: Option[BSONObjectID],
+                            count: Int)
 
 case class User(_id: Option[BSONObjectID], dateCreated: Option[DateTime], lastUpdated: Option[DateTime], email: String, password: String)
 object User {

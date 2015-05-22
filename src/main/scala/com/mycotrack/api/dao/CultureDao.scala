@@ -1,7 +1,7 @@
 package com.mycotrack.api.dao
 
 import com.mycotrack.api._
-import model._
+import com.mycotrack.api.model._
 import akka.actor.{ActorRefFactory, ActorSystem}
 import reactivemongo.api.collections.default.BSONCollection
 import reactivemongo.bson.{BSONObjectID, BSONDocument}
@@ -12,10 +12,13 @@ import scala.concurrent.{ExecutionContext, Future}
 
 trait ICultureDao {
   def get(key: BSONObjectID): Future[Option[Culture]]
-  def save(species: Culture): Future[Option[Culture]]
+  def save(culture: Culture): Future[Option[Culture]]
   def search(searchObj: BSONDocument, includeProjects: Option[Boolean]): Future[List[Culture]]
   def update(cultureId: BSONObjectID, culture: Culture): Future[Option[Culture]]
   def getBySpecies(speciesId: BSONObjectID): Future[List[Culture]]
+
+  def getInventory(cultureId: BSONObjectID, userId: BSONObjectID): Future[Option[CultureInventory]]
+  def updateInventory(cultureId: BSONObjectID, cultureInventory: CultureInventory): Future[Option[CultureInventory]]
 }
 
 class CultureDao(implicit inj: Injector) extends ICultureDao with AkkaInjectable {
@@ -27,6 +30,7 @@ class CultureDao(implicit inj: Injector) extends ICultureDao with AkkaInjectable
   lazy val actorRefFactory: ActorRefFactory = system
 
   lazy val cultureCollection = inject[BSONCollection] (identified by 'CULTURE_COLLECTION)
+  lazy val cultureInventoryCollection = inject[BSONCollection] (identified by 'CULTURE_INVENTORY_COLLECTION)
 
   def get(key: BSONObjectID): Future[Option[Culture]] = cultureCollection.find(BSONDocument("_id" -> key)).one[Culture]
 
@@ -54,5 +58,18 @@ class CultureDao(implicit inj: Injector) extends ICultureDao with AkkaInjectable
   def getBySpecies(speciesId: BSONObjectID): Future[List[Culture]] = {
     val query = BSONDocument("speciesId" -> speciesId)
     cultureCollection.find(query).cursor[Culture].collect[List]()
+  }
+
+  def getInventory(cultureId: BSONObjectID, userId: BSONObjectID): Future[Option[CultureInventory]] = {
+    val query = BSONDocument("cultureId" -> cultureId, "userId" -> userId)
+    cultureInventoryCollection.find(query).one[CultureInventory]
+  }
+  def updateInventory(cultureId: BSONObjectID, cultureInventory: CultureInventory): Future[Option[CultureInventory]] = {
+
+    val newObjectId = Option(BSONObjectID.generate)
+    for {
+      lastError <- cultureInventoryCollection.save(cultureInventory.copy(_id = newObjectId))
+      toReturn <- cultureInventoryCollection.find(BSONDocument("_id" -> newObjectId)).one[CultureInventory]
+    } yield toReturn
   }
 }

@@ -64,7 +64,7 @@ class AggregationDao(implicit inj: Injector) extends AggregationService with Laz
   lazy val farmDao = inject[FarmDao]
 
   def getGeneralAggregation(userId: BSONObjectID): Future[List[GeneralAggregation]] = {
-    val query = BSONDocument("userId" -> userId)
+    val query = BSONDocument("userId" -> userId, "count" -> BSONDocument("$gt" -> 0))
 
     val queryResultFuture = generalAggregationCollection.find(query).cursor[GeneralAggregationQuery].collect[List]()
 
