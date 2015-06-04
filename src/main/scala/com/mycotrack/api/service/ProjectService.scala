@@ -92,7 +92,7 @@ class ProjectServiceImpl(implicit inj: Injector) extends ProjectService with Akk
     } yield {
         if (toSave.count < parentProject.get.count) {
           val newCount = parentProject.get.count - toSave.count
-          val remainder = parentProject.get.copy(count = newCount, _id = None, parent = parentProject.get._id, createdDate = Option(DateTime.now))
+          val remainder = parentProject.get.copy(count = newCount, _id = None, parent = parentProject.get._id)
           save(remainder)
         }
         save(toSave).andThen({
