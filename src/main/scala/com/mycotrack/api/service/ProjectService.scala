@@ -4,7 +4,7 @@ import akka.actor.ActorSystem
 import com.mycotrack.api.aggregation.{Disable, AggregationBroadcaster}
 import com.mycotrack.api.boot.Boot._
 import com.mycotrack.api.dao._
-import com.mycotrack.api.model.{ProjectSearchParams, ProjectResponse, Project}
+import com.mycotrack.api.model.{ProjectChildCommand, ProjectSearchParams, ProjectResponse, Project}
 import org.joda.time.DateTime
 import reactivemongo.bson.{BSONDocument, BSONObjectID}
 import scaldi.Injector
@@ -23,7 +23,7 @@ trait ProjectService {
   def get(key: BSONObjectID, userId: BSONObjectID): Future[Option[ProjectResponse]]
   def search(cultureId: Option[BSONObjectID], speciesId: Option[BSONObjectID], containerId: Option[String], userId: Option[BSONObjectID]): Future[List[ProjectResponse]]
   def save(project: Project): Future[Option[Project]]
-  def addChild(id: BSONObjectID, userId: BSONObjectID, project: Project): Future[Option[Project]]
+  def addChild(id: BSONObjectID, userId: BSONObjectID, project: ProjectChildCommand): Future[Option[Project]]
 }
 
 class ProjectServiceImpl(implicit inj: Injector) extends ProjectService with AkkaInjectable {
@@ -84,14 +84,28 @@ class ProjectServiceImpl(implicit inj: Injector) extends ProjectService with Akk
     })
   }
 
-  def addChild(id: BSONObjectID, userId: BSONObjectID, newProject: Project): Future[Option[Project]] = {
+  def addChild(id: BSONObjectID, userId: BSONObjectID, projectChildCommand: ProjectChildCommand): Future[Option[Project]] = {
 
     val response: Future[Future[Option[Project]]] = for {
       parentProject <- projectDao.get(id, userId)
-      toSave <- Future.successful(newProject.copy(parent = Some(id)))
+      toSave <- Future.successful({
+        Project(_id = None,
+        description = projectChildCommand.description,
+        cultureId = parentProject.get.cultureId,
+        speciesId = parentProject.get.speciesId,
+        userId = Some(userId),
+        enabled = projectChildCommand.enabled,
+        substrate = projectChildCommand.substrate._id.get,
+        container = projectChildCommand.container._id.get,
+        createdDate = projectChildCommand.createdDate,
+        parent = Some(id),
+        count = projectChildCommand.count,
+        events = projectChildCommand.events,
+        locationId = parentProject.get.locationId)
+      })
     } yield {
-        if (toSave.count < parentProject.get.count) {
-          val newCount = parentProject.get.count - toSave.count
+        if (projectChildCommand.countSubstrateUsed < parentProject.get.count) {
+          val newCount = parentProject.get.count - projectChildCommand.countSubstrateUsed
           val remainder = parentProject.get.copy(count = newCount, _id = None, parent = parentProject.get._id)
           save(remainder)
         }

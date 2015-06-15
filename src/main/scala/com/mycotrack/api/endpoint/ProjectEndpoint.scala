@@ -48,7 +48,7 @@ class ProjectEndpoint(implicit inj: Injector) extends HttpService
   //val directGetProject = authenticate(httpMongo(realm = "mycotrack")) & get
   val directGetProject = path("extendedProjects" / BSONObjectIDSegment) & get
   val putProject = path("projects" / BSONObjectIDSegment) & put & entity(as[Project])
-  val postProjectChildren = path("extendedProjects" / BSONObjectIDSegment / "children") & post & entity(as[ProjectResponse]) & respondWithStatus(Created)
+  val postProjectChildren = path("extendedProjects" / BSONObjectIDSegment / "children") & post & entity(as[ProjectChildCommand]) & respondWithStatus(Created)
   val postEvent = path("projects" / "[^/]+".r / "events" / Segment) & post
   val postProject = path("projects") & post & entity(as[Project]) & respondWithStatus(Created)
   val indirectGetProjects = path("extendedProjects") & get & parameters('cultureId.as[BSONObjectID] ?, 'speciesId.as[BSONObjectID] ?, 'containerId ?)

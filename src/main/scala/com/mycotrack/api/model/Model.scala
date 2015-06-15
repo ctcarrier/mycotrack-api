@@ -39,6 +39,17 @@ object Project {
   }
 }
 
+case class ProjectChildCommand(description: Option[String],
+                   userId: Option[BSONObjectID],
+                   enabled: Boolean,
+                   substrate: Substrate,
+                   container: Container,
+                   createdDate: Option[DateTime] = Some(DateTime.now()),
+                   parent: Option[BSONObjectID] = None,
+                   countSubstrateUsed: Long,
+                   count: Long = 1l,
+                   events: List[Event] = List.empty)
+
 case class ProjectResponse(_id: Option[BSONObjectID],
                    description: Option[String],
                    culture: Culture,
