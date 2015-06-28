@@ -4,7 +4,7 @@ import akka.actor.ActorSystem
 import com.mycotrack.api.aggregation.{Disable, AggregationBroadcaster}
 import com.mycotrack.api.boot.Boot._
 import com.mycotrack.api.dao._
-import com.mycotrack.api.model.{ProjectChildCommand, ProjectSearchParams, ProjectResponse, Project}
+import com.mycotrack.api.model._
 import org.joda.time.DateTime
 import reactivemongo.bson.{BSONDocument, BSONObjectID}
 import scaldi.Injector
@@ -24,6 +24,8 @@ trait ProjectService {
   def search(cultureId: Option[BSONObjectID], speciesId: Option[BSONObjectID], containerId: Option[String], userId: Option[BSONObjectID]): Future[List[ProjectResponse]]
   def save(project: Project): Future[Option[Project]]
   def addChild(id: BSONObjectID, userId: BSONObjectID, project: ProjectChildCommand): Future[Option[Project]]
+  def addHarvest(harvest: Harvest, projectId: BSONObjectID, userId: BSONObjectID): Future[Option[Harvest]]
+  def getHarvests(projectId: BSONObjectID, userId: BSONObjectID): Future[Option[HarvestAggregate]]
 }
 
 class ProjectServiceImpl(implicit inj: Injector) extends ProjectService with AkkaInjectable {
@@ -35,6 +37,7 @@ class ProjectServiceImpl(implicit inj: Injector) extends ProjectService with Akk
   lazy val speciesDao = inject[SpeciesDao]
   lazy val cultureDao = inject[CultureDao]
   lazy val locationDao = inject[LocationDao]
+  lazy val harvestDao = inject[HarvestDao]
 
   def get(key: BSONObjectID, userId: BSONObjectID): Future[Option[ProjectResponse]] = {
 
@@ -44,6 +47,7 @@ class ProjectServiceImpl(implicit inj: Injector) extends ProjectService with Akk
       substrate <- farmDao.getSubstrate(baseProject.get.substrate)
       species <- speciesDao.get(baseProject.get.speciesId)
       culture <- cultureDao.get(baseProject.get.cultureId)
+      weightOz <- getHarvests(key, userId)
       location <- {
         baseProject.get.locationId match {
           case Some(locationId) => locationDao.get(locationId, userId)
@@ -51,7 +55,7 @@ class ProjectServiceImpl(implicit inj: Injector) extends ProjectService with Akk
         }
 
       }
-    } yield Option(ProjectResponse(baseProject.get, culture.get, species.get, substrate.get, container.get, location))
+    } yield Option(ProjectResponse(baseProject.get, culture.get, species.get, substrate.get, container.get, location, weightOz.map(_.totalWeightOz).orElse(Some(0d))))
   }
 
   def search(cultureId: Option[BSONObjectID],
@@ -65,6 +69,7 @@ class ProjectServiceImpl(implicit inj: Injector) extends ProjectService with Akk
         substrate <- farmDao.getSubstrate(projectItem.substrate)
         species <- speciesDao.get(projectItem.speciesId)
         culture <- cultureDao.get(projectItem.cultureId)
+        weightOz <- getHarvests(projectItem._id.get, userId.get)
         location <- {
           projectItem.locationId match {
             case Some(locationId) => locationDao.get(locationId, userId.get)
@@ -72,7 +77,7 @@ class ProjectServiceImpl(implicit inj: Injector) extends ProjectService with Akk
           }
 
         }
-      } yield ProjectResponse(projectItem, culture.get, species.get, substrate.get, container.get, location)
+      } yield ProjectResponse(projectItem, culture.get, species.get, substrate.get, container.get, location, weightOz.map(_.totalWeightOz).orElse(Some(0d)))
     })))
 
     response.flatMap(x => x)
@@ -117,5 +122,22 @@ class ProjectServiceImpl(implicit inj: Injector) extends ProjectService with Akk
       }.flatMap({x: Option[Project] => Future.successful(x)})
 
     response.flatMap(x => x)
+  }
+
+  def addHarvest(harvest: Harvest, projectId: BSONObjectID, userIdIn: BSONObjectID): Future[Option[Harvest]] = {
+
+    val newObjectId = Option(BSONObjectID.generate)
+    harvestDao.save(harvest.copy(dateCreated = Some(DateTime.now()), _id = newObjectId, userId = Some(userIdIn), projectId = Some(projectId)), projectId, userIdIn)
+  }
+
+  def getHarvests(projectId: BSONObjectID, userId: BSONObjectID): Future[Option[HarvestAggregate]] = {
+
+    val newObjectId = Option(BSONObjectID.generate)
+    harvestDao.getAll(projectId, userId).map(harvests => {
+      val totalOz: Double = harvests.foldRight(0.0)((nextHarvest, rest) => (nextHarvest.weightOz + rest))
+      Option(HarvestAggregate(harvests, totalOz))
+    })
+
+
   }
 }

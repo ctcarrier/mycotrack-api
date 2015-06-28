@@ -52,6 +52,8 @@ class ProjectEndpoint(implicit inj: Injector) extends HttpService
   val postEvent = path("projects" / "[^/]+".r / "events" / Segment) & post
   val postProject = path("projects") & post & entity(as[Project]) & respondWithStatus(Created)
   val indirectGetProjects = path("extendedProjects") & get & parameters('cultureId.as[BSONObjectID] ?, 'speciesId.as[BSONObjectID] ?, 'containerId ?)
+  val postHarvest = path("projects" / BSONObjectIDSegment / "harvests") & post & entity(as[Harvest]) & respondWithStatus(Created)
+  val getHarvests = path("projects" / BSONObjectIDSegment / "harvests") & get
 
   val route = {
     // Service implementation.
@@ -79,6 +81,16 @@ class ProjectEndpoint(implicit inj: Injector) extends HttpService
       indirectGetProjects { (cultureId, speciesId, containerId) =>
         complete {
           service.search(cultureId, speciesId, containerId, user._id)
+        }
+      } ~
+      postHarvest { (projectId, harvest) =>
+        complete {
+          service.addHarvest(harvest, projectId, user._id.get)
+        }
+      } ~
+      getHarvests { projectId =>
+        complete {
+          service.getHarvests(projectId, user._id.get)
         }
       }
     }

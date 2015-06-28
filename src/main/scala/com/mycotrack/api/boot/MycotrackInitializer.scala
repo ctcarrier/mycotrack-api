@@ -35,6 +35,7 @@ class MycotrackDaos extends Module {
   bind[SpeciesDao] to new SpeciesDao
   bind[UserDao] to new UserDao
   bind[LocationDao] to new MongoLocationDao
+  bind[HarvestDao] to new MongoHarvestDao
 }
 
 class MycotrackServices extends Module {

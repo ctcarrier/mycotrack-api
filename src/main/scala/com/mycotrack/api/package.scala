@@ -23,6 +23,7 @@ package object api {
     def write(jdtime: DateTime) = BSONDateTime(jdtime.getMillis)
   }
 
+  implicit val harvestHandler = Macros.handler[Harvest]
   implicit val cultureInventoryHandler = Macros.handler[CultureInventory]
   implicit val locationQueryHandler = Macros.handler[Location]
   implicit val eventHandler = Macros.handler[Event]

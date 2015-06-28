@@ -62,11 +62,12 @@ case class ProjectResponse(_id: Option[BSONObjectID],
                    parent: Option[BSONObjectID] = None,
                    count: Long = 1l,
                    events: List[Event] = List.empty,
-                   location: Option[Location] = None)
+                   location: Option[Location] = None,
+                   weightOz: Option[Double] = None)
 
 object ProjectResponse {
 
-  def apply(project: Project, culture: Culture, species: Species, substrate: Substrate, container: Container, location: Option[Location]): ProjectResponse = {
+  def apply(project: Project, culture: Culture, species: Species, substrate: Substrate, container: Container, location: Option[Location], weightOz: Option[Double]): ProjectResponse = {
 
     ProjectResponse(project._id,
       project.description,
@@ -80,7 +81,8 @@ object ProjectResponse {
       project.parent,
       project.count,
       project.events,
-      location
+      location,
+      weightOz
     )
   }
 }
@@ -112,3 +114,7 @@ case class Event(name: String, dateCreated: DateTime)
 case class Substrate(_id: Option[String], name: String)
 
 case class Container(_id: Option[String], name: String)
+
+case class Harvest(_id: Option[BSONObjectID], userId: Option[BSONObjectID], projectId: Option[BSONObjectID], weightOz: Double, dateCreated: Option[DateTime])
+
+case class HarvestAggregate(harvests: List[Harvest], totalWeightOz: Double)
