@@ -22,7 +22,7 @@ class ReactiveMongoConnection extends Module {
 
   val pattern = "^mongodb:\\/\\/([\\w]*):([\\w]*)@([\\w\\.-]+):([\\d]+)\\/([\\w]+)".r
 
-  val envUri = Properties.envOrElse("MONGOLAB_URI", "").toString
+  val envUri = Properties.envOrElse("MONGODB_URI", "").toString
 
   val (connection, db) = if (!envUri.isEmpty){
     val pattern(user, password, host, port, dbName) = envUri
