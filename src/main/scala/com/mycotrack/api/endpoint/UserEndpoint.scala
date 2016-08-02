@@ -48,7 +48,7 @@ class UserEndpoint(implicit inj: Injector) extends HttpService
       mtAuth { user =>
         get {
           complete {
-            user
+            ""
           }
         } ~
         putUser { (resourceId, resource) =>

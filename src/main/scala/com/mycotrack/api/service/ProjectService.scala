@@ -21,7 +21,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 trait ProjectService {
 
   def get(key: BSONObjectID, userId: BSONObjectID): Future[Option[ProjectResponse]]
-  def search(cultureId: Option[BSONObjectID], speciesId: Option[BSONObjectID], containerId: Option[String], userId: Option[BSONObjectID]): Future[List[ProjectResponse]]
+  def search(cultureId: Option[BSONObjectID], speciesId: Option[BSONObjectID], containerId: Option[String], locationId: Option[BSONObjectID], userId: Option[BSONObjectID]): Future[List[ProjectResponse]]
   def save(project: Project): Future[Option[Project]]
   def addChild(id: BSONObjectID, userId: BSONObjectID, project: ProjectChildCommand): Future[Option[Project]]
   def addHarvest(harvest: Harvest, projectId: BSONObjectID, userId: BSONObjectID): Future[Option[Harvest]]
@@ -45,7 +45,7 @@ class ProjectServiceImpl(implicit inj: Injector) extends ProjectService with Akk
       baseProject <- projectDao.get(key, userId)
       container <- farmDao.getContainer(baseProject.get.container)
       substrate <- farmDao.getSubstrate(baseProject.get.substrate)
-      species <- speciesDao.get(baseProject.get.speciesId)
+      species <- speciesDao.get(baseProject.get.speciesId.get)
       culture <- cultureDao.get(baseProject.get.cultureId)
       weightOz <- getHarvests(key, userId)
       location <- {
@@ -61,13 +61,14 @@ class ProjectServiceImpl(implicit inj: Injector) extends ProjectService with Akk
   def search(cultureId: Option[BSONObjectID],
              speciesId: Option[BSONObjectID],
              containerId: Option[String],
+             locationId: Option[BSONObjectID],
              userId: Option[BSONObjectID]): Future[List[ProjectResponse]] = {
 
-    val response: Future[Future[List[ProjectResponse]]] = projectDao.search(ProjectSearchParams(cultureId, containerId, userId)).map(x => Future.sequence(x.map(projectItem => {
+    val response: Future[Future[List[ProjectResponse]]] = projectDao.search(ProjectSearchParams(cultureId, containerId, locationId, userId)).map(x => Future.sequence(x.map(projectItem => {
       for {
         container <- farmDao.getContainer(projectItem.container)
         substrate <- farmDao.getSubstrate(projectItem.substrate)
-        species <- speciesDao.get(projectItem.speciesId)
+        species <- speciesDao.get(projectItem.speciesId.get)
         culture <- cultureDao.get(projectItem.cultureId)
         weightOz <- getHarvests(projectItem._id.get, userId.get)
         location <- {
@@ -84,9 +85,12 @@ class ProjectServiceImpl(implicit inj: Injector) extends ProjectService with Akk
   }
 
   def save(project: Project): Future[Option[Project]] = {
-    projectDao.save(project).andThen({
-      case Success(_) => aggregationBroadcaster ! project
-    })
+    for {
+      culture <- cultureDao.get(project.cultureId)
+      resp <- projectDao.save(project.copy(speciesId = culture.get.speciesId)).andThen({
+        case Success(_) => aggregationBroadcaster ! project
+      })
+    } yield resp
   }
 
   def addChild(id: BSONObjectID, userId: BSONObjectID, projectChildCommand: ProjectChildCommand): Future[Option[Project]] = {

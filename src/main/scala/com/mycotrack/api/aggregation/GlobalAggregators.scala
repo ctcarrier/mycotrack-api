@@ -122,13 +122,13 @@ class GeneralAggregationActor(implicit inj: Injector) extends Actor with AkkaInj
     parent, count, events, locationId) => {
       log.info("Doing general agg")
       val userId = userIdOpt.getOrElse(throw new RuntimeException("UserId shouldn't be none"))
-      processNewProject(container, substrate, cultureId, speciesId, userId, count)
+      processNewProject(container, substrate, cultureId, speciesId.get, userId, count)
     }
     case Disable(Project(id, description, cultureId, speciesId, userIdOpt, enabled, substrate, container, startDate,
     parent, count, events, locationId)) => {
       log.info("Should decrement : " + container)
       val userId = userIdOpt.getOrElse(throw new RuntimeException("UserId shouldn't be none"))
-      processDisabledProject(container, substrate, cultureId, speciesId, userId, count)
+      processDisabledProject(container, substrate, cultureId, speciesId.get, userId, count)
     }
     case _ => log.info("received unknown message")
   }

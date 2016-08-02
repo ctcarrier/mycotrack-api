@@ -51,7 +51,7 @@ class ProjectEndpoint(implicit inj: Injector) extends HttpService
   val postProjectChildren = path("extendedProjects" / BSONObjectIDSegment / "children") & post & entity(as[ProjectChildCommand]) & respondWithStatus(Created)
   val postEvent = path("projects" / "[^/]+".r / "events" / Segment) & post
   val postProject = path("projects") & post & entity(as[Project]) & respondWithStatus(Created)
-  val indirectGetProjects = path("extendedProjects") & get & parameters('cultureId.as[BSONObjectID] ?, 'speciesId.as[BSONObjectID] ?, 'containerId ?)
+  val indirectGetProjects = path("extendedProjects") & get & parameters('cultureId.as[BSONObjectID] ?, 'speciesId.as[BSONObjectID] ?, 'containerId ?, 'locationId.as[BSONObjectID] ?)
   val postHarvest = path("projects" / BSONObjectIDSegment / "harvests") & post & entity(as[Harvest]) & respondWithStatus(Created)
   val getHarvests = path("projects" / BSONObjectIDSegment / "harvests") & get
 
@@ -78,9 +78,9 @@ class ProjectEndpoint(implicit inj: Injector) extends HttpService
           service.save(resource.copy(userId = user._id))
         }
       } ~
-      indirectGetProjects { (cultureId, speciesId, containerId) =>
+      indirectGetProjects { (cultureId, speciesId, containerId, locationId) =>
         complete {
-          service.search(cultureId, speciesId, containerId, user._id)
+          service.search(cultureId, speciesId, containerId, locationId, user._id)
         }
       } ~
       postHarvest { (projectId, harvest) =>
