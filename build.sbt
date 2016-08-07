@@ -20,6 +20,8 @@ scalacOptions ++= Seq("-feature")
 
 parallelExecution in Test := false
 
+test in assembly := {}
+
 javaOptions in Revolver.reStart += "-Dakka.mode=dev"
 
 javaOptions in Revolver.reStart += "-Xdebug"
@@ -62,7 +64,7 @@ libraryDependencies ++= Seq(
   "com.github.nscala-time" %% "nscala-time" % "1.4.0",
   "org.mindrot" % "jbcrypt" % "0.3m",
   //ReactiveMongo
-  "org.reactivemongo" %% "reactivemongo" % "0.10.5.0.akka23" % "compile",
+  "org.reactivemongo" %% "reactivemongo" % "0.11.14" % "compile",
   //TESTING
   "org.specs2" %% "specs2" % "2.4.2" % "test",
   "org.scalatest" % "scalatest_2.11" % "2.2.2" % "test",

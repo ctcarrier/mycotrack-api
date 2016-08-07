@@ -3,7 +3,7 @@ package com.mycotrack.api.endpoint.auth
 import com.mycotrack.api.model.User
 import org.joda.time.DateTime
 import org.mindrot.jbcrypt.BCrypt
-import reactivemongo.api.collections.default.BSONCollection
+import reactivemongo.api.collections.bson.BSONCollection
 import reactivemongo.bson.BSONObjectID
 import reactivemongo.core.commands.LastError
 import scaldi.{Injector, Module}
@@ -41,7 +41,7 @@ class TestUserContext(implicit inj: Injector) extends AkkaInjectable {
 
   def initialize = {
     Await.result({
-      userCollection.save(testUser.copy(password = BCrypt.hashpw(testUser.password, BCrypt.gensalt(salt))))
+      userCollection.update(testUser._id.get, testUser.copy(password = BCrypt.hashpw(testUser.password, BCrypt.gensalt(salt))))
     }, Duration("5 seconds")).asInstanceOf[LastError]
   }
 }

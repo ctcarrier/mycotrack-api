@@ -3,7 +3,7 @@ package com.mycotrack.api.dao
 import com.mycotrack.api._
 import com.mycotrack.api.model._
 import akka.actor.{ActorRefFactory, ActorSystem}
-import reactivemongo.api.collections.default.BSONCollection
+import reactivemongo.api.collections.bson.BSONCollection
 import reactivemongo.bson.{BSONObjectID, BSONDocument}
 import scaldi.Injector
 import scaldi.akka.AkkaInjectable
@@ -38,7 +38,7 @@ class CultureDao(implicit inj: Injector) extends ICultureDao with AkkaInjectable
 
     val newObjectId = Option(BSONObjectID.generate)
     for {
-      lastError <- cultureCollection.save(culture.copy(_id = newObjectId))
+      lastError <- cultureCollection.update(BSONDocument("_id" -> newObjectId.get), culture.copy(_id = newObjectId))
       toReturn <- cultureCollection.find(BSONDocument("_id" -> newObjectId)).one[Culture]
     } yield toReturn
   }
@@ -68,7 +68,7 @@ class CultureDao(implicit inj: Injector) extends ICultureDao with AkkaInjectable
 
     val newObjectId = Option(BSONObjectID.generate)
     for {
-      lastError <- cultureInventoryCollection.save(cultureInventory.copy(_id = newObjectId))
+      lastError <- cultureInventoryCollection.insert(cultureInventory.copy(_id = newObjectId))
       toReturn <- cultureInventoryCollection.find(BSONDocument("_id" -> newObjectId)).one[CultureInventory]
     } yield toReturn
   }

@@ -4,7 +4,7 @@ import com.mycotrack.api._
 import model._
 import akka.actor.{ActorRefFactory, ActorSystem}
 import org.mindrot.jbcrypt.BCrypt
-import reactivemongo.api.collections.default.BSONCollection
+import reactivemongo.api.collections.bson.BSONCollection
 import reactivemongo.bson.{BSONObjectID, BSONDocument}
 import scaldi.Injector
 import scaldi.akka.AkkaInjectable
@@ -38,7 +38,7 @@ class UserDao(implicit inj: Injector) extends UserService with AkkaInjectable {
 
     val newObjectId = Option(BSONObjectID.generate)
     for {
-      lastError <- userCollection.save(user.copy(_id = newObjectId, password = BCrypt.hashpw(user.password, BCrypt.gensalt(salt))))
+      lastError <- userCollection.insert(user.copy(_id = newObjectId, password = BCrypt.hashpw(user.password, BCrypt.gensalt(salt))))
       toReturn <- userCollection.find(BSONDocument("_id" -> newObjectId)).one[User]
     } yield toReturn
   }

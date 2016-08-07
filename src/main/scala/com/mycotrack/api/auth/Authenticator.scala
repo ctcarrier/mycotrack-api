@@ -5,7 +5,7 @@ import com.mycotrack.api.model.User
 import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.LazyLogging
 import org.mindrot.jbcrypt.BCrypt
-import reactivemongo.api.collections.default.BSONCollection
+import reactivemongo.api.collections.bson.BSONCollection
 import reactivemongo.bson._
 import scaldi.Injector
 import scaldi.akka.AkkaInjectable

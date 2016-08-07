@@ -55,16 +55,14 @@ class UserEndpoint(implicit inj: Injector) extends HttpService
           complete {
             service.update(resourceId, resource)
           }
-        }
-      } ~
-      searchUser {
-        mtAuth { user =>
+        } ~
+        postUser { resource =>
+          complete {
+            service.save(resource)
+          }
+        } ~
+        searchUser {
           complete(user)
-        }
-      } ~
-      postUser { resource =>
-        complete {
-          service.save(resource)
         }
       }
     }

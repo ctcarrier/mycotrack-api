@@ -2,7 +2,7 @@ package com.mycotrack.api.dao
 
 import akka.actor.{ActorRefFactory, ActorSystem}
 import com.mycotrack.api.model.{Container, Substrate}
-import reactivemongo.api.collections.default.BSONCollection
+import reactivemongo.api.collections.bson.BSONCollection
 import reactivemongo.bson.BSONDocument
 import scaldi.Injector
 import scaldi.akka.AkkaInjectable

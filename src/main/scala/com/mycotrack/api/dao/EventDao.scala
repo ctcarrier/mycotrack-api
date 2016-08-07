@@ -4,7 +4,7 @@ import com.mycotrack.api._
 import com.typesafe.scalalogging.LazyLogging
 import model._
 import akka.actor.{ActorRefFactory, ActorSystem}
-import reactivemongo.api.collections.default.BSONCollection
+import reactivemongo.api.collections.bson.BSONCollection
 import reactivemongo.bson.BSONDocument
 import scaldi.Injector
 import scaldi.akka.AkkaInjectable

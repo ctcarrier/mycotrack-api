@@ -24,6 +24,10 @@
         </rollingPolicy>
     </appender>
 
+    <logger name="reactivemongo.core.actors.MongoDBSystem" level="INFO">
+        <appender-ref ref="stdout"/>
+        <appender-ref ref="R"/>
+    </logger>
     <root level="DEBUG">
         <appender-ref ref="stdout"/>
         <appender-ref ref="R"/>

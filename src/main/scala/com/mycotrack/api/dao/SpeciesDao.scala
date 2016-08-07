@@ -4,7 +4,7 @@ import com.mycotrack.api._
 import com.typesafe.scalalogging.LazyLogging
 import model._
 import akka.actor.{ActorRefFactory, ActorSystem}
-import reactivemongo.api.collections.default.BSONCollection
+import reactivemongo.api.collections.bson.BSONCollection
 import reactivemongo.bson.{BSONObjectID, BSONDocument}
 import scaldi.Injector
 import scaldi.akka.AkkaInjectable
@@ -33,7 +33,7 @@ class SpeciesDao(implicit inj: Injector) extends ISpeciesDao with LazyLogging wi
 
     val newObjectId = Option(BSONObjectID.generate)
     for {
-      lastError <- speciesCollection.save(species.copy(_id = newObjectId))
+      lastError <- speciesCollection.insert(species.copy(_id = newObjectId))
       toReturn <- speciesCollection.find(BSONDocument("_id" -> newObjectId)).one[Species]
     } yield toReturn
   }

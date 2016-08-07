@@ -5,7 +5,7 @@ import akka.actor.{ActorSystem, Actor, Props}
 import com.mycotrack.api.dao.CultureDao
 import com.mycotrack.api.model.{Species, Project}
 import com.typesafe.scalalogging.LazyLogging
-import reactivemongo.api.collections.default.BSONCollection
+import reactivemongo.api.collections.bson.BSONCollection
 import reactivemongo.bson.{BSONDocument, BSONObjectID}
 import scaldi.Injector
 import scaldi.akka.AkkaInjectable

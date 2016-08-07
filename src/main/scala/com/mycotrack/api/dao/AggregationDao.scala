@@ -3,7 +3,7 @@ package com.mycotrack.api.dao
 import com.mycotrack.api.model._
 import com.typesafe.scalalogging.LazyLogging
 import akka.actor.{ActorRefFactory, ActorSystem}
-import reactivemongo.api.collections.default.BSONCollection
+import reactivemongo.api.collections.bson.BSONCollection
 import reactivemongo.bson.{BSONDocument, BSONObjectID}
 import reactivemongo.core.commands.Count
 import scaldi.Injector

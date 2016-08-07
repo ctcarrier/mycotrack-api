@@ -3,7 +3,7 @@ package com.mycotrack.api.dao
 import akka.actor.{ActorRefFactory, ActorSystem}
 import com.mycotrack.api.model.Harvest
 import com.typesafe.scalalogging.LazyLogging
-import reactivemongo.api.collections.default.BSONCollection
+import reactivemongo.api.collections.bson.BSONCollection
 import reactivemongo.bson.{BSONDocument, BSONObjectID}
 import scaldi.Injector
 import scaldi.akka.AkkaInjectable
@@ -31,7 +31,7 @@ class MongoHarvestDao(implicit inj: Injector) extends HarvestDao with LazyLoggin
   def save(harvest: Harvest, projectId: BSONObjectID, userId: BSONObjectID): Future[Option[Harvest]] = {
 
     for {
-      lastError <- harvestCollection.save(harvest)
+      lastError <- harvestCollection.insert(harvest)
       toReturn <- harvestCollection.find(BSONDocument("_id" -> harvest._id.get)).one[Harvest]
     } yield toReturn
   }

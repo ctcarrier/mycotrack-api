@@ -1,6 +1,6 @@
 package com.mycotrack.api.service
 
-import reactivemongo.api.collections.default.BSONCollection
+import reactivemongo.api.collections.bson.BSONCollection
 import reactivemongo.bson.BSONDocument
 import scaldi.Injector
 import scaldi.akka.AkkaInjectable

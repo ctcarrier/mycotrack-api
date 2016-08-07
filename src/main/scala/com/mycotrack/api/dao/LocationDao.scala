@@ -2,7 +2,7 @@ package com.mycotrack.api.dao
 
 import akka.actor.{ActorRefFactory, ActorSystem}
 import org.joda.time.DateTime
-import reactivemongo.api.collections.default.BSONCollection
+import reactivemongo.api.collections.bson.BSONCollection
 import reactivemongo.bson.{BSONDocument, BSONObjectID}
 import scaldi.Injector
 import scaldi.akka.AkkaInjectable
@@ -40,7 +40,7 @@ class MongoLocationDao(implicit inj: Injector) extends LocationDao with AkkaInje
 
     val newObjectId = Option(BSONObjectID.generate)
     for {
-      lastError <- locationCollection.save(location.copy(_id = newObjectId))
+      lastError <- locationCollection.insert(location.copy(_id = newObjectId))
       toReturn <- locationCollection.find(BSONDocument("_id" -> newObjectId)).one[Location]
     } yield toReturn
   }

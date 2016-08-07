@@ -14,7 +14,7 @@ import com.mycotrack.api.test.BeforeAllAfterAll
 import com.typesafe.scalalogging.LazyLogging
 import org.json4s.Formats
 import org.specs2.mutable.Specification
-import reactivemongo.api.collections.default.BSONCollection
+import reactivemongo.api.collections.bson.BSONCollection
 import reactivemongo.bson.BSONDocument
 import reactivemongo.core.commands.LastError
 
@@ -50,7 +50,7 @@ class ProjectSpec extends Specification with HttpService with Json4sJacksonSuppo
   testUserContext.initialize
 
   val toSave = TestProject.generate
-  Await.result(projectCollection.save(toSave), Duration("5 seconds")).asInstanceOf[LastError]
+  Await.result(projectCollection.update(toSave), Duration("5 seconds")).asInstanceOf[LastError]
 
   "The Projects Endpoint" should {
     "create a project with a POST request" in {

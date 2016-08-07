@@ -5,7 +5,7 @@ import com.typesafe.scalalogging.LazyLogging
 import model._
 import java.util.Date
 import akka.actor.{ActorRefFactory, ActorSystem}
-import reactivemongo.api.collections.default.BSONCollection
+import reactivemongo.api.collections.bson.BSONCollection
 import reactivemongo.bson.{BSONObjectID, BSONDocument}
 import scaldi.Injector
 import scaldi.akka.AkkaInjectable
@@ -35,7 +35,7 @@ class ProjectDao(implicit inj: Injector) extends IProjectDao with LazyLogging wi
 
     val newObjectId = Option(BSONObjectID.generate)
     for {
-      lastError <- projectCollection.save(project.copy(_id = newObjectId))
+      lastError <- projectCollection.insert(project.copy(_id = newObjectId))
       toReturn <- projectCollection.find(BSONDocument("_id" -> newObjectId)).one[Project]
     } yield toReturn
   }
