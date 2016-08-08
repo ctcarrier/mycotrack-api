@@ -39,5 +39,6 @@ class DefaultDataInitializer(implicit val inj: Injector) extends AkkaInjectable 
     defaultSubstrateCollection.insert(BSONDocument("_id" ->"straw", "name" -> "straw"))
     defaultSubstrateCollection.insert(BSONDocument("_id" ->"coir", "name" -> "coir"))
     defaultSubstrateCollection.insert(BSONDocument("_id" ->"hpoo", "name" -> "horse poo"))
+    defaultSubstrateCollection.insert(BSONDocument("_id" ->"brewerysawdust", "name" -> "brew grain/sawdust"))
   }
 }
