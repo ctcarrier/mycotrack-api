@@ -88,7 +88,7 @@ object ProjectResponse {
 }
 
 
-case class Species(_id: Option[BSONObjectID], scientificName: String, commonName: String, imageUrl: String)
+case class Species(_id: Option[BSONObjectID], scientificName: String, commonName: String, imageUrl: String, imageAttribution: Option[String])
 
 case class Culture(_id: Option[BSONObjectID], name: String, speciesId: Option[BSONObjectID], userId: Option[BSONObjectID], species: Option[Species] = None, projects: Option[List[Project]] = None)
 case class CultureInventory(_id: Option[BSONObjectID],
