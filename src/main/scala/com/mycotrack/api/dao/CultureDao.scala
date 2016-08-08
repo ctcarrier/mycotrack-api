@@ -31,20 +31,36 @@ class CultureDao(implicit inj: Injector) extends ICultureDao with AkkaInjectable
 
   lazy val cultureCollection = inject[BSONCollection] (identified by 'CULTURE_COLLECTION)
   lazy val cultureInventoryCollection = inject[BSONCollection] (identified by 'CULTURE_INVENTORY_COLLECTION)
+  lazy val speciesDao = inject[SpeciesDao]
 
-  def get(key: BSONObjectID): Future[Option[Culture]] = cultureCollection.find(BSONDocument("_id" -> key)).one[Culture]
+  def get(key: BSONObjectID): Future[Option[Culture]] = {
+    for {
+      culture <- cultureCollection.find(BSONDocument("_id" -> key)).one[Culture]
+      cultureSpecies <- speciesDao.get(culture.get.speciesId.get)
+    } yield Some(culture.get.copy(species = cultureSpecies))
+  }
 
   def save(culture: Culture): Future[Option[Culture]] = {
 
     val newObjectId = Option(BSONObjectID.generate)
     for {
-      lastError <- cultureCollection.update(BSONDocument("_id" -> newObjectId.get), culture.copy(_id = newObjectId))
+      lastError <- cultureCollection.insert(culture.copy(_id = newObjectId))
       toReturn <- cultureCollection.find(BSONDocument("_id" -> newObjectId)).one[Culture]
     } yield toReturn
   }
 
   def search(searchObj: BSONDocument, includeProjects: Option[Boolean]): Future[List[Culture]] = {
-    cultureCollection.find(searchObj).cursor[Culture].collect[List]()
+    val preRes: Future[Future[List[Culture]]] = for {
+      cultures <- cultureCollection.find(searchObj).cursor[Culture].collect[List]()
+    } yield {
+      val listOfFutures = cultures.map(culture => {
+        speciesDao.get(culture.speciesId.get).map(cultureSpecies => culture.copy(species = cultureSpecies))
+      })
+
+      Future.sequence(listOfFutures)
+    }
+
+    preRes.flatMap(x => x)
   }
 
   def update(cultureId: BSONObjectID, culture: Culture): Future[Option[Culture]] = {
