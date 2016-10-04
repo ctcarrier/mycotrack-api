@@ -41,12 +41,12 @@ class IntervalSerializer   extends CustomSerializer[BSONObjectID](format => (
 class DateTimeSerializer   extends CustomSerializer[DateTime](format => (
   {
     case JString(id) =>
-      val fmt = DateTimeFormat.forPattern("yyyy-MM-dd")
+      val fmt = ISODateTimeFormat.dateTime()
       fmt.parseDateTime(id)
   },
   {
     case x: DateTime =>
-      val fmt = DateTimeFormat.forPattern("yyyy-MM-dd")
+      val fmt = ISODateTimeFormat.dateTime()
       JString(fmt.print(x))
   }
   ))

@@ -68,7 +68,8 @@ libraryDependencies ++= Seq(
   //TESTING
   "org.specs2" %% "specs2" % "2.4.2" % "test",
   "org.scalatest" % "scalatest_2.11" % "2.2.2" % "test",
-  "commons-codec" % "commons-codec" % "1.10"
+  "commons-codec" % "commons-codec" % "1.10",
+  "com.paulgoldbaum" %% "scala-influxdb-client" % "0.5.1"
 )
 
 resolvers ++= Seq(

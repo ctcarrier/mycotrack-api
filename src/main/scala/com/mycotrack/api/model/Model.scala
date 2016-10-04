@@ -42,13 +42,14 @@ object Project {
 case class ProjectChildCommand(description: Option[String],
                    userId: Option[BSONObjectID],
                    enabled: Boolean,
-                   substrate: Substrate,
-                   container: Container,
+                   substrate: String,
+                   container: String,
                    createdDate: Option[DateTime] = Some(DateTime.now()),
                    parent: Option[BSONObjectID] = None,
                    countSubstrateUsed: Long,
                    count: Long = 1l,
-                   events: List[Event] = List.empty)
+                   events: List[Event] = List.empty,
+                   locationId: BSONObjectID)
 
 case class ProjectResponse(_id: Option[BSONObjectID],
                    description: Option[String],
@@ -118,3 +119,5 @@ case class Container(_id: Option[String], name: String)
 case class Harvest(_id: Option[BSONObjectID], userId: Option[BSONObjectID], projectId: Option[BSONObjectID], weightOz: Double, dateCreated: Option[DateTime])
 
 case class HarvestAggregate(harvests: List[Harvest], totalWeightOz: Double)
+
+case class SensorReading(_id: Option[BSONObjectID], tag: String, humidity: Int, fahrenheit: Int, timestamp: DateTime, userId: Option[BSONObjectID])

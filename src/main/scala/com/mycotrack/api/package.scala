@@ -36,6 +36,7 @@ package object api {
   implicit val cultureAggregationHandler = Macros.handler[CultureAggregation]
   implicit val containerAggregationHandler = Macros.handler[ContainerAggregation]
   implicit val generalAggregationQueryHandler = Macros.handler[GeneralAggregationQuery]
+  implicit val sensorReadingHandler = Macros.handler[SensorReading]
 
   implicit val farmHandler = Macros.handler[Farm]
 

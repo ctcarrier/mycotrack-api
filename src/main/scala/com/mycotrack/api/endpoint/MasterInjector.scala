@@ -28,6 +28,7 @@ with LocalRejectionHandlers with HttpService {
   lazy val speciesEndpoint = inject[SpeciesEndpoint]
   lazy val aggregationEndpoint = inject[AggregationEndpoint]
   lazy val locationEndpoint = inject[LocationEndpoint]
+  lazy val sensorEndpoint = inject[SensorEndpoint]
 
   def receive = runRoute {
     respondWithHeader(`Cache-Control`(`no-cache`, `no-store`, `must-revalidate`)) {
@@ -38,7 +39,8 @@ with LocalRejectionHandlers with HttpService {
           projectEndpoint.route ~
           speciesEndpoint.route ~
           aggregationEndpoint.route ~
-          locationEndpoint.route
+          locationEndpoint.route ~
+          sensorEndpoint.route
       }
     }
   }

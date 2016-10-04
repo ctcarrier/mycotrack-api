@@ -4,6 +4,7 @@ import akka.actor.ActorSystem
 import akka.util.Timeout
 import com.mycotrack.api.auth.Authenticator
 import com.mycotrack.api.boot._
+import com.mycotrack.api.influxdb.InfluxConnection
 import com.mycotrack.api.json.LocalJacksonFormats
 import com.mycotrack.api.mongo.ReactiveMongoConnection
 import com.typesafe.config.ConfigFactory
@@ -42,6 +43,6 @@ class CryptoModule extends Module with LazyLogging {
 trait ModuleDefinition {
 
   implicit val appModule = new ActorSystemModule :: new MycotrackDaos :: new SprayModule :: new Configs ::
-    new LocalJacksonFormats :: new MycotrackServices :: new ReactiveMongoConnection :: new AuthModule ::
+    new LocalJacksonFormats :: new MycotrackServices :: new ReactiveMongoConnection :: new InfluxConnection :: new AuthModule ::
     new CryptoModule :: new AggregationModule
 }
