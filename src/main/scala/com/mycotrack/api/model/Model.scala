@@ -18,7 +18,9 @@ case class Project(_id: Option[BSONObjectID],
                    parent: Option[BSONObjectID] = None,
                    count: Long = 1l,
                    events: List[Event] = List.empty,
-                   locationId: Option[BSONObjectID] = None)
+                   locationId: Option[BSONObjectID] = None,
+                   contaminated: Option[Boolean] = Some(false),
+                   disabledDate: Option[DateTime] = None)
 
 object Project {
 
@@ -35,7 +37,9 @@ object Project {
       pr.parent,
       pr.count,
       pr.events,
-      pr.location.map(_._id).flatten)
+      pr.location.map(_._id).flatten,
+      pr.contaminated,
+      pr.disabledDate)
   }
 }
 
@@ -64,7 +68,9 @@ case class ProjectResponse(_id: Option[BSONObjectID],
                    count: Long = 1l,
                    events: List[Event] = List.empty,
                    location: Option[Location] = None,
-                   weightOz: Option[Double] = None)
+                   weightOz: Option[Double] = None,
+                   contaminated: Option[Boolean],
+                   disabledDate: Option[DateTime])
 
 object ProjectResponse {
 
@@ -83,7 +89,9 @@ object ProjectResponse {
       project.count,
       project.events,
       location,
-      weightOz
+      weightOz,
+      project.contaminated,
+      project.disabledDate
     )
   }
 }
@@ -120,4 +128,4 @@ case class Harvest(_id: Option[BSONObjectID], userId: Option[BSONObjectID], proj
 
 case class HarvestAggregate(harvests: List[Harvest], totalWeightOz: Double)
 
-case class SensorReading(_id: Option[BSONObjectID], tag: String, humidity: Int, fahrenheit: Int, timestamp: DateTime, userId: Option[BSONObjectID])
+case class SensorReading(_id: Option[BSONObjectID], tag: String, humidity: Double, fahrenheit: Double, timestamp: DateTime, userId: Option[BSONObjectID])

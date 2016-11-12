@@ -39,7 +39,7 @@ class SpeciesDao(implicit inj: Injector) extends ISpeciesDao with LazyLogging wi
   }
 
   def search(searchObj: BSONDocument): Future[List[Species]] = {
-    speciesCollection.find(searchObj).cursor[Species].collect[List]()
+    speciesCollection.find(searchObj).cursor[Species]().collect[List]()
   }
 
   def update(id: BSONObjectID, species: Species): Future[Option[Species]] = {

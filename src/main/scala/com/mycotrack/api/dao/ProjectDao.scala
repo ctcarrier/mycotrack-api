@@ -41,7 +41,8 @@ class ProjectDao(implicit inj: Injector) extends IProjectDao with LazyLogging wi
   }
 
   def search(searchObj: BSONDocument): Future[List[Project]] = {
-    projectCollection.find(searchObj).cursor[Project].collect[List]()
+    val sorted = BSONDocument("createdDate" -> -1)
+    projectCollection.find(searchObj).sort(sorted).cursor[Project]().collect[List]()
   }
 
   def update(id: BSONObjectID, project: Project): Future[Option[Project]] = {

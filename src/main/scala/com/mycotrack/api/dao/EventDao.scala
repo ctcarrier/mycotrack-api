@@ -26,5 +26,5 @@ class EventDao(implicit inj: Injector) extends EventService with LazyLogging wit
   lazy val eventCollection = inject[BSONCollection] (identified by 'EVENT_COLLECTION)
 
   def search(searchObj: BSONDocument): Future[List[Event]] =
-    eventCollection.find(searchObj).cursor[Event].collect[List]()
+    eventCollection.find(searchObj).cursor[Event]().collect[List]()
 }

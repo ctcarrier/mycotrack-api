@@ -46,6 +46,6 @@ class MongoLocationDao(implicit inj: Injector) extends LocationDao with AkkaInje
   }
 
   def search(searchObj: BSONDocument): Future[List[Location]] = {
-    locationCollection.find(searchObj).cursor[Location].collect[List]()
+    locationCollection.find(searchObj).cursor[Location]().collect[List]()
   } 
 }

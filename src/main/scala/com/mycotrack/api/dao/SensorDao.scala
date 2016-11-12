@@ -70,6 +70,6 @@ class MongoSensorDao(implicit inj: Injector) extends SensorDao with AkkaInjectab
   }
 
   def search(searchObj: BSONDocument): Future[List[SensorReading]] = {
-    sensorCollection.find(searchObj).cursor[SensorReading].collect[List]()
+    sensorCollection.find(searchObj).cursor[SensorReading]().collect[List]()
   } 
 }

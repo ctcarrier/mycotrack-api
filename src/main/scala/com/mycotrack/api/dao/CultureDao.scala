@@ -51,7 +51,7 @@ class CultureDao(implicit inj: Injector) extends ICultureDao with AkkaInjectable
 
   def search(searchObj: BSONDocument, includeProjects: Option[Boolean]): Future[List[Culture]] = {
     val preRes: Future[Future[List[Culture]]] = for {
-      cultures <- cultureCollection.find(searchObj).cursor[Culture].collect[List]()
+      cultures <- cultureCollection.find(searchObj).cursor[Culture]().collect[List]()
     } yield {
       val listOfFutures = cultures.map(culture => {
         speciesDao.get(culture.speciesId.get).map(cultureSpecies => culture.copy(species = cultureSpecies))

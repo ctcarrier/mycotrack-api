@@ -5,7 +5,7 @@ import com.mycotrack.api.aggregation.{Disable, AggregationBroadcaster}
 import com.mycotrack.api.boot.Boot._
 import com.mycotrack.api.dao._
 import com.mycotrack.api.model._
-import org.joda.time.DateTime
+import org.joda.time.{DateTimeZone, DateTime}
 import reactivemongo.bson.{BSONDocument, BSONObjectID}
 import scaldi.Injector
 import scaldi.akka.AkkaInjectable
@@ -110,7 +110,7 @@ class ProjectServiceImpl(implicit inj: Injector) extends ProjectService with Akk
         parent = Some(id),
         count = projectChildCommand.count,
         events = projectChildCommand.events,
-        locationId = parentProject.get.locationId)
+        locationId = Option(projectChildCommand.locationId))
       })
     } yield {
         if (projectChildCommand.countSubstrateUsed < parentProject.get.count) {
@@ -119,7 +119,7 @@ class ProjectServiceImpl(implicit inj: Injector) extends ProjectService with Akk
           save(remainder)
         }
         save(toSave).andThen({
-          case Success(_) => projectDao.update(id, parentProject.get.copy(enabled=false)).andThen({
+          case Success(_) => projectDao.update(id, parentProject.get.copy(enabled=false, disabledDate = Some(DateTime.now(DateTimeZone.UTC)))).andThen({
             case Success(Some(disabledProject)) => aggregationBroadcaster ! Disable(disabledProject)
           })
         })

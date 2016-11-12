@@ -1,5 +1,3 @@
-import AssemblyKeys._
-
 import com.typesafe.sbt.SbtStartScript
 
 organization := "mycotrack"
@@ -10,8 +8,6 @@ version := "0.1.0-SNAPSHOT"
 
 scalaVersion := "2.11.5"
 
-seq(assemblySettings: _*)
-
 seq(Revolver.settings: _*)
 
 seq(SbtStartScript.startScriptForClassesSettings: _*)
@@ -21,6 +17,13 @@ scalacOptions ++= Seq("-feature")
 parallelExecution in Test := false
 
 test in assembly := {}
+
+assemblyMergeStrategy in assembly := {
+  case x if x.endsWith("io.netty.versions.properties") => MergeStrategy.first
+  case x =>
+    val oldStrategy = (assemblyMergeStrategy in assembly).value
+    oldStrategy(x)
+}
 
 javaOptions in Revolver.reStart += "-Dakka.mode=dev"
 
