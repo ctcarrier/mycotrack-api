@@ -53,7 +53,8 @@ case class ProjectChildCommand(description: Option[String],
                    countSubstrateUsed: Long,
                    count: Long = 1l,
                    events: List[Event] = List.empty,
-                   locationId: BSONObjectID)
+                   locationId: BSONObjectID,
+                   contaminated: Option[Boolean] = Some(false))
 
 case class ProjectResponse(_id: Option[BSONObjectID],
                    description: Option[String],

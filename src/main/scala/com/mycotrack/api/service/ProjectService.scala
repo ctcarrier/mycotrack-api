@@ -21,7 +21,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 trait ProjectService {
 
   def get(key: BSONObjectID, userId: BSONObjectID): Future[Option[ProjectResponse]]
-  def search(cultureId: Option[BSONObjectID], speciesId: Option[BSONObjectID], containerId: Option[String], locationId: Option[BSONObjectID], userId: Option[BSONObjectID]): Future[List[ProjectResponse]]
+  def search(cultureId: Option[BSONObjectID], speciesId: Option[BSONObjectID], containerId: Option[String], locationId: Option[BSONObjectID], contaminated: Option[Boolean], userId: Option[BSONObjectID]): Future[List[ProjectResponse]]
   def save(project: Project): Future[Option[Project]]
   def addChild(id: BSONObjectID, userId: BSONObjectID, project: ProjectChildCommand): Future[Option[Project]]
   def addHarvest(harvest: Harvest, projectId: BSONObjectID, userId: BSONObjectID): Future[Option[Harvest]]
@@ -62,9 +62,10 @@ class ProjectServiceImpl(implicit inj: Injector) extends ProjectService with Akk
              speciesId: Option[BSONObjectID],
              containerId: Option[String],
              locationId: Option[BSONObjectID],
+             contaminated: Option[Boolean],
              userId: Option[BSONObjectID]): Future[List[ProjectResponse]] = {
 
-    val response: Future[Future[List[ProjectResponse]]] = projectDao.search(ProjectSearchParams(cultureId, containerId, locationId, userId)).map(x => Future.sequence(x.map(projectItem => {
+    val response: Future[Future[List[ProjectResponse]]] = projectDao.search(ProjectSearchParams(cultureId, containerId, locationId, contaminated, userId)).map(x => Future.sequence(x.map(projectItem => {
       for {
         container <- farmDao.getContainer(projectItem.container)
         substrate <- farmDao.getSubstrate(projectItem.substrate)
@@ -110,7 +111,8 @@ class ProjectServiceImpl(implicit inj: Injector) extends ProjectService with Akk
         parent = Some(id),
         count = projectChildCommand.count,
         events = projectChildCommand.events,
-        locationId = Option(projectChildCommand.locationId))
+        locationId = Option(projectChildCommand.locationId),
+        contaminated = projectChildCommand.contaminated)
       })
     } yield {
         if (projectChildCommand.countSubstrateUsed < parentProject.get.count) {
