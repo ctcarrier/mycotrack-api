@@ -30,15 +30,15 @@ class DefaultFarmService(implicit inj: Injector) extends FarmService with AkkaIn
 
   lazy val farmDao = inject[FarmDao]
   lazy val locationDao = inject[LocationDao]
-  lazy val aggregationService = inject[AggregationService]
+  lazy val aggregationDao = inject[AggregationDao]
 
   def getFarm(user: User): Future[Farm] = {
 
     for {
       substrates <- farmDao.defaultSubstrates
       containers <- farmDao.defaultContainers
-      cultureAggregation <- aggregationService.getCultureCount(user._id.getOrElse(throw new RuntimeException("Need a userId here")))
-      containerAggregation <- aggregationService.getContainerCount(user._id.getOrElse(throw new RuntimeException("Need a userId here")))
+      cultureAggregation <- aggregationDao.getCultureCount(user._id.getOrElse(throw new RuntimeException("Need a userId here")))
+      containerAggregation <- aggregationDao.getContainerCount(user._id.getOrElse(throw new RuntimeException("Need a userId here")))
       locations <- locationDao.search(LocationSearchParams(user._id))
     } yield Farm(None, substrates, containers, cultureAggregation, containerAggregation, locations)
   }

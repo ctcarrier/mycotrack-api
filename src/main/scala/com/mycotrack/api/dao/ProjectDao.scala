@@ -15,6 +15,7 @@ import scala.util.Success
 
 trait IProjectDao {
   def get(key: BSONObjectID, userId: BSONObjectID): Future[Option[Project]]
+  def getAll(): Future[List[Project]]
   def save(project: Project): Future[Option[Project]]
   def search(searchObj: BSONDocument): Future[List[Project]]
   def update(id: BSONObjectID, project: Project): Future[Option[Project]]
@@ -30,6 +31,11 @@ class ProjectDao(implicit inj: Injector) extends IProjectDao with LazyLogging wi
 
   def get(key: BSONObjectID, userId: BSONObjectID): Future[Option[Project]] =
     projectCollection.find(BSONDocument("_id" -> key, "userId" -> userId)).one[Project]
+
+  def getAll(): Future[List[Project]] = {
+    val query = BSONDocument("_id" -> BSONDocument("$exists" -> true))
+    projectCollection.find(query).cursor[Project]().collect[List]()
+  }
 
   def save(project: Project): Future[Option[Project]] = {
 

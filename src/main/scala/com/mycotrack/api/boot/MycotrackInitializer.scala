@@ -27,7 +27,7 @@ class SysProps extends Module {
 }
 
 class MycotrackDaos extends Module {
-  bind[AggregationDao] to new AggregationDao
+  bind[AggregationDao] to new MongoAggregationDao
   bind[CultureDao] to new CultureDao
   bind[EventDao] to new EventDao
   bind[FarmDao] to new MongoFarmDao
@@ -44,6 +44,7 @@ class MycotrackServices extends Module {
   bind[DataInitializer] to new DefaultDataInitializer
   bind[FarmService] to new DefaultFarmService()
   bind[ProjectService] to new ProjectServiceImpl()
+  bind[AggregationService] to new AggregationServiceImpl()
   bind[PasswordManagingActor] to new PasswordManagingActor
 }
 

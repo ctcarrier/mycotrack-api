@@ -42,13 +42,13 @@ object GeneralAggregation {
 case class CultureAggregation(_id: Option[BSONObjectID], count: Long, userId: BSONObjectID, culture: Culture)
 case class ContainerAggregation(_id: Option[BSONObjectID], count: Long, container: String, userId: BSONObjectID)
 
-trait AggregationService {
+trait AggregationDao {
   def getGeneralAggregation(userId: BSONObjectID): Future[List[GeneralAggregation]]
   def getCultureCount(userId: BSONObjectID): Future[List[CultureAggregation]]
   def getContainerCount(userId: BSONObjectID): Future[List[ContainerAggregation]]
 }
 
-class AggregationDao(implicit inj: Injector) extends AggregationService with LazyLogging with AkkaInjectable {
+class MongoAggregationDao(implicit inj: Injector) extends AggregationDao with LazyLogging with AkkaInjectable {
 
   import ExecutionContext.Implicits.global
   implicit lazy val system = inject[ActorSystem]

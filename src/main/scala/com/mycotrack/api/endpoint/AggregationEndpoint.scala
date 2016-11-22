@@ -2,6 +2,7 @@ package com.mycotrack.api.endpoint
 
 import akka.actor.ActorSystem
 import com.mycotrack.api.auth.Authenticator
+import com.mycotrack.api.service.AggregationService
 import com.mycotrack.api.spraylib.LocalPathMatchers
 import com.typesafe.scalalogging.LazyLogging
 import com.mycotrack.api.dao._
@@ -30,6 +31,7 @@ class AggregationEndpoint(implicit inj: Injector) extends HttpService
 
   val requiredFields = List("name")
 
+  lazy val dao: AggregationDao = inject[AggregationDao]
   lazy val service: AggregationService = inject[AggregationService]
 
   val route = {
@@ -39,7 +41,12 @@ class AggregationEndpoint(implicit inj: Injector) extends HttpService
       authenticate(authenticator.basicAuthenticator) { user =>
         get {
           complete {
-            service.getGeneralAggregation(user._id.getOrElse(throw new RuntimeException("UserId shouldn't be null")))
+            dao.getGeneralAggregation(user._id.getOrElse(throw new RuntimeException("UserId shouldn't be null")))
+          }
+        } ~
+        post {
+          complete {
+            service.regenerateAggregate()
           }
         }
       }
