@@ -72,7 +72,7 @@ libraryDependencies ++= Seq(
   "org.specs2" %% "specs2" % "2.4.2" % "test",
   "org.scalatest" % "scalatest_2.11" % "2.2.2" % "test",
   "commons-codec" % "commons-codec" % "1.10",
-  "com.paulgoldbaum" %% "scala-influxdb-client" % "0.5.1"
+  "com.paulgoldbaum" %% "scala-influxdb-client" % "0.5.3-SNAPSHOT"
 )
 
 resolvers ++= Seq(
@@ -83,5 +83,6 @@ resolvers ++= Seq(
   "Akka Repo" at "http://akka.io/repository",
   "repo.novus rels" at "http://repo.novus.com/releases/",
   "repo.novus snaps" at "http://repo.novus.com/snapshots/",
-  "Spray repo" at "http://repo.spray.cc"
+  "Spray repo" at "http://repo.spray.cc",
+  "Local Maven Repository" at "file://"+Path.userHome.absolutePath+"/.m2/repository"
 )

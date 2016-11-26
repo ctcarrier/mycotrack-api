@@ -28,7 +28,7 @@
         <appender-ref ref="stdout"/>
         <appender-ref ref="R"/>
     </logger>
-    <root level="DEBUG">
+    <root level="INFO">
         <appender-ref ref="stdout"/>
         <appender-ref ref="R"/>
     </root>

@@ -1,8 +1,11 @@
 package com.mycotrack.api.dao
 
 import com.mycotrack.api.model._
+import com.paulgoldbaum.influxdbclient.{Series, Database}
 import com.typesafe.scalalogging.LazyLogging
 import akka.actor.{ActorRefFactory, ActorSystem}
+import org.joda.time.DateTime
+import org.joda.time.format.{ISODateTimeFormat, DateTimeFormatter}
 import reactivemongo.api.collections.bson.BSONCollection
 import reactivemongo.bson.{BSONDocument, BSONObjectID}
 import reactivemongo.core.commands.Count
@@ -46,6 +49,8 @@ trait AggregationDao {
   def getGeneralAggregation(userId: BSONObjectID): Future[List[GeneralAggregation]]
   def getCultureCount(userId: BSONObjectID): Future[List[CultureAggregation]]
   def getContainerCount(userId: BSONObjectID): Future[List[ContainerAggregation]]
+  def clearAllAggregates(): Future[Boolean]
+  def getProjectCounts(userId: BSONObjectID): Future[ProjectSummary]
 }
 
 class MongoAggregationDao(implicit inj: Injector) extends AggregationDao with LazyLogging with AkkaInjectable {
@@ -58,6 +63,7 @@ class MongoAggregationDao(implicit inj: Injector) extends AggregationDao with La
   lazy val generalAggregationCollection = inject[BSONCollection] (identified by 'GENERAL_AGGREGATION_COLLECTION)
   lazy val cultureCountCollection = inject[BSONCollection] (identified by 'CULTURE_COUNT_COLLECTION)
   lazy val containerCountCollection = inject[BSONCollection] (identified by 'CONTAINER_COUNT_COLLECTION)
+  lazy val aggregationInflux = inject[Database] (identified by 'AGGREGATION_DB)
 
   lazy val cultureDao = inject[CultureDao]
   lazy val speciesDao = inject[SpeciesDao]
@@ -89,5 +95,54 @@ class MongoAggregationDao(implicit inj: Injector) extends AggregationDao with La
     val query = BSONDocument("userId" -> userId)
 
     containerCountCollection.find(query).cursor[ContainerAggregation].collect[List]()
+  }
+
+  def clearAllAggregates(): Future[Boolean] = {
+    val query = BSONDocument("_id" -> BSONDocument("$exists" -> true))
+
+    for {
+      r1 <- generalAggregationCollection.remove(query)
+      r2 <- cultureCountCollection.remove(query)
+      r3 <- containerCountCollection.remove(query)
+      r4 <- aggregationInflux.drop()
+      r5 <- aggregationInflux.create()
+    } yield true
+
+  }
+
+  def getProjectCounts(userId: BSONObjectID): Future[ProjectSummary] = {
+    val fmt = ISODateTimeFormat.dateTime()
+
+    val oldest = DateTime.parse("2016-01-01T00:00:00Z")
+    val oneWeekAgo = DateTime.now().minusWeeks(1)
+    val oneMonthAgo = DateTime.now().minusMonths(1)
+    val byWeekQuery = "select count(count) from projects where userId = '%s' and time >= '%s' group by time(1w)"
+      .format(userId.stringify, fmt.print(oldest))
+    val oneWeekAgoQuery = "select count(count) from projects where userId = '%s' and time >= '%s'"
+      .format(userId.stringify, fmt.print(oneWeekAgo))
+    val oneMonthAgoQuery = "select count(count) from projects where userId = '%s' and time >= '%s'"
+      .format(userId.stringify, fmt.print(oneMonthAgo))
+    for {
+      weekly <- aggregationInflux.query(byWeekQuery)
+      pastWeek <- aggregationInflux.query(oneWeekAgoQuery)
+      pastMonth <- aggregationInflux.query(oneMonthAgoQuery)
+    } yield {
+      val weeklyProjectCount = weekly.series.map(s => {
+        s.records.map(r => {
+          ProjectCount(timestamp = DateTime.parse(r("time").toString()), count = r("count").asInstanceOf[BigDecimal])
+        })
+      }).flatten
+      val projectCountLastWeek = pastWeek.series.map(s => {
+        s.records.map(r => {
+          r("count").asInstanceOf[BigDecimal]
+        })
+      }).flatten.head
+      val projectCountLastMonth = pastMonth.series.map(s => {
+        s.records.map(r => {
+          r("count").asInstanceOf[BigDecimal]
+        })
+      }).flatten.head
+      ProjectSummary(weeklyCount = weeklyProjectCount, pastWeek = projectCountLastWeek, pastMonth = projectCountLastMonth)
+    }
   }
 }

@@ -15,4 +15,5 @@ class InfluxConnection extends Module {
   val db = InfluxDB.connect("localhost", 8086)
 
   bind[Database] as 'SENSOR_DB to db.selectDatabase("mycotrack")
+  bind[Database] as 'AGGREGATION_DB to db.selectDatabase("aggregation")
 }

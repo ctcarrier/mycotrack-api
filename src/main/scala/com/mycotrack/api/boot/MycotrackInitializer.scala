@@ -2,7 +2,7 @@ package com.mycotrack.api.boot
 
 import akka.io.IO
 import akka.util.Timeout
-import com.mycotrack.api.aggregation.{GeneralAggregationActor, ContainerCountActor, AggregationBroadcaster, CultureCountActor}
+import com.mycotrack.api.aggregation._
 import com.mycotrack.api.auth.PasswordManagingActor
 import com.mycotrack.api.dao._
 import com.mycotrack.api.{ModuleDefinition, ActorSystemModule, CryptoModule}
@@ -67,6 +67,7 @@ class AggregationModule extends Module {
   binding toProvider new CultureCountActor
   binding toProvider new ContainerCountActor
   binding toProvider new GeneralAggregationActor
+  binding toProvider new InfluxAggregationActor
 }
 
 class Configs extends Module with LazyLogging {

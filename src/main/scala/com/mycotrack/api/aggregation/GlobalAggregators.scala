@@ -4,7 +4,10 @@ import akka.event.Logging
 import akka.actor.{ActorSystem, Actor, Props}
 import com.mycotrack.api.dao.CultureDao
 import com.mycotrack.api.model.{Species, Project}
+import com.paulgoldbaum.influxdbclient.Parameter.Precision
+import com.paulgoldbaum.influxdbclient.{WriteException, Point, Database}
 import com.typesafe.scalalogging.LazyLogging
+import org.joda.time.DateTime
 import reactivemongo.api.collections.bson.BSONCollection
 import reactivemongo.bson.{BSONDocument, BSONObjectID}
 import scaldi.Injector
@@ -24,8 +27,9 @@ class AggregationBroadcaster(implicit inj: Injector) extends Actor with AkkaInje
   lazy val cultureCountActor = injectActorRef[CultureCountActor]
   lazy val containerCountActor = injectActorRef[ContainerCountActor]
   lazy val generalAggregationActor = injectActorRef[GeneralAggregationActor]
+  lazy val influxAggregationActor = injectActorRef[InfluxAggregationActor]
 
-  lazy val projectActors = List(cultureCountActor, containerCountActor, generalAggregationActor)
+  lazy val projectActors = List(cultureCountActor, containerCountActor, generalAggregationActor, influxAggregationActor)
 
   def receive = {
     case p: Project => projectActors.foreach(_ ! p)
@@ -163,5 +167,57 @@ class GeneralAggregationActor(implicit inj: Injector) extends Actor with AkkaInj
       "speciesId" -> speciesId)
     val updateInput = BSONDocument("$inc" -> BSONDocument("count" -> (count * -1)))
     generalAggregationCollection.update(selector = queryInput, update = updateInput, upsert = false)
+  }
+}
+
+class InfluxAggregationActor(implicit inj: Injector) extends Actor with AkkaInjectable with LazyLogging {
+  val log = Logging(context.system, this)
+
+  lazy val aggregationInflux = inject[Database] (identified by 'AGGREGATION_DB)
+
+  def receive = {
+    case Project(id, description, cultureId, speciesId, userIdOpt, enabled, substrate, container, createdDate,
+    parent, count, events, locationId, contaminated, disabledDate) => {
+      log.info("Doing influx agg")
+      val userId = userIdOpt.getOrElse(throw new RuntimeException("UserId shouldn't be none"))
+      processNewProject(container, substrate, cultureId, speciesId.get, userId, count, createdDate.get)
+    }
+    case Disable(Project(id, description, cultureId, speciesId, userIdOpt, enabled, substrate, container, startDate,
+    parent, count, events, locationId, contaminated, disabledDate)) => {
+      log.info("NOop for influx agg")
+      val userId = userIdOpt.getOrElse(throw new RuntimeException("UserId shouldn't be none"))
+      processDisabledProject(container, substrate, cultureId, speciesId.get, userId, count)
+    }
+    case _ => log.info("received unknown message")
+  }
+
+  private[this] def processNewProject(container: String,
+                                      substrate: String,
+                                      cultureId: BSONObjectID,
+                                      speciesId: BSONObjectID,
+                                      userId: BSONObjectID,
+                                      count: Long,
+                                      createdDate: DateTime) = {
+    val point = Point("projects", timestamp=createdDate.getMillis)
+      .addField("count", count)
+      .addTag("container", container)
+      .addTag("substrate", substrate)
+      .addTag("cultureId", cultureId.stringify)
+      .addTag("speciesId", speciesId.stringify)
+      .addTag("userId", userId.stringify)
+
+
+    aggregationInflux.write(point, precision=Precision.MILLISECONDS).map(resp => Some(true))
+    .recover({
+      case e: WriteException => logger.error("Error writing to Influx", e.getCause)
+    })
+  }
+
+  private[this] def processDisabledProject(container: String,
+                                           substrate: String,
+                                           cultureId: BSONObjectID,
+                                           speciesId: BSONObjectID,
+                                           userId: BSONObjectID,
+                                           count: Long) = {
   }
 }

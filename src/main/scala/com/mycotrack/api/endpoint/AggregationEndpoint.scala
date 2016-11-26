@@ -37,16 +37,27 @@ class AggregationEndpoint(implicit inj: Injector) extends HttpService
   val route = {
     // Debugging: /ping -> pong
     // Service implementation.
-    path("aggregations") {
+    pathPrefix("aggregations") {
       authenticate(authenticator.basicAuthenticator) { user =>
-        get {
-          complete {
-            dao.getGeneralAggregation(user._id.getOrElse(throw new RuntimeException("UserId shouldn't be null")))
+        path("") {
+          post {
+            complete {
+              service.regenerateAggregate()
+            }
           }
         } ~
-        post {
-          complete {
-            service.regenerateAggregate()
+        path("general") {
+          get {
+            complete {
+              dao.getGeneralAggregation(user._id.getOrElse(throw new RuntimeException("UserId shouldn't be null")))
+            }
+          }
+        } ~
+        path("projects") {
+          get {
+            complete {
+              dao.getProjectCounts(user._id.getOrElse(throw new RuntimeException("UserId shouldn't be null")))
+            }
           }
         }
       }
