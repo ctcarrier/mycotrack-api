@@ -113,14 +113,14 @@ class MongoAggregationDao(implicit inj: Injector) extends AggregationDao with La
   def getProjectCounts(userId: BSONObjectID): Future[ProjectSummary] = {
     val fmt = ISODateTimeFormat.dateTime()
 
-    val oldest = DateTime.parse("2016-01-01T00:00:00Z")
+    val oldest = DateTime.now().minusMonths(6)
     val oneWeekAgo = DateTime.now().minusWeeks(1)
     val oneMonthAgo = DateTime.now().minusMonths(1)
-    val byWeekQuery = "select count(count) from projects where userId = '%s' and time >= '%s' group by time(1w)"
+    val byWeekQuery = "select sum(count) as count from projects where userId = '%s' and time >= '%s' group by time(1w) fill(0) order by time desc"
       .format(userId.stringify, fmt.print(oldest))
-    val oneWeekAgoQuery = "select count(count) from projects where userId = '%s' and time >= '%s'"
+    val oneWeekAgoQuery = "select sum(count) as count from projects where userId = '%s' and time >= '%s'"
       .format(userId.stringify, fmt.print(oneWeekAgo))
-    val oneMonthAgoQuery = "select count(count) from projects where userId = '%s' and time >= '%s'"
+    val oneMonthAgoQuery = "select sum(count) as count from projects where userId = '%s' and time >= '%s'"
       .format(userId.stringify, fmt.print(oneMonthAgo))
     for {
       weekly <- aggregationInflux.query(byWeekQuery)
@@ -136,12 +136,12 @@ class MongoAggregationDao(implicit inj: Injector) extends AggregationDao with La
         s.records.map(r => {
           r("count").asInstanceOf[BigDecimal]
         })
-      }).flatten.head
+      }).flatten.headOption.getOrElse[BigDecimal](0)
       val projectCountLastMonth = pastMonth.series.map(s => {
         s.records.map(r => {
           r("count").asInstanceOf[BigDecimal]
         })
-      }).flatten.head
+      }).flatten.headOption.getOrElse[BigDecimal](0)
       ProjectSummary(weeklyCount = weeklyProjectCount, pastWeek = projectCountLastWeek, pastMonth = projectCountLastMonth)
     }
   }

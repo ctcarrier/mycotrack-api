@@ -1,7 +1,8 @@
 package com.mycotrack.api.dao
 
 import akka.actor.{ActorRefFactory, ActorSystem}
-import com.mycotrack.api.model.SensorReading
+import com.mycotrack.api.model._
+import com.paulgoldbaum.influxdbclient.Parameter.Precision
 import com.paulgoldbaum.influxdbclient.{Point, Database}
 import org.joda.time.format.ISODateTimeFormat
 import reactivemongo.api.collections.bson.BSONCollection
@@ -17,9 +18,9 @@ import scala.concurrent.{Future, ExecutionContext}
 
 trait SensorDao {
 
-  def get(key: BSONObjectID, userId: BSONObjectID): Future[Option[SensorReading]]
-  def save(project: SensorReading): Future[Option[Boolean]]
-  def search(searchObj: BSONDocument): Future[List[SensorReading]]
+  def save(data: Bmp180Data): Future[Boolean]
+  def save(data: Tmp007Data): Future[Boolean]
+  def save(data: Tsl2561Data): Future[Boolean]
 }
 
 class MongoSensorDao(implicit inj: Injector) extends SensorDao with AkkaInjectable {
@@ -30,46 +31,58 @@ class MongoSensorDao(implicit inj: Injector) extends SensorDao with AkkaInjectab
   val fmt = ISODateTimeFormat.dateTime()
   
   lazy val sensorCollection = inject[BSONCollection] (identified by 'SENSOR_COLLECTION)
+  lazy val sensorLocationCollection = inject[BSONCollection] (identified by 'SENSOR_LOCATION_COLLECTION)
   lazy val influx = inject[Database] (identified by 'SENSOR_DB)
 
-  def get(key: BSONObjectID, userId: BSONObjectID): Future[Option[SensorReading]] =
-    sensorCollection.find(BSONDocument("_id" -> key, "userId" -> userId)).one[SensorReading]
-
-  def saveToMongo(sensor: SensorReading): Future[Option[BSONObjectID]] = {
-
-    val newObjectId = Option(BSONObjectID.generate)
-    val sel = BSONDocument(
-      "tag" -> sensor.tag,
-      "userId" -> sensor.userId,
-      "hour" -> sensor.timestamp.getHourOfDay)
-    val toInsert = BSONDocument(
-      "$set" -> BSONDocument(
-        "data" -> BSONDocument(
-          "minute" -> sensor.timestamp.getMinuteOfHour(),
-          "fahrenheit" -> sensor.fahrenheit,
-          "humidity" -> sensor.humidity,
-          "timestamp" -> fmt.print(sensor.timestamp)
-        )))
-    for {
-      lastError <- sensorCollection.update(selector = sel, update = toInsert, multi = false, upsert = true)
-      doc <- sensorCollection.find(BSONDocument(
-        "tag" -> sensor.tag,
-        "userId" -> sensor.userId,
-        "hour" -> sensor.timestamp.getHourOfDay)).one[BSONDocument]
-      toReturn <- Future.successful(doc.get.getAs[BSONObjectID]("_id"))
-    } yield toReturn
+  private[this] def getSensorLocation(sourceAddress: String): Future[Option[SensorLocation]] = {
+    val query = BSONDocument("sourceAddress" -> sourceAddress)
+    sensorLocationCollection.find(query).one[SensorLocation]
   }
 
-  def save(sensor: SensorReading): Future[Option[Boolean]] = {
-    val point = Point("env")
-      .addTag("name", sensor.tag)
-      .addField("h", sensor.humidity)
-      .addField("t", sensor.fahrenheit)
-      .addField("userId", sensor.userId.get.stringify)
-    influx.write(point).map(resp => Some(true))
+  def save(data: Bmp180Data): Future[Boolean] = {
+
+    getSensorLocation(data.sourceAddress).flatMap(locationOpt => {
+      locationOpt.map(location => {
+        val point = Point(location.location, timestamp = data.timestamp.getMillis)
+          .addTag("name", data.name)
+          .addTag("sourceAddress", data.sourceAddress)
+          .addField("temperature", data.temperature)
+          .addField("pressure", data.pressure)
+          .addTag("userId", data.userId.get.stringify)
+
+        influx.write(point, precision=Precision.MILLISECONDS).map(resp => true)
+      }).getOrElse[Future[Boolean]](Future.successful(false))
+    })
   }
 
-  def search(searchObj: BSONDocument): Future[List[SensorReading]] = {
-    sensorCollection.find(searchObj).cursor[SensorReading]().collect[List]()
-  } 
+  def save(data: Tmp007Data): Future[Boolean] = {
+
+    getSensorLocation(data.sourceAddress).flatMap(locationOpt => {
+      locationOpt.map(location => {
+        val point = Point(location.location, timestamp = data.timestamp.getMillis)
+          .addTag("name", data.name)
+          .addTag("sourceAddress", data.sourceAddress)
+          .addField("dieTemperature", data.dieTemp)
+          .addField("objectTemperature", data.objTemp)
+          .addTag("userId", data.userId.get.stringify)
+
+        influx.write(point, precision=Precision.MILLISECONDS).map(resp => true)
+      }).getOrElse[Future[Boolean]](Future.successful(false))
+    })
+  }
+
+  def save(data: Tsl2561Data): Future[Boolean] = {
+
+    getSensorLocation(data.sourceAddress).flatMap(locationOpt => {
+      locationOpt.map(location => {
+        val point = Point(location.location, timestamp = data.timestamp.getMillis)
+          .addTag("name", data.name)
+          .addTag("sourceAddress", data.sourceAddress)
+          .addField("lux", data.lux)
+          .addTag("userId", data.userId.get.stringify)
+
+        influx.write(point, precision=Precision.MILLISECONDS).map(resp => true)
+      }).getOrElse[Future[Boolean]](Future.successful(false))
+    })
+  }
 }

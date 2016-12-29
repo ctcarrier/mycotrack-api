@@ -48,6 +48,7 @@ class ReactiveMongoConnection extends Module with LazyLogging {
     bind[BSONCollection] as 'LOCATION_COLLECTION to db(config.getString("mycotrack.location.collection"))
     bind[BSONCollection] as 'HARVEST_COLLECTION to db(config.getString("mycotrack.harvest.collection"))
     bind[BSONCollection] as 'SENSOR_COLLECTION to db(config.getString("mycotrack.sensor.collection"))
+    bind[BSONCollection] as 'SENSOR_LOCATION_COLLECTION to db(config.getString("mycotrack.sensorLocation.collection"))
   }
 
 }

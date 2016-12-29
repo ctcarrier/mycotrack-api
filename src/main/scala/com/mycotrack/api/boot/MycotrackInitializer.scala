@@ -46,6 +46,7 @@ class MycotrackServices extends Module {
   bind[ProjectService] to new ProjectServiceImpl()
   bind[AggregationService] to new AggregationServiceImpl()
   bind[PasswordManagingActor] to new PasswordManagingActor
+  bind[SensorService] to new DefaultSensorService()
 }
 
 class SprayModule extends Module {

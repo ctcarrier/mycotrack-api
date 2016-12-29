@@ -5,6 +5,7 @@ import akka.event.Logging
 import com.mycotrack.api.auth.Authenticator
 import com.mycotrack.api.dao.{SensorDao, Location, LocationDao}
 import com.mycotrack.api.model.{SensorReading, LocationSearchParams}
+import com.mycotrack.api.service.SensorService
 import com.mycotrack.api.spraylib.{LocalDeserializers, LocalPathMatchers}
 import com.typesafe.scalalogging.LazyLogging
 import org.json4s.Formats
@@ -30,7 +31,7 @@ with LocalDeserializers {
   val actorRefFactory = system
   lazy val json4sJacksonFormats = inject[Formats]
 
-  val dao = inject[SensorDao]
+  val service = inject[SensorService]
 
   lazy val authenticator = inject[Authenticator]
 
@@ -43,7 +44,7 @@ with LocalDeserializers {
       authenticate(authenticator.basicAuthenticator) { user =>
         postSensorReading { resource =>
           complete {
-            dao.save(resource.copy(userId = user._id))
+            service.save(resource.copy(userId = user._id))
           }
         }
       }

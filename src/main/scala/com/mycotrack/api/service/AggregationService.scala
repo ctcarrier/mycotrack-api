@@ -3,6 +3,7 @@ package com.mycotrack.api.service
 import akka.actor.ActorSystem
 import com.mycotrack.api.aggregation.AggregationBroadcaster
 import com.mycotrack.api.dao.{AggregationDao, ProjectDao}
+import com.typesafe.scalalogging.LazyLogging
 import scaldi.Injector
 import scaldi.akka.AkkaInjectable
 
@@ -18,7 +19,7 @@ trait AggregationService {
   def regenerateAggregate(): Future[Option[Boolean]]
 }
 
-class AggregationServiceImpl(implicit inj: Injector) extends AggregationService with AkkaInjectable {
+class AggregationServiceImpl(implicit inj: Injector) extends AggregationService with AkkaInjectable with LazyLogging {
   implicit lazy val system = inject[ActorSystem]
 
   lazy val aggregationBroadcaster = injectActorRef[AggregationBroadcaster]
@@ -26,6 +27,7 @@ class AggregationServiceImpl(implicit inj: Injector) extends AggregationService 
   lazy val aggregationDao = inject[AggregationDao]
 
   def regenerateAggregate(): Future[Option[Boolean]] = {
+    logger.info("Regenerating!")
     for {
       cl <- aggregationDao.clearAllAggregates()
       ga <- projectDao.getAll().map(projects => {

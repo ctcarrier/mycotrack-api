@@ -129,4 +129,4 @@ case class Harvest(_id: Option[BSONObjectID], userId: Option[BSONObjectID], proj
 
 case class HarvestAggregate(harvests: List[Harvest], totalWeightOz: Double)
 
-case class SensorReading(_id: Option[BSONObjectID], tag: String, humidity: Double, fahrenheit: Double, timestamp: DateTime, userId: Option[BSONObjectID])
+case class SensorReading(_id: Option[BSONObjectID], sensor: String, sensorData: Seq[Double], sourceAddress: String, timestamp: DateTime, userId: Option[BSONObjectID])

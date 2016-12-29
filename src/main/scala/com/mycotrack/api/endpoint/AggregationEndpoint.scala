@@ -39,11 +39,9 @@ class AggregationEndpoint(implicit inj: Injector) extends HttpService
     // Service implementation.
     pathPrefix("aggregations") {
       authenticate(authenticator.basicAuthenticator) { user =>
-        path("") {
-          post {
-            complete {
-              service.regenerateAggregate()
-            }
+        post {
+          complete {
+            service.regenerateAggregate()
           }
         } ~
         path("general") {
