@@ -18,9 +18,10 @@ import scala.concurrent.{Future, ExecutionContext}
 
 trait SensorDao {
 
-  def save(data: Bmp180Data): Future[Boolean]
+  def save(data: TempPressureData): Future[Boolean]
   def save(data: Tmp007Data): Future[Boolean]
   def save(data: Tsl2561Data): Future[Boolean]
+  def save(data: TempHumidityData): Future[Boolean]
 }
 
 class MongoSensorDao(implicit inj: Injector) extends SensorDao with AkkaInjectable {
@@ -39,7 +40,7 @@ class MongoSensorDao(implicit inj: Injector) extends SensorDao with AkkaInjectab
     sensorLocationCollection.find(query).one[SensorLocation]
   }
 
-  def save(data: Bmp180Data): Future[Boolean] = {
+  def save(data: TempPressureData): Future[Boolean] = {
 
     getSensorLocation(data.sourceAddress).flatMap(locationOpt => {
       locationOpt.map(location => {
@@ -48,6 +49,22 @@ class MongoSensorDao(implicit inj: Injector) extends SensorDao with AkkaInjectab
           .addTag("sourceAddress", data.sourceAddress)
           .addField("temperature", data.temperature)
           .addField("pressure", data.pressure)
+          .addTag("userId", data.userId.get.stringify)
+
+        influx.write(point, precision=Precision.MILLISECONDS).map(resp => true)
+      }).getOrElse[Future[Boolean]](Future.successful(false))
+    })
+  }
+
+  def save(data: TempHumidityData): Future[Boolean] = {
+
+    getSensorLocation(data.sourceAddress).flatMap(locationOpt => {
+      locationOpt.map(location => {
+        val point = Point(location.location, timestamp = data.timestamp.getMillis)
+          .addTag("name", data.name)
+          .addTag("sourceAddress", data.sourceAddress)
+          .addField("temperature", data.temperature)
+          .addField("humidity", data.humidity)
           .addTag("userId", data.userId.get.stringify)
 
         influx.write(point, precision=Precision.MILLISECONDS).map(resp => true)

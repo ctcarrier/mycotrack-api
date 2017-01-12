@@ -9,13 +9,27 @@ import reactivemongo.bson.BSONObjectID
 
 case class SensorLocation(_id: Option[BSONObjectID], sourceAddress: String, location: String, description: String)
 
-case class Bmp180Data(name: String, pressure: Double, temperature: Double, sourceAddress: String, timestamp: DateTime, userId: Option[BSONObjectID])
+case class TempPressureData(name: String, pressure: Double, temperature: Double, sourceAddress: String, timestamp: DateTime, userId: Option[BSONObjectID])
 
-object Bmp180Data{
+object TempPressureData{
   val dataLength = 2
 
-  def apply(reading: SensorReading): Bmp180Data = {
-    Bmp180Data(reading.sensor, reading.sensorData(0), reading.sensorData(1), reading.sourceAddress, reading.timestamp, reading.userId)
+  def apply(reading: SensorReading): TempPressureData = {
+    TempPressureData(reading.sensor, reading.sensorData(0), reading.sensorData(1), reading.sourceAddress, reading.timestamp, reading.userId)
+  }
+
+  def validate(rawData: Seq[Double]): Boolean = {
+    rawData.length == dataLength
+  }
+}
+
+case class TempHumidityData(name: String, humidity: Double, temperature: Double, sourceAddress: String, timestamp: DateTime, userId: Option[BSONObjectID])
+
+object TempHumidityData{
+  val dataLength = 2
+
+  def apply(reading: SensorReading): TempHumidityData = {
+    TempHumidityData(reading.sensor, reading.sensorData(0), reading.sensorData(1), reading.sourceAddress, reading.timestamp, reading.userId)
   }
 
   def validate(rawData: Seq[Double]): Boolean = {

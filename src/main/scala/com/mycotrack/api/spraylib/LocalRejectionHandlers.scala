@@ -1,5 +1,6 @@
 package com.mycotrack.api.spraylib
 
+import com.mycotrack.api.exception.SensorNotFoundException
 import com.typesafe.scalalogging.LazyLogging
 import spray.routing._
 import spray.http._
@@ -18,24 +19,11 @@ trait LocalRejectionHandlers extends LazyLogging {
     //case BadIdInUrlRejection(s) :: _ => complete(BadRequest, s)
   }
 
-  /*implicit def myExceptionHandler =
+  implicit def myExceptionHandler =
     ExceptionHandler {
-      case e: ResourceNotFoundException =>
-        requestUri { uri =>
-          complete(NotFound, e.message)
-        }
-      case e: PaymentFailedException =>
+      case e: SensorNotFoundException =>
         requestUri { uri =>
           complete(BadRequest, e.message)
         }
-      case e: LastError =>
-        requestUri { uri =>
-          logger.info(e.toString)
-          complete(BadRequest, "Unique Index Violated")
-        }
-      case e: InvalidUrlException =>
-        requestUri { uri =>
-          complete(BadRequest, "Vault not in a proper state")
-        }
-    }*/
+    }
 }

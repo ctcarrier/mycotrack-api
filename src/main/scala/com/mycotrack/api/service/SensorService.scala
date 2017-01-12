@@ -2,7 +2,8 @@ package com.mycotrack.api.service
 
 import akka.actor.ActorSystem
 import com.mycotrack.api.dao.SensorDao
-import com.mycotrack.api.model.{Tmp007Data, Tsl2561Data, Bmp180Data, SensorReading}
+import com.mycotrack.api.exception.SensorNotFoundException
+import com.mycotrack.api.model._
 import scaldi.Injector
 import scaldi.akka.AkkaInjectable
 
@@ -23,9 +24,12 @@ class DefaultSensorService(implicit inj: Injector) extends SensorService with Ak
 
   def save(reading: SensorReading): Future[Boolean] = {
     reading.sensor match {
-      case "bmp180" => sensorDao.save(Bmp180Data(reading))
+      case "bmp180" => sensorDao.save(TempPressureData(reading))
       case "tsl2561" => sensorDao.save(Tsl2561Data(reading))
       case "tmp007" => sensorDao.save(Tmp007Data(reading))
+      case "sht01" => sensorDao.save(Tmp007Data(reading))
+      case "am2315" => sensorDao.save(TempHumidityData(reading))
+      case x => throw SensorNotFoundException("Sensor [%s] not found".format(x))
     }
   }
 }
