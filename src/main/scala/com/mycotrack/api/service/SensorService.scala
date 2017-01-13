@@ -1,5 +1,7 @@
 package com.mycotrack.api.service
 
+import java.util.Locale
+
 import akka.actor.ActorSystem
 import com.mycotrack.api.dao.SensorDao
 import com.mycotrack.api.exception.SensorNotFoundException
@@ -23,7 +25,8 @@ class DefaultSensorService(implicit inj: Injector) extends SensorService with Ak
   lazy val sensorDao = inject[SensorDao]
 
   def save(reading: SensorReading): Future[Boolean] = {
-    reading.sensor match {
+    val lowerSensor = reading.sensor.toLowerCase(Locale.US)
+    lowerSensor match {
       case "bmp180" => sensorDao.save(TempPressureData(reading))
       case "tsl2561" => sensorDao.save(Tsl2561Data(reading))
       case "tmp007" => sensorDao.save(Tmp007Data(reading))

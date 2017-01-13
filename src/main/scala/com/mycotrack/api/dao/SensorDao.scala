@@ -1,5 +1,7 @@
 package com.mycotrack.api.dao
 
+import java.util.Locale
+
 import akka.actor.{ActorRefFactory, ActorSystem}
 import com.mycotrack.api.model._
 import com.paulgoldbaum.influxdbclient.Parameter.Precision
@@ -45,7 +47,7 @@ class MongoSensorDao(implicit inj: Injector) extends SensorDao with AkkaInjectab
     getSensorLocation(data.sourceAddress).flatMap(locationOpt => {
       locationOpt.map(location => {
         val point = Point(location.location, timestamp = data.timestamp.getMillis)
-          .addTag("name", data.name)
+          .addTag("name", data.name.toLowerCase(Locale.US))
           .addTag("sourceAddress", data.sourceAddress)
           .addField("temperature", data.temperature)
           .addField("pressure", data.pressure)
@@ -61,7 +63,7 @@ class MongoSensorDao(implicit inj: Injector) extends SensorDao with AkkaInjectab
     getSensorLocation(data.sourceAddress).flatMap(locationOpt => {
       locationOpt.map(location => {
         val point = Point(location.location, timestamp = data.timestamp.getMillis)
-          .addTag("name", data.name)
+          .addTag("name", data.name.toLowerCase(Locale.US))
           .addTag("sourceAddress", data.sourceAddress)
           .addField("temperature", data.temperature)
           .addField("humidity", data.humidity)
@@ -77,7 +79,7 @@ class MongoSensorDao(implicit inj: Injector) extends SensorDao with AkkaInjectab
     getSensorLocation(data.sourceAddress).flatMap(locationOpt => {
       locationOpt.map(location => {
         val point = Point(location.location, timestamp = data.timestamp.getMillis)
-          .addTag("name", data.name)
+          .addTag("name", data.name.toLowerCase(Locale.US))
           .addTag("sourceAddress", data.sourceAddress)
           .addField("dieTemperature", data.dieTemp)
           .addField("objectTemperature", data.objTemp)
@@ -93,7 +95,7 @@ class MongoSensorDao(implicit inj: Injector) extends SensorDao with AkkaInjectab
     getSensorLocation(data.sourceAddress).flatMap(locationOpt => {
       locationOpt.map(location => {
         val point = Point(location.location, timestamp = data.timestamp.getMillis)
-          .addTag("name", data.name)
+          .addTag("name", data.name.toLowerCase(Locale.US))
           .addTag("sourceAddress", data.sourceAddress)
           .addField("lux", data.lux)
           .addTag("userId", data.userId.get.stringify)
