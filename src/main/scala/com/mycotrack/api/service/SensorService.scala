@@ -6,6 +6,7 @@ import akka.actor.ActorSystem
 import com.mycotrack.api.dao.SensorDao
 import com.mycotrack.api.exception.SensorNotFoundException
 import com.mycotrack.api.model._
+import org.joda.time.DateTime
 import scaldi.Injector
 import scaldi.akka.AkkaInjectable
 
@@ -17,6 +18,7 @@ import scala.concurrent.Future
 trait SensorService {
 
   def save(reading: SensorReading): Future[Boolean]
+  def getReadings(location: String, metric: String, start: Option[DateTime], end: Option[DateTime]): Future[List[SensorResult]]
 }
 
 class DefaultSensorService(implicit inj: Injector) extends SensorService with AkkaInjectable {
@@ -34,5 +36,9 @@ class DefaultSensorService(implicit inj: Injector) extends SensorService with Ak
       case "am2315" => sensorDao.save(TempHumidityData(reading))
       case x => throw SensorNotFoundException("Sensor [%s] not found".format(x))
     }
+  }
+
+  def getReadings(location: String, metric: String, start: Option[DateTime], end: Option[DateTime]): Future[List[SensorResult]] = {
+    sensorDao.getReadings(location, metric, start, end)
   }
 }

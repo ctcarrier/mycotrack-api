@@ -64,3 +64,5 @@ object Tmp007Data{
     rawData.length == dataLength
   }
 }
+
+case class SensorResult(result: BigDecimal, timestamp: DateTime)

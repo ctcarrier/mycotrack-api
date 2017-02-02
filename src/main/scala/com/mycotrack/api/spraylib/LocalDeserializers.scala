@@ -18,4 +18,8 @@ trait LocalDeserializers {
       case Failure(x) => Left(MalformedContent(x.getMessage))
     }
   }
+
+  implicit val String2DateTimeConverter = new Deserializer[String, DateTime] {
+    def apply(value: String) = Right(new DateTime(value.toLong))
+  }
 }
