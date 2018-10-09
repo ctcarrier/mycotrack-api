@@ -34,6 +34,7 @@ class DefaultSensorService(implicit inj: Injector) extends SensorService with Ak
       case "tmp007" => sensorDao.save(Tmp007Data(reading))
       case "sht01" => sensorDao.save(TempHumidityData(reading))
       case "am2315" => sensorDao.save(TempHumidityData(reading))
+      case "hx93" => sensorDao.save(TempHumidityData(reading))
       case x => throw SensorNotFoundException("Sensor [%s] not found".format(x))
     }
   }
